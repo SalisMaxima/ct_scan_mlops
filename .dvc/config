@@ -1,0 +1,4 @@
+[core]
+    remote = gcs_storage
+['remote "gcs_storage"']
+    url = gs://dtu-mlops-dvc-storage-482907/ct_scan_mlops
