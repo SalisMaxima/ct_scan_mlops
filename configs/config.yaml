@@ -11,8 +11,8 @@ output_dir: outputs/${experiment_name}
 
 # Logging
 wandb:
-  project: ct_scan_mlops
-  entity: null  # Set your W&B username or team name
+  project: CT_Scan_MLOps
+  entity: mathiashl-danmarks-tekniske-universitet-dtu  # Team entity
   mode: online  # online, offline, disabled
   tags:
     - chest-ct

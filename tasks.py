@@ -45,18 +45,33 @@ def preprocess_data(ctx: Context) -> None:
 
 
 @task
-def train(ctx: Context, args: str = "") -> None:
-    """Train model.
+def train(ctx: Context, entity: str = "", args: str = "") -> None:
+    """Train model with wandb logging.
 
     Args:
+        entity: Your wandb username (required for logging)
         args: Hydra config overrides (e.g., "train.max_epochs=100 model=resnet18")
 
     Examples:
-        invoke train
-        invoke train --args "model=resnet18"
-        invoke train --args "train.max_epochs=100 data.batch_size=64"
+        invoke train --entity your-wandb-username
+        invoke train --entity your-wandb-username --args "model=resnet18"
+        invoke train --entity your-wandb-username --args "train.max_epochs=100"
+        invoke train --args "wandb.mode=disabled"  # Skip wandb, no entity needed
     """
-    ctx.run(f"uv run python -m {PROJECT_NAME}.train {args}", echo=True, pty=not WINDOWS)
+    # Check if wandb is disabled in args
+    wandb_disabled = "wandb.mode=disabled" in args
+
+    if not entity and not wandb_disabled:
+        print("ERROR: --entity is required for wandb logging.")
+        print("Usage: invoke train --entity YOUR_WANDB_USERNAME")
+        print("Or disable wandb: invoke train --args 'wandb.mode=disabled'")
+        return
+
+    # Build command with entity override if provided
+    entity_override = f"wandb.entity={entity}" if entity else ""
+    full_args = f"{entity_override} {args}".strip()
+
+    ctx.run(f"uv run python -m {PROJECT_NAME}.train {full_args}", echo=True, pty=not WINDOWS)
 
 
 @task
@@ -136,16 +151,29 @@ def docker_build_cuda(ctx: Context, progress: str = "plain") -> None:
 
 
 @task
-def docker_train(ctx: Context, cuda: bool = True) -> None:
+def docker_train(ctx: Context, entity: str = "", cuda: bool = True, args: str = "") -> None:
     """Run training in Docker container.
 
     Args:
+        entity: Your wandb username (required for logging)
         cuda: Use CUDA-enabled image (default: True)
+        args: Additional Hydra config overrides
+
+    Examples:
+        invoke docker-train --entity your-wandb-username
+        invoke docker-train --entity your-wandb-username --args "model=resnet18"
     """
+    if not entity:
+        print("ERROR: --entity is required for wandb logging.")
+        print("Usage: invoke docker-train --entity YOUR_WANDB_USERNAME")
+        return
+
     image = "train-cuda:latest" if cuda else "train:latest"
     gpu_flag = "--gpus all" if cuda else ""
+    train_args = f"wandb.entity={entity} {args}".strip()
     ctx.run(
-        f"docker run {gpu_flag} -v $(pwd)/data:/app/data -v $(pwd)/models:/app/models {image}",
+        f"docker run {gpu_flag} -v $(pwd)/data:/app/data -v $(pwd)/models:/app/models "
+        f"-e WANDB_API_KEY=$WANDB_API_KEY {image} {train_args}",
         echo=True,
         pty=not WINDOWS,
     )

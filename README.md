@@ -2,66 +2,43 @@
 
 Chest CT scan multi-classification model for lung tumor detection using PyTorch Lightning.
 
-**Dataset:** [Chest CT-Scan Images Dataset](https://www.kaggle.com/datasets/mohamedhanyyy/chest-ctscan-images) (4 classes: adenocarcinoma, large cell carcinoma, squamous cell carcinoma, normal)
+---
+
+## Project Goal
+
+The overall goal of this project is to build an image multi-classification model that can detect whether a chest CT scan shows signs of three different types of tumor:
+
+1. **Adenocarcinoma** (left lower lobe)
+2. **Large cell carcinoma** (left hilum)
+3. **Squamous cell carcinoma** (left hilum)
+4. **Normal**
+
+We use the Kaggle dataset [Chest CT-Scan Images Dataset](https://www.kaggle.com/datasets/mohamedhanyyy/chest-ctscan-images). In the end, we will have our own model architecture for comparison with ResNet18. Additionally, usage of course material throughout the project is as vast and inclusive as possible to demonstrate knowledge and understanding of MLOps concepts.
+
+## Framework
+
+We use **PyTorch** as the deep learning framework since it is one of the most flexible, widely used frameworks and the de facto academic standard. We use **PyTorch Lightning** to replace as much boilerplate code as possible.
+
+## Data
+
+**Source:** [Chest CT-Scan Images Dataset](https://www.kaggle.com/datasets/mohamedhanyyy/chest-ctscan-images) from Kaggle
+
+The dataset contains ~1000 images with somewhat balanced volume across 4 classifications. We apply data augmentation with rotations and translations to make our model more robust to variations in scan positioning.
+
+**Preprocessing:**
+1. Standardize data to the correct file format (nearly all images are PNG while 12 images are JPEG - these are converted to PNG)
+2. Data is pre-split into training (70%), validation (20%), and test (10%) sets to minimize data leakage
+3. Augmentation with linear transformations for horizontal/vertical flips and rotations, increasing model robustness through significant increases in data volume
+
+## Models
+
+We create our own **CNN model** that takes images and performs multi-classification as output. The CNN model serves as a baseline for comparing performance with **ResNet18** through transfer learning.
 
 ---
 
-## Getting Started (For Group Members)
+## Getting Started
 
-### Prerequisites
-
-Make sure you have these installed:
-
-| Tool | Installation |
-|------|--------------|
-| **Python 3.12** | [python.org](https://www.python.org/downloads/) |
-| **uv** | `curl -LsSf https://astral.sh/uv/install.sh \| sh` (Linux/Mac) or `powershell -c "irm https://astral.sh/uv/install.ps1 \| iex"` (Windows) |
-| **Git** | [git-scm.com](https://git-scm.com/downloads) |
-| **DVC** | Installed automatically with project dependencies |
-| **GCP Access** | Ask Mathias for access to the GCP project |
-
-### Step 1: Clone the Repository
-
-```bash
-git clone https://github.com/SalisMaxima/ct_scan_mlops.git
-cd ct_scan_mlops
-```
-
-### Step 2: Set Up Environment
-
-```bash
-# Create virtual environment and install all dependencies
-uv venv
-source .venv/bin/activate  # Linux/Mac
-# .venv\Scripts\activate   # Windows
-
-uv sync --all-groups
-```
-
-### Step 3: Authenticate with GCP (for DVC)
-
-```bash
-# Login to Google Cloud (one-time setup)
-gcloud auth login
-gcloud auth application-default login
-```
-
-### Step 4: Pull the Dataset
-
-```bash
-# Download the chest CT scan dataset from GCS
-dvc pull
-```
-
-This downloads ~120MB of CT scan images to `data/raw/`.
-
-### Step 5: Verify Setup
-
-```bash
-# Check everything works
-invoke python      # Should show Python 3.12
-invoke test        # Run tests (may have placeholder tests initially)
-```
+See [GetStarted.md](GetStarted.md) for setup instructions.
 
 ---
 
@@ -80,9 +57,9 @@ invoke dev                # Install with dev dependencies
 ### Training
 
 ```bash
-invoke train                              # Train with default config (custom CNN)
-invoke train --args "model=resnet18"      # Train with ResNet18
-invoke train --args "train.max_epochs=100"  # Override hyperparameters
+invoke train --entity YOUR_WANDB_USERNAME                    # Train with default CNN
+invoke train --entity YOUR_WANDB_USERNAME --args "model=resnet18"  # Train ResNet18
+invoke train --args "wandb.mode=disabled"                    # Train without wandb
 ```
 
 ### Code Quality
@@ -122,9 +99,9 @@ invoke git-status                           # Show git status
 Configs are in `configs/`. Override any parameter from command line:
 
 ```bash
-# Examples
-python -m ct_scan_mlops.train model=resnet18
-python -m ct_scan_mlops.train train.max_epochs=100 data.batch_size=64
+# Examples (replace YOUR_USERNAME with your wandb username)
+python -m ct_scan_mlops.train wandb.entity=YOUR_USERNAME model=resnet18
+python -m ct_scan_mlops.train wandb.entity=YOUR_USERNAME train.max_epochs=100
 python -m ct_scan_mlops.train wandb.mode=disabled  # Disable W&B logging
 ```
 
@@ -200,27 +177,6 @@ ct_scan_mlops/
    ```
 
 5. **Create Pull Request** on GitHub
-
----
-
-## Troubleshooting
-
-### "Module not found" errors
-```bash
-uv sync --all-groups  # Reinstall all dependencies
-```
-
-### DVC authentication issues
-```bash
-gcloud auth application-default login
-```
-
-### CUDA/GPU not detected
-Make sure you have NVIDIA drivers installed and use `invoke docker-build-cuda` for GPU training.
-
-### Windows-specific issues
-- Use PowerShell or Git Bash (not CMD)
-- Replace `source .venv/bin/activate` with `.venv\Scripts\activate`
 
 ---
 
