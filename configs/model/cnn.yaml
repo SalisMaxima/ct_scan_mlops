@@ -1,0 +1,18 @@
+# Custom CNN model configuration
+name: custom_cnn
+num_classes: 4
+input_channels: 3
+
+# Architecture
+hidden_dims:
+  - 32
+  - 64
+  - 128
+  - 256
+
+# Regularization
+dropout: 0.3
+batch_norm: true
+
+# Classification head
+fc_hidden: 512

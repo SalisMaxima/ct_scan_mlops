@@ -1,0 +1,40 @@
+# Chest CT scan dataset configuration
+name: chest_ct_scan
+
+# Data paths (relative to paths.data_dir)
+train_dir: train
+valid_dir: valid
+test_dir: test
+
+# Class mapping
+classes:
+  - adenocarcinoma
+  - large_cell_carcinoma
+  - squamous_cell_carcinoma
+  - normal
+
+# DataLoader settings
+batch_size: 32
+num_workers: 4
+pin_memory: true
+persistent_workers: true
+
+# Image settings
+image_size: 224
+normalize:
+  mean: [0.485, 0.456, 0.406]  # ImageNet defaults
+  std: [0.229, 0.224, 0.225]
+
+# Augmentation settings
+augmentation:
+  # Training augmentations
+  train:
+    horizontal_flip: true
+    vertical_flip: true
+    rotation_limit: 15
+    brightness_limit: 0.2
+    contrast_limit: 0.2
+    random_crop: false
+  # Validation/test - only resize and normalize
+  eval:
+    resize_only: true

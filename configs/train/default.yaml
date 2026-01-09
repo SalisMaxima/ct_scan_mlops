@@ -1,0 +1,39 @@
+# Training configuration
+max_epochs: 50
+min_epochs: 10
+
+# Optimizer
+optimizer:
+  name: adam
+  lr: 0.001
+  weight_decay: 0.0001
+  betas: [0.9, 0.999]
+
+# Learning rate scheduler
+scheduler:
+  name: cosine
+  T_max: ${train.max_epochs}
+  eta_min: 0.00001
+
+# Early stopping
+early_stopping:
+  enabled: true
+  monitor: val_loss
+  patience: 10
+  mode: min
+
+# Checkpointing
+checkpoint:
+  monitor: val_acc
+  mode: max
+  save_top_k: 3
+  save_last: true
+
+# Gradient settings
+gradient_clip_val: 1.0
+accumulate_grad_batches: 1
+
+# Hardware
+accelerator: auto  # auto, gpu, cpu, mps
+devices: 1
+precision: 32  # 16, 32, bf16

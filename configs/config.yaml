@@ -1,0 +1,25 @@
+defaults:
+  - model: cnn
+  - data: chest_ct
+  - train: default
+  - _self_
+
+# General settings
+seed: 42
+experiment_name: ct_scan_classifier
+output_dir: outputs/${experiment_name}
+
+# Logging
+wandb:
+  project: ct_scan_mlops
+  entity: null  # Set your W&B username or team name
+  mode: online  # online, offline, disabled
+  tags:
+    - chest-ct
+    - classification
+
+# Paths
+paths:
+  data_dir: data/raw/chest-ctscan-images/Data
+  models_dir: models
+  logs_dir: logs

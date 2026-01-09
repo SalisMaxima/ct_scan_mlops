@@ -1,0 +1,11 @@
+# ResNet18 transfer learning configuration
+name: resnet18
+num_classes: 4
+pretrained: true
+
+# Fine-tuning strategy
+freeze_backbone: false
+unfreeze_at_epoch: 5  # Unfreeze backbone after N epochs (if freeze_backbone=true)
+
+# Model source
+timm_model: resnet18
