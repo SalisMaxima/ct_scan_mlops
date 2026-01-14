@@ -4,12 +4,11 @@ from pathlib import Path
 
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader
 import typer
+from torch.utils.data import DataLoader
 
 from ct_scan_mlops.data import chest_ct
 from ct_scan_mlops.model import build_model
-
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 

@@ -1,13 +1,11 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Dict, List, Tuple
 
 import torch
 from PIL import Image
 from torch.utils.data import Dataset
 from torchvision import transforms
-
 
 # Canonical classes (index order)
 CLASSES = [
@@ -24,11 +22,11 @@ PREFIX_TO_CLASS = {
     "normal": "normal",
     "squamous.cell.carcinoma": "squamous.cell.carcinoma",
 }
-                
+
 IMG_EXTS = {".png", ".jpg"}
 
 
-def _infer_label_from_folder(folder_name: str, class_to_idx: Dict[str, int]) -> int:
+def _infer_label_from_folder(folder_name: str, class_to_idx: dict[str, int]) -> int:
     name = folder_name.lower()
     for prefix, cls in PREFIX_TO_CLASS.items():
         if name.startswith(prefix):
@@ -78,7 +76,7 @@ class ChestCTDataset(Dataset):
             ]
         )
 
-        self.samples: List[Tuple[Path, int]] = []
+        self.samples: list[tuple[Path, int]] = []
         for class_folder in sorted([p for p in self.split_dir.iterdir() if p.is_dir()]):
             label = _infer_label_from_folder(class_folder.name, self.class_to_idx)
             for img_path in class_folder.rglob("*"):
