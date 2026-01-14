@@ -125,8 +125,24 @@ known-third-party = ["wandb", "torch", "lightning"]
 quote-style = "double"
 indent-style = "space"
 
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+markers = [
+    "requires_data: mark test as requiring actual data files (skipped in CI)",
+    "slow: mark test as slow running",
+]
+# Run tests without data by default (CI-friendly)
+addopts = "-v --tb=short"
+
 [tool.coverage.run]
-omit = ["tests/*"]
+omit = [
+    "tests/*",
+    "*/config*.py",  # Hydra temporary config files
+    ".venv/*",
+]
 
 [project.scripts]
 train = "ct_scan_mlops.train:train"

@@ -39,5 +39,7 @@ jobs:
 
       - name: Run tests & coverage
         run: |
+          # Note: Tests use synthetic data and don't require actual dataset files
+          # Data files are in .gitignore and not available in CI
           uv run coverage run -m pytest tests/
-          uv run coverage report -m
+          uv run coverage report -m -i
