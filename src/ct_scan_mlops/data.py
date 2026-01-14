@@ -1,32 +1,54 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
+import albumentations as A
+import numpy as np
 import torch
+import typer
+from albumentations.pytorch import ToTensorV2
+from loguru import logger
+from omegaconf import DictConfig
 from PIL import Image
-from torch.utils.data import Dataset
-from torchvision import transforms
+from torch.utils.data import DataLoader, Dataset
+from tqdm import tqdm
 
-# Canonical classes (index order)
+# Canonical class labels
 CLASSES = [
     "adenocarcinoma",
-    "large.cell.carcinoma",
+    "large_cell_carcinoma",
+    "squamous_cell_carcinoma",
     "normal",
-    "squamous.cell.carcinoma",
 ]
 
-# Folder names in train/valid are longer, but start with these prefixes.
+# Folder name prefixes that map to class labels
 PREFIX_TO_CLASS = {
     "adenocarcinoma": "adenocarcinoma",
-    "large.cell.carcinoma": "large.cell.carcinoma",
+    "large.cell.carcinoma": "large_cell_carcinoma",
+    "large_cell_carcinoma": "large_cell_carcinoma",
+    "squamous.cell.carcinoma": "squamous_cell_carcinoma",
+    "squamous_cell_carcinoma": "squamous_cell_carcinoma",
     "normal": "normal",
-    "squamous.cell.carcinoma": "squamous.cell.carcinoma",
 }
 
-IMG_EXTS = {".png", ".jpg"}
+IMG_EXTS = {".png", ".jpg", ".jpeg"}
+
+# ImageNet normalization stats (default)
+IMAGENET_MEAN = [0.485, 0.456, 0.406]
+IMAGENET_STD = [0.229, 0.224, 0.225]
+
+
+def normalize(images: torch.Tensor) -> torch.Tensor:
+    """Normalize images to mean=0, std=1 per channel."""
+    # images shape: [N, C, H, W]
+    mean = images.mean(dim=(0, 2, 3), keepdim=True)
+    std = images.std(dim=(0, 2, 3), keepdim=True)
+    return (images - mean) / (std + 1e-8)
 
 
 def _infer_label_from_folder(folder_name: str, class_to_idx: dict[str, int]) -> int:
+    """Infer class label from folder name using prefix matching."""
     name = folder_name.lower()
     for prefix, cls in PREFIX_TO_CLASS.items():
         if name.startswith(prefix):
@@ -35,50 +57,188 @@ def _infer_label_from_folder(folder_name: str, class_to_idx: dict[str, int]) -> 
 
 
 def _find_data_root(raw_dir: Path) -> Path:
-    """
-    Your structure in the screenshot is:
-      data/raw/chest-ctscan-images/Data/{train,valid,test}/...
-    This function finds ".../Data".
-    """
+    """Find the Data directory containing train/valid/test splits."""
     raw_dir = raw_dir.expanduser().resolve()
-    # common expected location
+
+    # Common expected location
     candidate = raw_dir / "chest-ctscan-images" / "Data"
     if candidate.exists():
         return candidate
 
-    # fallback: search for a folder literally named "Data"
+    # Try direct path
+    if (raw_dir / "train").exists() and (raw_dir / "test").exists():
+        return raw_dir
+
+    # Fallback: search for a folder named "Data"
     for p in raw_dir.rglob("Data"):
-        if p.is_dir() and (p / "train").exists() and (p / "test").exists():
+        if p.is_dir() and (p / "train").exists():
             return p
 
     raise FileNotFoundError(
         f"Could not find dataset 'Data' folder under {raw_dir}. "
-        f"Expected something like data/raw/chest-ctscan-images/Data/..."
+        f"Expected structure: data/raw/chest-ctscan-images/Data/..."
     )
 
 
+def get_transforms(
+    split: str,
+    image_size: int = 224,
+    mean: list[float] | None = None,
+    std: list[float] | None = None,
+    augmentation_cfg: DictConfig | None = None,
+) -> A.Compose:
+    """Get Albumentations transforms for a given split.
+
+    Args:
+        split: One of 'train', 'valid', 'test'
+        image_size: Target image size
+        mean: Normalization mean (default: ImageNet)
+        std: Normalization std (default: ImageNet)
+        augmentation_cfg: Hydra config for augmentation settings
+
+    Returns:
+        Albumentations Compose pipeline
+    """
+    if mean is None:
+        mean = IMAGENET_MEAN
+    if std is None:
+        std = IMAGENET_STD
+
+    # Base transforms (always applied)
+    base_transforms = [
+        A.Resize(image_size, image_size),
+        A.Normalize(mean=mean, std=std),
+        ToTensorV2(),
+    ]
+
+    if split == "train" and augmentation_cfg is not None:
+        train_cfg = augmentation_cfg.get("train", {})
+        aug_transforms = []
+
+        if train_cfg.get("horizontal_flip", False):
+            aug_transforms.append(A.HorizontalFlip(p=0.5))
+
+        if train_cfg.get("vertical_flip", False):
+            aug_transforms.append(A.VerticalFlip(p=0.5))
+
+        rotation_limit = train_cfg.get("rotation_limit", 0)
+        if rotation_limit > 0:
+            aug_transforms.append(A.Rotate(limit=rotation_limit, p=0.5))
+
+        brightness = train_cfg.get("brightness_limit", 0)
+        contrast = train_cfg.get("contrast_limit", 0)
+        if brightness > 0 or contrast > 0:
+            aug_transforms.append(
+                A.RandomBrightnessContrast(
+                    brightness_limit=brightness,
+                    contrast_limit=contrast,
+                    p=0.5,
+                )
+            )
+
+        # Augmentations first, then resize + normalize
+        return A.Compose(aug_transforms + base_transforms)
+
+    # Validation/test: only resize and normalize
+    return A.Compose(base_transforms)
+
+
+class ProcessedChestCTDataset(Dataset):
+    """Dataset for preprocessed Chest CT scan images (loads from .pt files).
+
+    This is the fast dataset class that loads pre-processed tensors from disk.
+    Use preprocess() to generate the .pt files first.
+    """
+
+    def __init__(self, data_path: Path, split: str = "train") -> None:
+        """Initialize dataset from processed tensors.
+
+        Args:
+            data_path: Path to processed data folder (containing .pt files)
+            split: One of 'train', 'valid', 'test'
+        """
+        self.data_path = Path(data_path)
+        self.split = split
+
+        # Load pre-processed tensors
+        images_path = self.data_path / f"{split}_images.pt"
+        labels_path = self.data_path / f"{split}_labels.pt"
+
+        if not images_path.exists():
+            raise FileNotFoundError(
+                f"Processed data not found at {images_path}. "
+                f"Run 'invoke preprocess-data' or 'python -m ct_scan_mlops.data' first."
+            )
+
+        self.images = torch.load(images_path, weights_only=True)
+        self.labels = torch.load(labels_path, weights_only=True)
+
+        # Class mapping
+        self.class_to_idx = {c: i for i, c in enumerate(CLASSES)}
+        self.idx_to_class = {i: c for c, i in self.class_to_idx.items()}
+        self.num_classes = len(CLASSES)
+
+        logger.info(f"Loaded {len(self.labels)} processed samples for split '{split}'")
+
+    def __len__(self) -> int:
+        return len(self.labels)
+
+    def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor]:
+        return self.images[idx], self.labels[idx]
+
+
 class ChestCTDataset(Dataset):
-    def __init__(self, raw_dir: str | Path = "data/raw", split: str = "train", image_size: int = 224):
+    """Dataset for Chest CT scan images (loads from raw images).
+
+    Loads images from disk and applies transforms on-the-fly.
+    Use ProcessedChestCTDataset for faster loading with preprocessed tensors.
+    """
+
+    def __init__(
+        self,
+        data_dir: str | Path,
+        split: str = "train",
+        transform: A.Compose | None = None,
+        image_size: int = 224,
+    ) -> None:
+        """Initialize dataset.
+
+        Args:
+            data_dir: Path to data root (containing train/valid/test folders)
+            split: One of 'train', 'valid', 'test'
+            transform: Albumentations transform pipeline
+            image_size: Target image size (used if transform is None)
+        """
         if split not in {"train", "valid", "test"}:
             raise ValueError("split must be one of: 'train', 'valid', 'test'")
 
-        self.data_root = _find_data_root(Path(raw_dir))
-        self.split_dir = self.data_root / split
+        self.data_dir = Path(data_dir)
+        self.split = split
+        self.split_dir = self.data_dir / split
 
+        if not self.split_dir.exists():
+            raise FileNotFoundError(f"Split directory not found: {self.split_dir}")
+
+        # Class mapping
         self.class_to_idx = {c: i for i, c in enumerate(CLASSES)}
         self.idx_to_class = {i: c for c, i in self.class_to_idx.items()}
+        self.num_classes = len(CLASSES)
 
-        # minimal transforms (no augmentation here; keep it simple)
-        self.transform = transforms.Compose(
-            [
-                transforms.Resize((image_size, image_size)),
-                transforms.ToTensor(),  # float32, [0,1], shape (C,H,W)
-            ]
-        )
+        # Transform pipeline
+        if transform is not None:
+            self.transform = transform
+        else:
+            self.transform = get_transforms(split, image_size=image_size)
 
+        # Collect samples
         self.samples: list[tuple[Path, int]] = []
-        for class_folder in sorted([p for p in self.split_dir.iterdir() if p.is_dir()]):
-            label = _infer_label_from_folder(class_folder.name, self.class_to_idx)
+        for class_folder in sorted(p for p in self.split_dir.iterdir() if p.is_dir()):
+            try:
+                label = _infer_label_from_folder(class_folder.name, self.class_to_idx)
+            except ValueError as e:
+                logger.warning(f"Skipping folder: {e}")
+                continue
+
             for img_path in class_folder.rglob("*"):
                 if img_path.is_file() and img_path.suffix.lower() in IMG_EXTS:
                     self.samples.append((img_path, label))
@@ -86,20 +246,272 @@ class ChestCTDataset(Dataset):
         if len(self.samples) == 0:
             raise FileNotFoundError(f"No images found in {self.split_dir}")
 
+        logger.info(f"Loaded {len(self.samples)} images for split '{split}'")
+
     def __len__(self) -> int:
         return len(self.samples)
 
-    def __getitem__(self, idx: int):
+    def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor]:
         img_path, label = self.samples[idx]
+
+        # Load image as RGB numpy array
         img = Image.open(img_path).convert("RGB")
-        x = self.transform(img)
+        img_array = np.array(img)
+
+        # Apply transforms
+        transformed = self.transform(image=img_array)
+        x = transformed["image"]
+
         y = torch.tensor(label, dtype=torch.long)
         return x, y
 
 
-def chest_ct(raw_dir: str | Path = "data/raw", image_size: int = 224):
-    """Convenience helper: returns (train_ds, val_ds, test_ds)."""
-    train_ds = ChestCTDataset(raw_dir=raw_dir, split="train", image_size=image_size)
-    val_ds = ChestCTDataset(raw_dir=raw_dir, split="valid", image_size=image_size)
-    test_ds = ChestCTDataset(raw_dir=raw_dir, split="test", image_size=image_size)
+def preprocess(
+    raw_dir: str | Path = "data/raw",
+    output_dir: str | Path = "data/processed",
+    image_size: int = 224,
+) -> dict[str, Any]:
+    """Preprocess raw images and save as tensors.
+
+    Loads all images, resizes them, normalizes to mean=0/std=1,
+    and saves as PyTorch tensors for fast loading during training.
+
+    Args:
+        raw_dir: Path to raw data directory
+        output_dir: Path to save processed data
+        image_size: Target image size
+
+    Returns:
+        Dictionary with preprocessing statistics
+    """
+    print(f"Preprocessing data from {raw_dir}...")
+
+    data_root = _find_data_root(Path(raw_dir))
+    output_path = Path(output_dir)
+    output_path.mkdir(parents=True, exist_ok=True)
+
+    class_to_idx = {c: i for i, c in enumerate(CLASSES)}
+    stats: dict[str, Any] = {"image_size": image_size, "classes": CLASSES}
+
+    # Simple transform for preprocessing (resize only, no augmentation)
+    preprocess_transform = A.Compose(
+        [
+            A.Resize(image_size, image_size),
+            ToTensorV2(),
+        ]
+    )
+
+    for split in ["train", "valid", "test"]:
+        split_dir = data_root / split
+        if not split_dir.exists():
+            print(f"  Warning: Split '{split}' not found, skipping")
+            continue
+
+        images_list: list[torch.Tensor] = []
+        labels_list: list[int] = []
+
+        # Collect all image paths
+        all_samples: list[tuple[Path, int]] = []
+        for class_folder in sorted(p for p in split_dir.iterdir() if p.is_dir()):
+            try:
+                label = _infer_label_from_folder(class_folder.name, class_to_idx)
+            except ValueError:
+                continue
+
+            for img_path in class_folder.rglob("*"):
+                if img_path.is_file() and img_path.suffix.lower() in IMG_EXTS:
+                    all_samples.append((img_path, label))
+
+        print(f"  Processing {len(all_samples)} images for split '{split}'...")
+
+        for img_path, label in tqdm(all_samples, desc=f"  {split}"):
+            img = Image.open(img_path).convert("RGB")
+            img_array = np.array(img)
+            transformed = preprocess_transform(image=img_array)
+            images_list.append(transformed["image"])
+            labels_list.append(label)
+
+        # Stack into tensors
+        images = torch.stack(images_list).float() / 255.0  # Scale to [0, 1]
+        labels = torch.tensor(labels_list, dtype=torch.long)
+
+        # Normalize to mean=0, std=1 (computed per-split for train, applied same way)
+        if split == "train":
+            # Compute and save normalization stats from training data
+            mean = images.mean(dim=(0, 2, 3)).tolist()
+            std = images.std(dim=(0, 2, 3)).tolist()
+            stats["mean"] = mean
+            stats["std"] = std
+            print(
+                f"  Computed normalization stats - mean: {[f'{m:.4f}' for m in mean]}, std: {[f'{s:.4f}' for s in std]}"
+            )
+
+        # Apply normalization
+        images = normalize(images)
+
+        # Save tensors
+        torch.save(images, output_path / f"{split}_images.pt")
+        torch.save(labels, output_path / f"{split}_labels.pt")
+
+        stats[f"{split}_count"] = len(labels)
+        stats[f"{split}_shape"] = list(images.shape)
+        print(f"  Saved {split}: {images.shape}")
+
+    # Save stats
+    torch.save(stats, output_path / "stats.pt")
+
+    print("\nPreprocessing complete!")
+    print(f"  Output directory: {output_path}")
+    print(f"  Train samples: {stats.get('train_count', 0)}")
+    print(f"  Valid samples: {stats.get('valid_count', 0)}")
+    print(f"  Test samples: {stats.get('test_count', 0)}")
+
+    return stats
+
+
+def create_dataloaders(
+    cfg: DictConfig,
+    use_processed: bool = True,
+) -> tuple[DataLoader[Any], DataLoader[Any], DataLoader[Any]]:
+    """Create train, validation, and test dataloaders from config.
+
+    Args:
+        cfg: Hydra config containing data and paths settings
+        use_processed: If True, use processed tensors (faster). If False, load raw images.
+
+    Returns:
+        Tuple of (train_loader, val_loader, test_loader)
+    """
+    data_cfg = cfg.data
+    processed_path = Path("data/processed")
+
+    # Check if processed data exists
+    if use_processed and (processed_path / "train_images.pt").exists():
+        logger.info("Using preprocessed data from data/processed/")
+        train_ds = ProcessedChestCTDataset(processed_path, split="train")
+        val_ds = ProcessedChestCTDataset(processed_path, split="valid")
+        test_ds = ProcessedChestCTDataset(processed_path, split="test")
+    else:
+        if use_processed:
+            logger.warning("Processed data not found, falling back to raw images")
+        logger.info("Loading raw images (slower)")
+
+        data_dir = _find_data_root(Path(cfg.paths.data_dir))
+
+        # Get normalization stats from config
+        mean = list(data_cfg.normalize.mean)
+        std = list(data_cfg.normalize.std)
+        image_size = data_cfg.image_size
+
+        # Create transforms for each split
+        train_transform = get_transforms(
+            "train",
+            image_size=image_size,
+            mean=mean,
+            std=std,
+            augmentation_cfg=data_cfg.augmentation,
+        )
+        eval_transform = get_transforms(
+            "valid",
+            image_size=image_size,
+            mean=mean,
+            std=std,
+        )
+
+        train_ds = ChestCTDataset(data_dir, split="train", transform=train_transform)
+        val_ds = ChestCTDataset(data_dir, split="valid", transform=eval_transform)
+        test_ds = ChestCTDataset(data_dir, split="test", transform=eval_transform)
+
+    # Create dataloaders
+    train_loader = DataLoader(
+        train_ds,
+        batch_size=data_cfg.batch_size,
+        shuffle=True,
+        num_workers=data_cfg.num_workers,
+        pin_memory=data_cfg.get("pin_memory", True),
+        persistent_workers=data_cfg.get("persistent_workers", False) and data_cfg.num_workers > 0,
+    )
+
+    val_loader = DataLoader(
+        val_ds,
+        batch_size=data_cfg.batch_size,
+        shuffle=False,
+        num_workers=data_cfg.num_workers,
+        pin_memory=data_cfg.get("pin_memory", True),
+        persistent_workers=data_cfg.get("persistent_workers", False) and data_cfg.num_workers > 0,
+    )
+
+    test_loader = DataLoader(
+        test_ds,
+        batch_size=data_cfg.batch_size,
+        shuffle=False,
+        num_workers=data_cfg.num_workers,
+        pin_memory=data_cfg.get("pin_memory", True),
+        persistent_workers=data_cfg.get("persistent_workers", False) and data_cfg.num_workers > 0,
+    )
+
+    return train_loader, val_loader, test_loader
+
+
+def chest_ct(
+    raw_dir: str | Path = "data/raw",
+    image_size: int = 224,
+) -> tuple[Dataset, Dataset, Dataset]:
+    """Convenience helper to load train, val, and test datasets from raw images.
+
+    Args:
+        raw_dir: Path to raw data directory
+        image_size: Target image size
+
+    Returns:
+        Tuple of (train_dataset, val_dataset, test_dataset)
+    """
+    data_root = _find_data_root(Path(raw_dir))
+
+    train_ds = ChestCTDataset(data_root, split="train", image_size=image_size)
+    val_ds = ChestCTDataset(data_root, split="valid", image_size=image_size)
+    test_ds = ChestCTDataset(data_root, split="test", image_size=image_size)
+
     return train_ds, val_ds, test_ds
+
+
+def processed_chest_ct(
+    processed_dir: str | Path = "data/processed",
+) -> tuple[Dataset, Dataset, Dataset]:
+    """Convenience helper to load train, val, and test datasets from processed tensors.
+
+    Args:
+        processed_dir: Path to processed data directory
+
+    Returns:
+        Tuple of (train_dataset, val_dataset, test_dataset)
+    """
+    processed_path = Path(processed_dir)
+
+    train_ds = ProcessedChestCTDataset(processed_path, split="train")
+    val_ds = ProcessedChestCTDataset(processed_path, split="valid")
+    test_ds = ProcessedChestCTDataset(processed_path, split="test")
+
+    return train_ds, val_ds, test_ds
+
+
+# CLI Application
+app = typer.Typer()
+
+
+@app.command()
+def main(
+    raw_dir: str = typer.Option("data/raw", help="Path to raw data directory"),
+    output_dir: str = typer.Option("data/processed", help="Path to save processed data"),
+    image_size: int = typer.Option(224, help="Target image size"),
+) -> None:
+    """Preprocess raw CT scan images and save as tensors.
+
+    This command loads all images from data/raw, resizes and normalizes them,
+    then saves as .pt tensor files in data/processed for fast loading during training.
+    """
+    preprocess(raw_dir=raw_dir, output_dir=output_dir, image_size=image_size)
+
+
+if __name__ == "__main__":
+    app()

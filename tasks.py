@@ -75,15 +75,29 @@ def train(ctx: Context, entity: str = "", args: str = "") -> None:
 
 
 @task
-def evaluate(ctx: Context, checkpoint: str = "") -> None:
-    """Evaluate model.
+def evaluate(ctx: Context, checkpoint: str = "", wandb: bool = False, entity: str = "") -> None:
+    """Evaluate model on test set.
 
     Args:
-        checkpoint: Path to model checkpoint
+        checkpoint: Path to model checkpoint (required)
+        wandb: Log results to W&B
+        entity: Your wandb username (for W&B logging)
+
+    Examples:
+        invoke evaluate --checkpoint outputs/2026-01-14/12-34-56/best_model.pt
+        invoke evaluate --checkpoint models/best_model.pt --wandb --entity your-username
     """
-    cmd = f"uv run python -m {PROJECT_NAME}.evaluate"
-    if checkpoint:
-        cmd += f" --checkpoint {checkpoint}"
+    if not checkpoint:
+        print("ERROR: --checkpoint is required")
+        print("Usage: invoke evaluate --checkpoint path/to/best_model.pt")
+        print("Example: invoke evaluate --checkpoint outputs/2026-01-14/12-34-56/best_model.pt")
+        return
+
+    cmd = f"uv run python -m {PROJECT_NAME}.evaluate {checkpoint}"
+    if wandb:
+        cmd += " --wandb"
+        if entity:
+            cmd += f" --wandb-entity {entity}"
     ctx.run(cmd, echo=True, pty=not WINDOWS)
 
 

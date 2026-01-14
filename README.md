@@ -42,6 +42,25 @@ See [GetStarted.md](GetStarted.md) for setup instructions.
 
 ---
 
+## Team Collaboration
+
+This project uses **Weights & Biases** for experiment tracking with team collaboration.
+
+**For Team Members:** See [COLLABORATION.md](COLLABORATION.md) for:
+- How to join the W&B team
+- Running training with automatic attribution
+- Viewing and comparing runs
+- Best practices
+
+**Quick Start:**
+1. Accept W&B team invitation email
+2. Run: `wandb team` (verify you're in `mathiashl-danmarks-tekniske-universitet-dtu`)
+3. Train: `invoke train` (entity already configured)
+
+**Team Dashboard:** https://wandb.ai/mathiashl-danmarks-tekniske-universitet-dtu/CT_Scan_MLOps
+
+---
+
 ## Quick Reference Commands
 
 All commands use [invoke](https://www.pyinvoke.org/). Run `invoke --list` to see all available commands.
@@ -54,12 +73,21 @@ invoke sync               # Sync dependencies
 invoke dev                # Install with dev dependencies
 ```
 
+### Data Preprocessing
+
+```bash
+invoke preprocess-data                            # Preprocess images (run once)
+```
+
+Creates `data/processed/` with normalized tensors for fast training.
+
 ### Training
 
 ```bash
-invoke train --entity YOUR_WANDB_USERNAME                    # Train with default CNN
-invoke train --entity YOUR_WANDB_USERNAME --args "model=resnet18"  # Train ResNet18
-invoke train --args "wandb.mode=disabled"                    # Train without wandb
+invoke train                                      # Train with default CNN
+invoke train --args "model=resnet18"              # Train ResNet18
+invoke train --args "train.max_epochs=20"         # Custom epochs
+invoke train --args "wandb.mode=disabled"         # Train without W&B logging
 ```
 
 ### Code Quality

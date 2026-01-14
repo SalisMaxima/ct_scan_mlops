@@ -12,11 +12,12 @@ output_dir: outputs/${experiment_name}
 # Logging
 wandb:
   project: CT_Scan_MLOps
-  entity: mathiashl-danmarks-tekniske-universitet-dtu  # Team entity
+  entity: mathiashl-danmarks-tekniske-universitet-dtu  # Team entity (all members must join this team)
   mode: online  # online, offline, disabled
   tags:
     - chest-ct
     - classification
+    - mlops-course
 
 # Paths
 paths:
