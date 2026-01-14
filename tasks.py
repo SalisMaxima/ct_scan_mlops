@@ -49,25 +49,18 @@ def train(ctx: Context, entity: str = "", args: str = "") -> None:
     """Train model with wandb logging.
 
     Args:
-        entity: Your wandb username (required for logging)
+        entity: Wandb entity (optional, defaults to team entity from config)
         args: Hydra config overrides (e.g., "train.max_epochs=100 model=resnet18")
 
     Examples:
-        invoke train --entity your-wandb-username
-        invoke train --entity your-wandb-username --args "model=resnet18"
-        invoke train --entity your-wandb-username --args "train.max_epochs=100"
-        invoke train --args "wandb.mode=disabled"  # Skip wandb, no entity needed
+        invoke train
+        invoke train --args "model=resnet18"
+        invoke train --args "train.max_epochs=100"
+        invoke train --entity your-personal-username  # Override default team entity
+        invoke train --args "wandb.mode=disabled"  # Skip wandb
     """
-    # Check if wandb is disabled in args
-    wandb_disabled = "wandb.mode=disabled" in args
-
-    if not entity and not wandb_disabled:
-        print("ERROR: --entity is required for wandb logging.")
-        print("Usage: invoke train --entity YOUR_WANDB_USERNAME")
-        print("Or disable wandb: invoke train --args 'wandb.mode=disabled'")
-        return
-
     # Build command with entity override if provided
+    # If no entity provided, config.yaml default (team entity) will be used
     entity_override = f"wandb.entity={entity}" if entity else ""
     full_args = f"{entity_override} {args}".strip()
 
