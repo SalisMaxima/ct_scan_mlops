@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import shutil
 from pathlib import Path
 from typing import Any
 
@@ -266,6 +267,44 @@ class ChestCTDataset(Dataset):
         return x, y
 
 
+def download_data(target_dir: str | Path = "data/raw") -> Path:
+    """Download CT scan dataset from Kaggle.
+
+    Args:
+        target_dir: Directory to save the downloaded data
+
+    Returns:
+        Path to the downloaded data directory
+
+    Raises:
+        ImportError: If kagglehub is not installed
+    """
+    try:
+        import kagglehub
+    except ImportError as e:
+        raise ImportError(
+            "kagglehub is required for downloading data. Install it with: pip install kagglehub or uv add kagglehub"
+        ) from e
+
+    target_path = Path(target_dir)
+    target_path.mkdir(parents=True, exist_ok=True)
+
+    print("Downloading dataset from Kaggle...")
+    cache_path = kagglehub.dataset_download("mohamedhanyyy/chest-ctscan-images")
+
+    # Copy to target directory
+    final_path = target_path / "chest-ctscan-images"
+    if final_path.exists():
+        print(f"Removing existing data at {final_path}...")
+        shutil.rmtree(final_path)
+
+    print(f"Copying data to {final_path}...")
+    shutil.copytree(cache_path, final_path)
+
+    print(f"✓ Dataset downloaded successfully to: {final_path}")
+    return final_path
+
+
 def preprocess(
     raw_dir: str | Path = "data/raw",
     output_dir: str | Path = "data/processed",
@@ -500,7 +539,20 @@ app = typer.Typer()
 
 
 @app.command()
-def main(
+def download(
+    target_dir: str = typer.Option("data/raw", help="Directory to save downloaded data"),
+) -> None:
+    """Download CT scan dataset from Kaggle.
+
+    Example:
+        python -m ct_scan_mlops.data download
+        python -m ct_scan_mlops.data download --target-dir data/raw
+    """
+    download_data(target_dir=target_dir)
+
+
+@app.command(name="preprocess")
+def preprocess_cmd(
     raw_dir: str = typer.Option("data/raw", help="Path to raw data directory"),
     output_dir: str = typer.Option("data/processed", help="Path to save processed data"),
     image_size: int = typer.Option(224, help="Target image size"),
@@ -509,6 +561,10 @@ def main(
 
     This command loads all images from data/raw, resizes and normalizes them,
     then saves as .pt tensor files in data/processed for fast loading during training.
+
+    Example:
+        python -m ct_scan_mlops.data preprocess
+        python -m ct_scan_mlops.data preprocess --image-size 256
     """
     preprocess(raw_dir=raw_dir, output_dir=output_dir, image_size=image_size)
 

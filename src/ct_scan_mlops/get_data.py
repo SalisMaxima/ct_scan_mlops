@@ -1,20 +1,15 @@
-# This script downloads the latest version of the Brain MRI Images for Brain Tumor Detection dataset from Kaggle.
-import shutil
-from pathlib import Path
+"""Convenience wrapper for downloading CT scan dataset.
 
-import kagglehub
+This script is a simple wrapper around the download_data() function in data.py.
+You can use this directly or call the function from the module.
 
-# Define the target directory
-RAW_DATA_DIR = Path(__file__).parent.parent.parent / "data" / "raw"
+Usage:
+    python get_data.py                           # Downloads to data/raw
+    python -m ct_scan_mlops.data download        # Same as above
+    invoke download-data                          # Using invoke task
+"""
 
-# Download latest version
-cache_path = kagglehub.dataset_download("mohamedhanyyy/chest-ctscan-images")
+from ct_scan_mlops.data import download_data
 
-# Copy to data/raw folder
-RAW_DATA_DIR.mkdir(parents=True, exist_ok=True)
-target_path = RAW_DATA_DIR / "chest-ctscan-images"
-if target_path.exists():
-    shutil.rmtree(target_path)
-shutil.copytree(cache_path, target_path)
-
-print("Dataset downloaded to:", target_path)
+if __name__ == "__main__":
+    download_data()

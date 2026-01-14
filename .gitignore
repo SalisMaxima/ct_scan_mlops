@@ -201,5 +201,6 @@ outputs/
 # Credentials
 .config/gcloud/application_default_credentials.json
 
-# Claude
+# Claude Code (custom agents and commands)
 CLAUDE.md
+.claude/

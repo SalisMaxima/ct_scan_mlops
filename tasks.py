@@ -39,9 +39,15 @@ def python(ctx):
 
 # Project commands
 @task
+def download_data(ctx: Context) -> None:
+    """Download CT scan dataset from Kaggle."""
+    ctx.run(f"uv run python -m {PROJECT_NAME}.data download", echo=True, pty=not WINDOWS)
+
+
+@task
 def preprocess_data(ctx: Context) -> None:
-    """Preprocess data."""
-    ctx.run(f"uv run python -m {PROJECT_NAME}.data", echo=True, pty=not WINDOWS)
+    """Preprocess data (resize, normalize, save as tensors)."""
+    ctx.run(f"uv run python -m {PROJECT_NAME}.data preprocess", echo=True, pty=not WINDOWS)
 
 
 @task
