@@ -5,17 +5,12 @@ import sys
 from pathlib import Path
 
 import hydra
-import matplotlib.pyplot as plt
 import numpy as np
+import pytorch_lightning as pl
 import torch
-import torch.nn as nn
 import wandb
 from loguru import logger
 from omegaconf import DictConfig, OmegaConf
-from torch.optim.lr_scheduler import CosineAnnealingLR
-from tqdm import tqdm
-import pytorch_lightning as pl
-
 
 from ct_scan_mlops.data import create_dataloaders
 from ct_scan_mlops.model import build_model
@@ -24,7 +19,6 @@ from ct_scan_mlops.model import build_model
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 _CONFIG_PATH = str(_PROJECT_ROOT / "configs")
 
-import pytorch_lightning as pl
 
 
 class LitModel(pl.LightningModule):
@@ -159,7 +153,7 @@ def train_model(
 
     trainer.fit(lit_model, train_dataloaders=train_loader, val_dataloaders=val_loader)
 
-    # Save final model weights 
+    # Save final model weights
     final_model_path = output_path / "model.pt"
     torch.save(lit_model.model.state_dict(), final_model_path)
     logger.info(f"Final model saved to {final_model_path}")
