@@ -23,7 +23,7 @@ from ct_scan_mlops.model import build_model
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 _CONFIG_PATH = str(_PROJECT_ROOT / "configs")
 
-profiling_dir = Path("artifacts/profiling")
+profiling_dir = _PROJECT_ROOT / "artifacts" / "profiling"
 profiling_dir.mkdir(parents=True, exist_ok=True)
 
 
