@@ -204,3 +204,4 @@ outputs/
 # Claude Code (custom agents and commands)
 CLAUDE.md
 .claude/
+Feature_Extraction.md

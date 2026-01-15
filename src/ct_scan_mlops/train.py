@@ -14,8 +14,9 @@ from loguru import logger
 from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning.callbacks import EarlyStopping, LearningRateMonitor, ModelCheckpoint
 from pytorch_lightning.loggers import WandbLogger
+from torch.profiler import ProfilerActivity, profile, tensorboard_trace_handler
 
-from ct_scan_mlops.data import create_dataloaders
+from ct_scan_mlops.data import ChestCTDataModule
 from ct_scan_mlops.model import build_model
 
 # Find project root for Hydra config path
@@ -52,17 +53,28 @@ class LitModel(pl.LightningModule):
 
     def training_step(self, batch, batch_idx: int):
         x, y = batch
-        y_hat = self(x)
-        loss = self.criterion(y_hat, y)
+        if batch_idx == 0 and self.current_epoch == 0:
+            with profile(
+                activities=[ProfilerActivity.CPU],
+                record_shapes=True,
+                with_stack=True,
+                on_trace_ready=tensorboard_trace_handler("tb_profiler"),
+            ) as prof:
+                for _ in range(5):
+                    y_hat = self(x)
+                    loss = self.criterion(y_hat, y)
+                    prof.step()
+
+            print(prof.key_averages().table(sort_by="cpu_time_total", row_limit=20))
+
+        else:
+            y_hat = self(x)
+            loss = self.criterion(y_hat, y)
+
         acc = self._compute_accuracy(y_hat, y)
 
-        # Batch-level logging
-        self.log("batch/train_loss", loss, on_step=True, on_epoch=False, prog_bar=False)
-        self.log("batch/train_acc", acc, on_step=True, on_epoch=False, prog_bar=False)
-
-        # Epoch-level logging (auto-averaged)
-        self.log("train_loss", loss, on_step=False, on_epoch=True, prog_bar=True)
-        self.log("train_acc", acc, on_step=False, on_epoch=True, prog_bar=True)
+        self.log("train_loss", loss, on_epoch=True, prog_bar=True)
+        self.log("train_acc", acc, on_epoch=True, prog_bar=True)
 
         return loss
 
@@ -74,6 +86,18 @@ class LitModel(pl.LightningModule):
 
         self.log("val_loss", loss, on_step=False, on_epoch=True, prog_bar=True)
         self.log("val_acc", acc, on_step=False, on_epoch=True, prog_bar=True)
+
+        return loss
+
+    def test_step(self, batch, batch_idx: int):
+        """Test step for model evaluation."""
+        x, y = batch
+        y_hat = self(x)
+        loss = self.criterion(y_hat, y)
+        acc = self._compute_accuracy(y_hat, y)
+
+        self.log("test_loss", loss, on_step=False, on_epoch=True)
+        self.log("test_acc", acc, on_step=False, on_epoch=True)
 
         return loss
 
@@ -231,9 +255,10 @@ def train_model(
     set_seed(cfg.seed, get_device())
     pl.seed_everything(cfg.seed, workers=True)
 
-    # Data
-    train_loader, val_loader, _ = create_dataloaders(cfg)
-    logger.info(f"Train batches: {len(train_loader)}, Val batches: {len(val_loader)}")
+    # Data - using LightningDataModule for best practices
+    datamodule = ChestCTDataModule(cfg)
+    datamodule.setup(stage="fit")
+    logger.info(f"Train batches: {len(datamodule.train_dataloader())}, Val batches: {len(datamodule.val_dataloader())}")
 
     # Lightning model
     lit_model = LitModel(cfg)
@@ -293,7 +318,7 @@ def train_model(
     )
 
     # ---- Train ----
-    trainer.fit(lit_model, train_dataloaders=train_loader, val_dataloaders=val_loader)
+    trainer.fit(lit_model, datamodule=datamodule)
 
     # ---- Save final model weights (pure PyTorch format for easy loading) ----
     final_model_path = output_path / "model.pt"

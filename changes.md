@@ -149,6 +149,9 @@ python src/ct_scan_mlops/train.py wandb.mode=disabled
 # Combine multiple overrides
 python src/ct_scan_mlops/train.py model=resnet18 train.max_epochs=10 train.optimizer.lr=0.0005
 
+# profiler for trainer
+python tensorboard --logdir tb_profiler
+
 # Using invoke with W&B entity
 invoke train --entity your-wandb-username
 invoke train --entity your-wandb-username --args "model=resnet18"
@@ -249,3 +252,65 @@ The pipeline handles the Kaggle chest CT scan dataset:
 | No augmentation | Albumentations pipeline |
 | No early stopping | Configurable patience |
 | Fixed architecture | Fully configurable CNN |
+
+---
+
+## TODO: Profiler Improvements (commit bb59610)
+
+The torch-tb-profiler was added in commit `bb59610`. The following issues should be addressed when time permits:
+
+| Issue | Priority | Description |
+|-------|----------|-------------|
+| Hardcoded profiler | Medium | Profiler always runs on first batch - add config option `train.profiler.enabled: false` |
+| Print statement | Low | Uses `print()` instead of `logger.info()` - inconsistent with rest of codebase |
+| Hardcoded output path | Medium | `"tb_profiler"` hardcoded, should respect Hydra's `output_dir` |
+| CPU-only profiling | Low | Only uses `ProfilerActivity.CPU`, add CUDA support when GPU available |
+
+### Suggested Fix
+
+Add to `configs/train/default.yaml`:
+```yaml
+profiler:
+  enabled: false
+  output_dir: ${output_dir}/profiler
+  activities: [cpu]  # or [cpu, cuda]
+```
+
+Then make `training_step` check `self.cfg.train.profiler.enabled` before running profiler.
+
+---
+
+## TODO: Use Lightning's Built-in Profiler (Best Practice)
+
+The current profiler implementation uses a custom `torch.profiler` in `training_step`. PyTorch Lightning recommends using the Trainer's built-in profiler argument instead.
+
+### Current Implementation (in `training_step`)
+```python
+if batch_idx == 0 and self.current_epoch == 0:
+    with profile(activities=[ProfilerActivity.CPU], ...):
+        # custom profiling code
+```
+
+### Recommended Implementation
+```python
+from pytorch_lightning.profilers import PyTorchProfiler
+
+profiler = PyTorchProfiler(
+    dirpath=output_path,
+    filename="profile",
+    activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
+    schedule=torch.profiler.schedule(wait=1, warmup=1, active=3, repeat=1),
+    on_trace_ready=torch.profiler.tensorboard_trace_handler(str(output_path / "tb_profiler")),
+)
+
+trainer = pl.Trainer(
+    ...
+    profiler=profiler,  # or profiler="simple" / "advanced" for basic profiling
+)
+```
+
+### Benefits
+- Cleaner separation of concerns (profiling config outside model code)
+- Configurable via Hydra without code changes
+- Supports multiple profiler types (`simple`, `advanced`, `pytorch`, `xla`)
+- Automatic integration with Lightning's training loop

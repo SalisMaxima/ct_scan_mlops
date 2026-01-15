@@ -12,12 +12,15 @@ on:
 
 jobs:
   format:
-    name: Check code formatting
+    name: Check and fix code formatting
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
+        with:
+          ref: ${{ github.head_ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install uv
         uses: astral-sh/setup-uv@v7
@@ -32,12 +35,15 @@ jobs:
       - name: Install dependencies
         run: |
           uv sync --all-extras --dev
-          uv pip list
 
-      - name: ruff check
+      - name: Run ruff fix and format
         run: |
-          uv run ruff check .
+          uv run ruff check . --fix
+          uv run ruff format .
 
-      - name: ruff format
-        run: |
-          uv run ruff format --check .
+      - name: Commit fixes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "style: auto-fix ruff linting issues"
+          commit_user_name: "github-actions[bot]"
+          commit_user_email: "github-actions[bot]@users.noreply.github.com"
