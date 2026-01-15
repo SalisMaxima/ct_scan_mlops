@@ -1,6 +1,5 @@
 from __future__ import annotations
-from pathlib import Path
-from hydra.core.hydra_config import HydraConfig
+
 import random
 import sys
 from pathlib import Path
@@ -26,6 +25,7 @@ _CONFIG_PATH = str(_PROJECT_ROOT / "configs")
 
 profiling_dir = Path("artifacts/profiling")
 profiling_dir.mkdir(parents=True, exist_ok=True)
+
 
 class LitModel(pl.LightningModule):
     """Lightning module wrapping the CT scan classifier."""

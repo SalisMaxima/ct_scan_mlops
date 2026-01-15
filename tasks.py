@@ -111,7 +111,7 @@ def test(ctx: Context) -> None:
 @task
 def ruff(ctx: Context) -> None:
     """Run ruff check and format."""
-    ctx.run("uv run ruff check .", echo=True, pty=not WINDOWS)
+    ctx.run("uv run ruff check . --fix", echo=True, pty=not WINDOWS)
     ctx.run("uv run ruff format .", echo=True, pty=not WINDOWS)
 
 

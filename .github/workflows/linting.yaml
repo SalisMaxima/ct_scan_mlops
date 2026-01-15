@@ -10,6 +10,9 @@ on:
       - main
       - master
 
+permissions:
+  contents: write
+
 jobs:
   format:
     name: Check and fix code formatting
@@ -19,7 +22,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
         with:
-          ref: ${{ github.head_ref }}
+          # If it's a PR, checkout the head branch. If it's a push, checkout the default (empty/default).
+          ref: ${{ github.event_name == 'pull_request' && github.head_ref || '' }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install uv
@@ -42,7 +46,7 @@ jobs:
           uv run ruff format .
 
       - name: Commit fixes
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: "style: auto-fix ruff linting issues"
           commit_user_name: "github-actions[bot]"
