@@ -252,3 +252,28 @@ The pipeline handles the Kaggle chest CT scan dataset:
 | No augmentation | Albumentations pipeline |
 | No early stopping | Configurable patience |
 | Fixed architecture | Fully configurable CNN |
+
+---
+
+## TODO: Profiler Improvements (commit bb59610)
+
+The torch-tb-profiler was added in commit `bb59610`. The following issues should be addressed when time permits:
+
+| Issue | Priority | Description |
+|-------|----------|-------------|
+| Hardcoded profiler | Medium | Profiler always runs on first batch - add config option `train.profiler.enabled: false` |
+| Print statement | Low | Uses `print()` instead of `logger.info()` - inconsistent with rest of codebase |
+| Hardcoded output path | Medium | `"tb_profiler"` hardcoded, should respect Hydra's `output_dir` |
+| CPU-only profiling | Low | Only uses `ProfilerActivity.CPU`, add CUDA support when GPU available |
+
+### Suggested Fix
+
+Add to `configs/train/default.yaml`:
+```yaml
+profiler:
+  enabled: false
+  output_dir: ${output_dir}/profiler
+  activities: [cpu]  # or [cpu, cuda]
+```
+
+Then make `training_step` check `self.cfg.train.profiler.enabled` before running profiler.

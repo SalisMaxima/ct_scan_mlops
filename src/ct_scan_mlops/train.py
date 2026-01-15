@@ -14,8 +14,7 @@ from loguru import logger
 from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning.callbacks import EarlyStopping, LearningRateMonitor, ModelCheckpoint
 from pytorch_lightning.loggers import WandbLogger
-from torch.profiler import profile, ProfilerActivity, tensorboard_trace_handler
-
+from torch.profiler import ProfilerActivity, profile, tensorboard_trace_handler
 
 from ct_scan_mlops.data import create_dataloaders
 from ct_scan_mlops.model import build_model
@@ -68,7 +67,6 @@ class LitModel(pl.LightningModule):
 
             print(prof.key_averages().table(sort_by="cpu_time_total", row_limit=20))
 
-
         else:
             y_hat = self(x)
             loss = self.criterion(y_hat, y)
@@ -79,7 +77,6 @@ class LitModel(pl.LightningModule):
         self.log("train_acc", acc, on_epoch=True, prog_bar=True)
 
         return loss
-
 
     def validation_step(self, batch, batch_idx: int):
         x, y = batch
