@@ -11,7 +11,7 @@ import pytest
 import torch
 from PIL import Image
 
-from ct_scan_mlops.data import CLASSES, normalize, preprocess
+from ct_scan_mlops.data import CLASSES, ChestCTDataModule, normalize, preprocess
 
 
 def test_normalize():
@@ -197,3 +197,16 @@ def test_preprocess_normalization(dummy_raw_data_dir: Path, tmp_path: Path):
 
     assert abs(mean.item()) < 0.5, f"Mean {mean} not close to 0"
     assert 0.5 < std.item() < 2.0, f"Std {std} not close to 1"
+
+
+def test_chest_ct_datamodule_exists():
+    """Test that ChestCTDataModule can be imported."""
+    assert ChestCTDataModule is not None
+
+
+def test_chest_ct_datamodule_has_required_methods():
+    """Test that ChestCTDataModule has all required Lightning methods."""
+    assert hasattr(ChestCTDataModule, "setup")
+    assert hasattr(ChestCTDataModule, "train_dataloader")
+    assert hasattr(ChestCTDataModule, "val_dataloader")
+    assert hasattr(ChestCTDataModule, "test_dataloader")

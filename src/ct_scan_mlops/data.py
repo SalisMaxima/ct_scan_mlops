@@ -6,6 +6,7 @@ from typing import Any
 
 import albumentations as A
 import numpy as np
+import pytorch_lightning as pl
 import torch
 import typer
 from albumentations.pytorch import ToTensorV2
@@ -490,6 +491,110 @@ def create_dataloaders(
     )
 
     return train_loader, val_loader, test_loader
+
+
+class ChestCTDataModule(pl.LightningDataModule):
+    """Lightning DataModule for Chest CT scan dataset.
+
+    Provides a reusable, self-contained data handling structure following
+    PyTorch Lightning best practices.
+
+    Args:
+        cfg: Hydra configuration containing data and paths settings
+        use_processed: If True, use processed tensors (faster). If False, load raw images.
+    """
+
+    def __init__(self, cfg: DictConfig, use_processed: bool = True) -> None:
+        super().__init__()
+        self.cfg = cfg
+        self.use_processed = use_processed
+        self.data_cfg = cfg.data
+
+        self.train_ds: Dataset | None = None
+        self.val_ds: Dataset | None = None
+        self.test_ds: Dataset | None = None
+
+    def setup(self, stage: str | None = None) -> None:
+        """Load datasets for the specified stage.
+
+        Args:
+            stage: One of 'fit', 'validate', 'test', or 'predict'
+        """
+        processed_path = Path("data/processed")
+
+        # Check if processed data exists
+        if self.use_processed and (processed_path / "train_images.pt").exists():
+            logger.info("Using preprocessed data from data/processed/")
+            if stage == "fit" or stage is None:
+                self.train_ds = ProcessedChestCTDataset(processed_path, split="train")
+                self.val_ds = ProcessedChestCTDataset(processed_path, split="valid")
+            if stage == "test" or stage is None:
+                self.test_ds = ProcessedChestCTDataset(processed_path, split="test")
+        else:
+            if self.use_processed:
+                logger.warning("Processed data not found, falling back to raw images")
+            logger.info("Loading raw images (slower)")
+
+            data_dir = _find_data_root(Path(self.cfg.paths.data_dir))
+
+            # Get normalization stats from config
+            mean = list(self.data_cfg.normalize.mean)
+            std = list(self.data_cfg.normalize.std)
+            image_size = self.data_cfg.image_size
+
+            # Create transforms for each split
+            train_transform = get_transforms(
+                "train",
+                image_size=image_size,
+                mean=mean,
+                std=std,
+                augmentation_cfg=self.data_cfg.augmentation,
+            )
+            eval_transform = get_transforms(
+                "valid",
+                image_size=image_size,
+                mean=mean,
+                std=std,
+            )
+
+            if stage == "fit" or stage is None:
+                self.train_ds = ChestCTDataset(data_dir, split="train", transform=train_transform)
+                self.val_ds = ChestCTDataset(data_dir, split="valid", transform=eval_transform)
+            if stage == "test" or stage is None:
+                self.test_ds = ChestCTDataset(data_dir, split="test", transform=eval_transform)
+
+    def train_dataloader(self) -> DataLoader:
+        """Create training dataloader."""
+        return DataLoader(
+            self.train_ds,
+            batch_size=self.data_cfg.batch_size,
+            shuffle=True,
+            num_workers=self.data_cfg.num_workers,
+            pin_memory=self.data_cfg.get("pin_memory", True),
+            persistent_workers=self.data_cfg.get("persistent_workers", False) and self.data_cfg.num_workers > 0,
+        )
+
+    def val_dataloader(self) -> DataLoader:
+        """Create validation dataloader."""
+        return DataLoader(
+            self.val_ds,
+            batch_size=self.data_cfg.batch_size,
+            shuffle=False,
+            num_workers=self.data_cfg.num_workers,
+            pin_memory=self.data_cfg.get("pin_memory", True),
+            persistent_workers=self.data_cfg.get("persistent_workers", False) and self.data_cfg.num_workers > 0,
+        )
+
+    def test_dataloader(self) -> DataLoader:
+        """Create test dataloader."""
+        return DataLoader(
+            self.test_ds,
+            batch_size=self.data_cfg.batch_size,
+            shuffle=False,
+            num_workers=self.data_cfg.num_workers,
+            pin_memory=self.data_cfg.get("pin_memory", True),
+            persistent_workers=self.data_cfg.get("persistent_workers", False) and self.data_cfg.num_workers > 0,
+        )
 
 
 def chest_ct(

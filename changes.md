@@ -277,3 +277,40 @@ profiler:
 ```
 
 Then make `training_step` check `self.cfg.train.profiler.enabled` before running profiler.
+
+---
+
+## TODO: Use Lightning's Built-in Profiler (Best Practice)
+
+The current profiler implementation uses a custom `torch.profiler` in `training_step`. PyTorch Lightning recommends using the Trainer's built-in profiler argument instead.
+
+### Current Implementation (in `training_step`)
+```python
+if batch_idx == 0 and self.current_epoch == 0:
+    with profile(activities=[ProfilerActivity.CPU], ...):
+        # custom profiling code
+```
+
+### Recommended Implementation
+```python
+from pytorch_lightning.profilers import PyTorchProfiler
+
+profiler = PyTorchProfiler(
+    dirpath=output_path,
+    filename="profile",
+    activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
+    schedule=torch.profiler.schedule(wait=1, warmup=1, active=3, repeat=1),
+    on_trace_ready=torch.profiler.tensorboard_trace_handler(str(output_path / "tb_profiler")),
+)
+
+trainer = pl.Trainer(
+    ...
+    profiler=profiler,  # or profiler="simple" / "advanced" for basic profiling
+)
+```
+
+### Benefits
+- Cleaner separation of concerns (profiling config outside model code)
+- Configurable via Hydra without code changes
+- Supports multiple profiler types (`simple`, `advanced`, `pytorch`, `xla`)
+- Automatic integration with Lightning's training loop

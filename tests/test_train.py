@@ -178,6 +178,31 @@ def test_litmodel_handles_various_batch_sizes(minimal_config, batch_size):
     assert loss.dim() == 0
 
 
+def test_litmodel_test_step_returns_loss(minimal_config, dummy_batch):
+    """Test that test_step returns a loss tensor."""
+    lit_model = LitModel(minimal_config)
+    lit_model.log = MagicMock()
+
+    loss = lit_model.test_step(dummy_batch, batch_idx=0)
+
+    assert isinstance(loss, torch.Tensor)
+    assert loss.dim() == 0  # Scalar tensor
+
+
+def test_litmodel_test_step_logs_metrics(minimal_config, dummy_batch):
+    """Test that test_step logs test_loss and test_acc."""
+    lit_model = LitModel(minimal_config)
+    lit_model.log = MagicMock()
+
+    lit_model.test_step(dummy_batch, batch_idx=0)
+
+    # Check that log was called for test_loss and test_acc
+    assert lit_model.log.call_count >= 2
+    logged_metrics = [call[0][0] for call in lit_model.log.call_args_list]
+    assert "test_loss" in logged_metrics
+    assert "test_acc" in logged_metrics
+
+
 def test_litmodel_resnet_config():
     """Test LitModel with ResNet18 configuration."""
     config = OmegaConf.create(
