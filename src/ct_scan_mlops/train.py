@@ -1,5 +1,6 @@
 from __future__ import annotations
-
+from pathlib import Path
+from hydra.core.hydra_config import HydraConfig
 import random
 import sys
 from pathlib import Path
@@ -23,6 +24,8 @@ from ct_scan_mlops.model import build_model
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 _CONFIG_PATH = str(_PROJECT_ROOT / "configs")
 
+profiling_dir = Path("artifacts/profiling")
+profiling_dir.mkdir(parents=True, exist_ok=True)
 
 class LitModel(pl.LightningModule):
     """Lightning module wrapping the CT scan classifier."""
@@ -58,7 +61,7 @@ class LitModel(pl.LightningModule):
                 activities=[ProfilerActivity.CPU],
                 record_shapes=True,
                 with_stack=True,
-                on_trace_ready=tensorboard_trace_handler("tb_profiler"),
+                on_trace_ready=tensorboard_trace_handler(str(profiling_dir)),
             ) as prof:
                 for _ in range(5):
                     y_hat = self(x)
