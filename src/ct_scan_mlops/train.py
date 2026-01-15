@@ -56,14 +56,18 @@ class LitModel(pl.LightningModule):
 
     def training_step(self, batch, batch_idx: int):
         x, y = batch
-        if batch_idx == 0 and self.current_epoch == 0:
+        profiling_cfg = self.cfg.get("train", {}).get("profiling", {})
+        profiling_enabled = bool(profiling_cfg.get("enabled", True))
+        profiling_steps = int(profiling_cfg.get("steps", 5))
+
+        if profiling_enabled and batch_idx == 0 and self.current_epoch == 0:
             with profile(
                 activities=[ProfilerActivity.CPU],
                 record_shapes=True,
                 with_stack=True,
                 on_trace_ready=tensorboard_trace_handler(str(profiling_dir)),
             ) as prof:
-                for _ in range(5):
+                for _ in range(max(1, profiling_steps)):
                     y_hat = self(x)
                     loss = self.criterion(y_hat, y)
                     prof.step()

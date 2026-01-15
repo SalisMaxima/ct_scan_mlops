@@ -26,6 +26,7 @@ We use **PyTorch** as the deep learning framework since it is one of the most fl
 The dataset contains ~1000 images with somewhat balanced volume across 4 classifications. We apply data augmentation with rotations and translations to make our model more robust to variations in scan positioning.
 
 **Preprocessing:**
+
 1. Standardize data to the correct file format (nearly all images are PNG while 12 images are JPEG - these are converted to PNG)
 2. Data is pre-split into training (70%), validation (20%), and test (10%) sets to minimize data leakage
 3. Augmentation with linear transformations for horizontal/vertical flips and rotations, increasing model robustness through significant increases in data volume
@@ -47,12 +48,14 @@ See [GetStarted.md](GetStarted.md) for setup instructions.
 This project uses **Weights & Biases** for experiment tracking with team collaboration.
 
 **For Team Members:** See [COLLABORATION.md](COLLABORATION.md) for:
+
 - How to join the W&B team
 - Running training with automatic attribution
 - Viewing and comparing runs
 - Best practices
 
 **Quick Start:**
+
 1. Accept W&B team invitation email
 2. Run: `wandb team` (verify you're in `mathiashl-danmarks-tekniske-universitet-dtu`)
 3. Train: `invoke train` (entity already configured)
@@ -88,6 +91,76 @@ invoke train                                      # Train with default CNN
 invoke train --args "model=resnet18"              # Train ResNet18
 invoke train --args "train.max_epochs=20"         # Custom epochs
 invoke train --args "wandb.mode=disabled"         # Train without W&B logging
+```
+
+### Hyperparameter Sweeps (W&B)
+
+We support W&B Sweeps for hyperparameter search.
+
+**Why there is a separate sweep entrypoint**
+
+W&B agents typically launch training with CLI flags like `--lr=1e-3` and `--batch-size=32`.
+Hydra expects overrides like `train.optimizer.lr=1e-3` and `data.batch_size=32`.
+
+To bridge this, the repo includes a sweep-compatible entrypoint (`ct_scan_mlops.sweep_train`) that:
+
+- Accepts sweep parameters as normal CLI options (e.g., `--lr`, `--batch-size`, `--model`)
+- Translates them into Hydra overrides
+- Calls the existing Lightning training pipeline
+
+**How to run**
+
+```bash
+# 1) Create the sweep (prints the sweep id)
+invoke sweep
+
+# 2) Start an agent (replace with the printed id)
+invoke sweep-agent --sweep-id ENTITY/PROJECT/SWEEP_ID
+# 3) Get the best parameters
+invoke sweep-best --sweep-id ENTITY/PROJECT/SWEEP_ID
+```
+
+If you want to run sweeps under your own account/project:
+
+```bash
+invoke sweep --entity YOUR_USERNAME
+invoke sweep --entity YOUR_USERNAME --project YOUR_PROJECT
+```
+
+**Where it is defined**
+
+- Sweep config: `configs/sweeps/train_sweep.yaml`
+- Sweep entrypoint: `src/ct_scan_mlops/sweep_train.py`
+
+Important: the sweep YAML runs training via `uv run ...` to ensure the local package is importable on Windows.
+If you edit the `command:` section, keep `uv run`.
+
+**How to edit/customize the sweep**
+
+1. Edit the search space in `configs/sweeps/train_sweep.yaml` under `parameters:`.
+   - Example: add `dropout`, `fc_hidden`, augmentation params, etc.
+2. Make sure every new parameter you add is supported by the sweep entrypoint.
+   - If you add a new parameter in the YAML, you must add a matching CLI option in `src/ct_scan_mlops/sweep_train.py`
+     and map it to the correct Hydra key (e.g., `--dropout` → `model.dropout=...`).
+3. Re-create the sweep after editing the YAML (sweeps are immutable once created):
+
+```bash
+invoke sweep
+```
+
+**Notes / tips**
+
+- Sweeps disable the one-time PyTorch profiling run by default (the `ct_scan_mlops.sweep_train` entrypoint sets
+  `train.profiling.enabled=false`) because it slows down hyperparameter search.
+- The metric used by the sweep is `val_acc` (logged by Lightning).
+
+**How to find the best parameters**
+
+- In the W&B UI: open the sweep → sort runs by `val_acc`.
+- From the terminal (prints best run + config as JSON):
+
+```bash
+invoke sweep-best --sweep-id ENTITY/PROJECT/SWEEP_ID
 ```
 
 ### Code Quality
@@ -181,23 +254,27 @@ ct_scan_mlops/
 ## Workflow for Contributing
 
 1. **Pull latest changes:**
+
    ```bash
    git pull
    dvc pull  # If data changed
    ```
 
 2. **Create a branch:**
+
    ```bash
    git checkout -b feature/your-feature-name
    ```
 
 3. **Make changes and test:**
+
    ```bash
    invoke ruff    # Format code
    invoke test    # Run tests
    ```
 
 4. **Commit and push:**
+
    ```bash
    git add .
    git commit -m "Add your feature"

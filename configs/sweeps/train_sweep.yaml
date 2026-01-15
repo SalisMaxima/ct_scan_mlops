@@ -1,0 +1,39 @@
+# W&B Sweep configuration for ct_scan_mlops
+# Run with:
+#   uv run wandb sweep configs/sweeps/train_sweep.yaml
+#   uv run wandb agent <ENTITY>/<PROJECT>/<SWEEP_ID>
+#
+# This sweep calls: python -m ct_scan_mlops.sweep_train ${args}
+# so parameters must match the CLI options in src/ct_scan_mlops/sweep_train.py
+
+name: ct-scan-hparam-sweep
+method: bayes
+
+metric:
+  name: val_acc
+  goal: maximize
+
+parameters:
+  lr:
+    distribution: log_uniform_values
+    min: 1e-5
+    max: 3e-3
+  weight_decay:
+    distribution: log_uniform_values
+    min: 1e-6
+    max: 1e-2
+  batch_size:
+    values: [8, 16, 32]
+  model:
+    values: [cnn, resnet18]
+  max_epochs:
+    values: [10, 20]
+
+command:
+  - ${env}
+  - uv
+  - run
+  - python
+  - -m
+  - ct_scan_mlops.sweep_train
+  - ${args}
