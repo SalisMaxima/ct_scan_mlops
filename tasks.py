@@ -78,18 +78,18 @@ def evaluate(ctx: Context, checkpoint: str = "", wandb: bool = False, entity: st
     """Evaluate model on test set.
 
     Args:
-        checkpoint: Path to model checkpoint (required)
+        checkpoint: Path to model checkpoint (.ckpt or .pt)
         wandb: Log results to W&B
         entity: Your wandb username (for W&B logging)
 
     Examples:
-        invoke evaluate --checkpoint outputs/2026-01-14/12-34-56/best_model.pt
-        invoke evaluate --checkpoint models/best_model.pt --wandb --entity your-username
+        invoke evaluate --checkpoint outputs/ct_scan_classifier/2026-01-14/12-34-56/best_model.ckpt
+        invoke evaluate --checkpoint outputs/.../model.pt --wandb --entity your-username
     """
     if not checkpoint:
         print("ERROR: --checkpoint is required")
-        print("Usage: invoke evaluate --checkpoint path/to/best_model.pt")
-        print("Example: invoke evaluate --checkpoint outputs/2026-01-14/12-34-56/best_model.pt")
+        print("Usage: invoke evaluate --checkpoint path/to/best_model.ckpt")
+        print("Example: invoke evaluate --checkpoint outputs/ct_scan_classifier/2026-01-14/12-34-56/best_model.ckpt")
         return
 
     cmd = f"uv run python -m {PROJECT_NAME}.evaluate {checkpoint}"

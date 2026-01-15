@@ -158,11 +158,13 @@ def load_model_from_checkpoint(
 ) -> torch.nn.Module:
     """Load model from checkpoint file.
 
-    Handles both full checkpoint format (with optimizer state, etc.)
-    and simple state_dict format.
+    Handles multiple checkpoint formats:
+    - Lightning .ckpt format (state_dict key)
+    - Full checkpoint format (model_state_dict key)
+    - Simple state_dict format (.pt file)
 
     Args:
-        checkpoint_path: Path to checkpoint file
+        checkpoint_path: Path to checkpoint file (.pt or .ckpt)
         cfg: Hydra config for building the model
         device: Device to load model on
 
@@ -174,16 +176,32 @@ def load_model_from_checkpoint(
     # Build model from config
     model = build_model(cfg).to(device)
 
-    # Load checkpoint
-    checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=True)
+    # Load checkpoint (allow pickle for Lightning checkpoints)
+    checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
 
-    # Handle both checkpoint formats
-    if isinstance(checkpoint, dict) and "model_state_dict" in checkpoint:
-        # Full checkpoint format (with optimizer, epoch, etc.)
-        model.load_state_dict(checkpoint["model_state_dict"])
-        logger.info(f"Loaded checkpoint from epoch {checkpoint.get('epoch', 'unknown')}")
-        if "val_acc" in checkpoint:
-            logger.info(f"Checkpoint validation accuracy: {checkpoint['val_acc']:.4f}")
+    # Handle different checkpoint formats
+    if isinstance(checkpoint, dict):
+        if "state_dict" in checkpoint:
+            # Lightning .ckpt format - model weights are under 'model.' prefix
+            state_dict = checkpoint["state_dict"]
+            # Remove 'model.' prefix from Lightning checkpoint keys
+            model_state_dict = {}
+            for key, value in state_dict.items():
+                if key.startswith("model."):
+                    model_state_dict[key[6:]] = value  # Remove 'model.' prefix
+                else:
+                    model_state_dict[key] = value
+            model.load_state_dict(model_state_dict)
+            logger.info(f"Loaded Lightning checkpoint from epoch {checkpoint.get('epoch', 'unknown')}")
+        elif "model_state_dict" in checkpoint:
+            # Full checkpoint format (with optimizer, epoch, etc.)
+            model.load_state_dict(checkpoint["model_state_dict"])
+            logger.info(f"Loaded checkpoint from epoch {checkpoint.get('epoch', 'unknown')}")
+            if "val_acc" in checkpoint:
+                logger.info(f"Checkpoint validation accuracy: {checkpoint['val_acc']:.4f}")
+        else:
+            # Dict but no recognized key - treat as raw state_dict
+            model.load_state_dict(checkpoint)
     else:
         # Simple state_dict format
         model.load_state_dict(checkpoint)
@@ -193,7 +211,7 @@ def load_model_from_checkpoint(
 
 @app.command()
 def evaluate_cli(
-    checkpoint: str = typer.Argument(..., help="Path to model checkpoint (e.g., outputs/.../best_model.pt)"),
+    checkpoint: str = typer.Argument(..., help="Path to model checkpoint (.ckpt or .pt)"),
     config_path: str = typer.Option(
         None,
         "--config",
@@ -210,15 +228,20 @@ def evaluate_cli(
 ) -> dict[str, float]:
     """Evaluate a trained model on the test set (standalone CLI entry point).
 
+    Supports both Lightning checkpoints (.ckpt) and PyTorch state dicts (.pt).
+
     Examples:
-        # Basic evaluation
-        invoke evaluate --checkpoint outputs/2024-01-14/12-34-56/best_model.pt
+        # Basic evaluation (Lightning checkpoint)
+        invoke evaluate --checkpoint outputs/ct_scan_classifier/2024-01-14/12-34-56/best_model.ckpt
+
+        # Evaluate PyTorch state dict
+        invoke evaluate --checkpoint outputs/.../model.pt
 
         # With wandb logging
-        invoke evaluate --checkpoint outputs/.../best_model.pt --wandb --wandb-entity YOUR_USERNAME
+        invoke evaluate --checkpoint outputs/.../best_model.ckpt --wandb --wandb-entity YOUR_USERNAME
 
         # Custom batch size
-        invoke evaluate --checkpoint models/best_model.pt --batch-size 64
+        invoke evaluate --checkpoint models/best_model.ckpt --batch-size 64
     """
     checkpoint_path = Path(checkpoint)
     if not checkpoint_path.exists():
@@ -284,21 +307,30 @@ def evaluate_hydra(cfg: DictConfig) -> None:
     """Evaluate with Hydra config (for integration with training pipeline).
 
     This can be called after training completes or as a separate step.
+    Automatically finds the best checkpoint from recent training runs.
     """
     device = get_device()
     logger.info(f"Using device: {device}")
 
-    # Look for best_model.pt in the most recent output directory
+    # Look for checkpoints in the most recent output directory
     output_base = Path("outputs") / cfg.experiment_name
+    checkpoint_path = None
+
     if output_base.exists():
         # Find most recent run
         run_dirs = sorted(output_base.glob("*/*"), key=lambda p: p.stat().st_mtime, reverse=True)
         if run_dirs:
-            checkpoint_path = run_dirs[0] / "best_model.pt"
-            if checkpoint_path.exists():
-                logger.info(f"Found checkpoint: {checkpoint_path}")
-            else:
-                logger.error("No checkpoint found in recent outputs")
+            run_dir = run_dirs[0]
+            # Try Lightning checkpoint first (.ckpt), then PyTorch (.pt)
+            for filename in ["best_model.ckpt", "best_model.pt", "model.pt", "last.ckpt"]:
+                candidate = run_dir / filename
+                if candidate.exists():
+                    checkpoint_path = candidate
+                    logger.info(f"Found checkpoint: {checkpoint_path}")
+                    break
+
+            if checkpoint_path is None:
+                logger.error(f"No checkpoint found in {run_dir}")
                 return None
         else:
             logger.error(f"No training runs found in {output_base}")
