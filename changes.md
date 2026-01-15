@@ -149,6 +149,9 @@ python src/ct_scan_mlops/train.py wandb.mode=disabled
 # Combine multiple overrides
 python src/ct_scan_mlops/train.py model=resnet18 train.max_epochs=10 train.optimizer.lr=0.0005
 
+# profiler for trainer
+python tensorboard --logdir tb_profiler
+
 # Using invoke with W&B entity
 invoke train --entity your-wandb-username
 invoke train --entity your-wandb-username --args "model=resnet18"

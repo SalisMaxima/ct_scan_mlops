@@ -14,6 +14,8 @@ from loguru import logger
 from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning.callbacks import EarlyStopping, LearningRateMonitor, ModelCheckpoint
 from pytorch_lightning.loggers import WandbLogger
+from torch.profiler import profile, ProfilerActivity, tensorboard_trace_handler
+
 
 from ct_scan_mlops.data import create_dataloaders
 from ct_scan_mlops.model import build_model
@@ -52,19 +54,32 @@ class LitModel(pl.LightningModule):
 
     def training_step(self, batch, batch_idx: int):
         x, y = batch
-        y_hat = self(x)
-        loss = self.criterion(y_hat, y)
+        if batch_idx == 0 and self.current_epoch == 0:
+            with profile(
+                activities=[ProfilerActivity.CPU],
+                record_shapes=True,
+                with_stack=True,
+                on_trace_ready=tensorboard_trace_handler("tb_profiler"),
+            ) as prof:
+                for _ in range(5):
+                    y_hat = self(x)
+                    loss = self.criterion(y_hat, y)
+                    prof.step()
+
+            print(prof.key_averages().table(sort_by="cpu_time_total", row_limit=20))
+
+
+        else:
+            y_hat = self(x)
+            loss = self.criterion(y_hat, y)
+
         acc = self._compute_accuracy(y_hat, y)
 
-        # Batch-level logging
-        self.log("batch/train_loss", loss, on_step=True, on_epoch=False, prog_bar=False)
-        self.log("batch/train_acc", acc, on_step=True, on_epoch=False, prog_bar=False)
-
-        # Epoch-level logging (auto-averaged)
-        self.log("train_loss", loss, on_step=False, on_epoch=True, prog_bar=True)
-        self.log("train_acc", acc, on_step=False, on_epoch=True, prog_bar=True)
+        self.log("train_loss", loss, on_epoch=True, prog_bar=True)
+        self.log("train_acc", acc, on_epoch=True, prog_bar=True)
 
         return loss
+
 
     def validation_step(self, batch, batch_idx: int):
         x, y = batch
