@@ -151,8 +151,6 @@ def test_litmodel_validation_step_returns_loss(minimal_config, dummy_batch):
 
     assert isinstance(loss, torch.Tensor)
     assert loss.dim() == 0  # Scalar tensor
-    
-
 def test_litmodel_configure_optimizers(minimal_config):
     """Test that configure_optimizers returns correct structure."""
     lit_model = LitModel(minimal_config)
