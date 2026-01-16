@@ -1,0 +1,17 @@
+# @package _global_
+# Optimal training parameters from W&B sweep jk2750hd
+# Best run: misunderstood-sweep-4 (a2mo2otc)
+# Achieved val_acc: 0.9722
+
+defaults:
+  - default.yaml
+
+max_epochs: 20
+
+optimizer:
+  lr: 0.001234484727499524
+  weight_decay: 0.00030421205095128973
+# Note: The best model was 'resnet18' and batch_size was 16.
+# These are set in the model and data configs respectively.
+# To run with all best parameters:
+# invoke train --args "train=sweep-training-parameters model=resnet18 data.batch_size=16"

@@ -535,6 +535,17 @@ class ChestCTDataModule(pl.LightningDataModule):
                 logger.warning("Processed data not found, falling back to raw images")
             logger.info("Loading raw images (slower)")
 
+            raw_cfg_path = Path(self.cfg.paths.data_dir)
+            if not raw_cfg_path.exists():
+                raise FileNotFoundError(
+                    "Raw dataset path does not exist: "
+                    f"{raw_cfg_path}.\n"
+                    "Fix by pulling/downloading data and (optionally) preprocessing:\n"
+                    "  - invoke dvc-pull\n"
+                    "  - invoke preprocess-data\n"
+                    "Or update configs/config.yaml -> paths.data_dir to point at your dataset root."
+                )
+
             data_dir = _find_data_root(Path(self.cfg.paths.data_dir))
 
             # Get normalization stats from config

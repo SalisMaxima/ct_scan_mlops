@@ -2,6 +2,12 @@
 max_epochs: 50
 min_epochs: 10
 
+# Profiling (used once at epoch 0 / batch 0)
+# Useful for debugging performance, but can slow down sweeps.
+profiling:
+  enabled: true
+  steps: 5
+
 # Optimizer
 optimizer:
   name: adam
@@ -34,6 +40,6 @@ gradient_clip_val: 0
 accumulate_grad_batches: 1
 
 # Hardware
-accelerator: auto  # auto, gpu, cpu, mps
+accelerator: auto # auto, gpu, cpu, mps
 devices: 1
-precision: 32  # 16, 32, bf16
+precision: 32 # 16, 32, bf16

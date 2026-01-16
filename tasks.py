@@ -75,6 +75,61 @@ def train(ctx: Context, entity: str = "", args: str = "") -> None:
 
 
 @task
+def sweep(
+    ctx: Context, sweep_config: str = "configs/sweeps/train_sweep.yaml", project: str = "", entity: str = ""
+) -> None:
+    """Create a W&B sweep from a sweep YAML.
+
+    Args:
+        sweep_config: Path to sweep yaml (default: configs/sweeps/train_sweep.yaml)
+        project: Optional override for W&B project
+        entity: Optional override for W&B entity
+
+    Example:
+        invoke sweep
+        invoke sweep --entity your-username
+    """
+    cmd = f"uv run wandb sweep {sweep_config}"
+    if project:
+        cmd += f" --project {project}"
+    if entity:
+        cmd += f" --entity {entity}"
+    ctx.run(cmd, echo=True, pty=not WINDOWS)
+
+
+@task
+def sweep_agent(ctx: Context, sweep_id: str) -> None:
+    """Run a W&B sweep agent.
+
+    Args:
+        sweep_id: The full sweep id, e.g. ENTITY/PROJECT/SWEEP_ID
+
+    Example:
+        invoke sweep-agent --sweep-id mathiashl-danmarks-tekniske-universitet-dtu/CT_Scan_MLOps/abc123
+    """
+    ctx.run(f"uv run wandb agent {sweep_id}", echo=True, pty=not WINDOWS)
+
+
+@task
+def sweep_best(ctx: Context, sweep_id: str, metric: str = "val_acc", goal: str = "maximize") -> None:
+    """Print the best run (and its config) for a sweep.
+
+    Args:
+        sweep_id: The full sweep id, e.g. ENTITY/PROJECT/SWEEP_ID
+        metric: Metric name to optimize (default: val_acc)
+        goal: maximize | minimize
+
+    Example:
+        invoke sweep-best --sweep-id ENTITY/PROJECT/SWEEP_ID
+    """
+    ctx.run(
+        f"uv run python -m {PROJECT_NAME}.sweep_best {sweep_id} --metric {metric} --goal {goal}",
+        echo=True,
+        pty=not WINDOWS,
+    )
+
+
+@task
 def evaluate(ctx: Context, checkpoint: str = "", wandb: bool = False, entity: str = "") -> None:
     """Evaluate model on test set.
 
