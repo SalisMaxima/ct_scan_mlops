@@ -2,69 +2,14 @@
 
 from __future__ import annotations
 
-from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import pytest
 import torch
+from omegaconf import OmegaConf
 
 from ct_scan_mlops.train import LitModel
 
-
-from omegaconf import OmegaConf
-
-
-class AttrDict(dict):
-    """Dict with attribute access and dict-like .get()."""
-
-    def __getattr__(self, item):
-        try:
-            return self[item]
-        except KeyError as e:
-            raise AttributeError(item) from e
-
-    def __setattr__(self, key, value):
-        self[key] = value
-
-def cfg_custom_cnn(image_size: int = 224) -> SimpleNamespace:
-    """Return a minimal cfg object compatible with LitModel and build_model()."""
-    return SimpleNamespace(
-        seed=42,
-        model=AttrDict(
-            name="custom_cnn",
-            num_classes=4,
-            input_channels=3,
-            hidden_dims=[16, 32],
-            fc_hidden=64,
-            dropout=0.1,
-            batch_norm=True,
-        ),
-        data=AttrDict(image_size=image_size),
-        train=AttrDict(
-            max_epochs=2,
-            optimizer=AttrDict(lr=1e-3, weight_decay=1e-4, betas=[0.9, 0.999]),
-            scheduler=AttrDict(eta_min=1e-5),
-        ),
-    )
-
-def cfg_resnet18() -> SimpleNamespace:
-    """Return a minimal cfg for ResNet18. pretrained=False avoids downloads in CI."""
-    return SimpleNamespace(
-        seed=42,
-        model=AttrDict(
-            name="resnet18",
-            num_classes=4,
-            pretrained=False,
-            freeze_backbone=False,
-        ),
-        # build_model may not need data.image_size for resnet, but keep it consistent
-        data=AttrDict(image_size=224),
-        train=AttrDict(
-            max_epochs=2,
-            optimizer=AttrDict(lr=1e-3, weight_decay=1e-4, betas=[0.9, 0.999]),
-            scheduler=AttrDict(eta_min=1e-5),
-        ),
-    )
 
 @pytest.fixture
 def minimal_config():
@@ -151,6 +96,8 @@ def test_litmodel_validation_step_returns_loss(minimal_config, dummy_batch):
 
     assert isinstance(loss, torch.Tensor)
     assert loss.dim() == 0  # Scalar tensor
+
+
 def test_litmodel_configure_optimizers(minimal_config):
     """Test that configure_optimizers returns correct structure."""
     lit_model = LitModel(minimal_config)
@@ -215,6 +162,7 @@ def test_litmodel_log_called_in_validation_step(minimal_config, dummy_batch):
     # Check that log was called for val_loss and val_acc
     assert lit_model.log.call_count >= 2
 
+
 def test_litmodel_test_step_logs_metrics(minimal_config, dummy_batch):
     """test_step should log test_loss and test_acc."""
     lit_model = LitModel(minimal_config)
@@ -253,20 +201,6 @@ def test_litmodel_test_step_returns_loss(minimal_config, dummy_batch):
 
     assert isinstance(loss, torch.Tensor)
     assert loss.dim() == 0  # Scalar tensor
-
-
-def test_litmodel_test_step_logs_metrics(minimal_config, dummy_batch):
-    """Test that test_step logs test_loss and test_acc."""
-    lit_model = LitModel(minimal_config)
-    lit_model.log = MagicMock()
-
-    lit_model.test_step(dummy_batch, batch_idx=0)
-
-    # Check that log was called for test_loss and test_acc
-    assert lit_model.log.call_count >= 2
-    logged_metrics = [call[0][0] for call in lit_model.log.call_args_list]
-    assert "test_loss" in logged_metrics
-    assert "test_acc" in logged_metrics
 
 
 def test_litmodel_resnet_config():

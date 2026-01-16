@@ -3,14 +3,16 @@
 Note: These tests use synthetic data (torch.randn) and don't require actual dataset files.
 Tests are CI-friendly and will pass without data in .gitignore.
 """
+
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import Any
+
 import pytest
 import torch
 
 from ct_scan_mlops.model import CustomCNN, ResNet18, build_model
+
 
 class AttrDict(dict):
     """Dict with attribute access and a .get method (like OmegaConf nodes)."""
@@ -23,6 +25,7 @@ class AttrDict(dict):
 
     def __setattr__(self, key: str, value: Any) -> None:
         self[key] = value
+
 
 def make_cfg(**kwargs) -> AttrDict:
     """Convenience helper to build nested AttrDict configs."""
@@ -85,6 +88,7 @@ def test_resnet18_freeze_unfreeze():
     for param in model.backbone.parameters():
         assert param.requires_grad
 
+
 def test_custom_cnn_layer_count_with_batch_norm():
     """CustomCNN should build (Conv + BN + ReLU + Pool) per hidden dim when batch_norm=True."""
     hidden_dims = [8, 16, 32]
@@ -97,6 +101,7 @@ def test_custom_cnn_layer_count_with_batch_norm():
     )
     # Each block: Conv2d, BatchNorm2d, ReLU, MaxPool2d => 4 modules
     assert len(model.features) == 4 * len(hidden_dims)
+
 
 def test_custom_cnn_layer_count_without_batch_norm():
     """CustomCNN should build (Conv + ReLU + Pool) per hidden dim when batch_norm=False."""
@@ -111,6 +116,7 @@ def test_custom_cnn_layer_count_without_batch_norm():
     # Each block: Conv2d, ReLU, MaxPool2d => 3 modules
     assert len(model.features) == 3 * len(hidden_dims)
 
+
 @pytest.mark.parametrize("image_size,hidden_dims", [(224, [16, 32, 64, 128]), (128, [8, 16, 32])])
 def test_custom_cnn_forward_various_image_sizes(image_size: int, hidden_dims: list[int]):
     """Forward should work as long as image_size is compatible with pooling depth."""
@@ -124,6 +130,7 @@ def test_custom_cnn_forward_various_image_sizes(image_size: int, hidden_dims: li
     with torch.no_grad():
         y = model(x)
     assert y.shape == (2, 5)
+
 
 def test_build_model_customcnn():
     """build_model should return CustomCNN configured from cfg."""
@@ -148,6 +155,7 @@ def test_build_model_customcnn():
         y = model(x)
     assert y.shape == (2, 4)
 
+
 def test_build_model_resnet18_pretrained_false():
     """build_model should build ResNet18 without downloading weights when pretrained=False."""
     cfg = make_cfg(
@@ -169,6 +177,7 @@ def test_build_model_resnet18_pretrained_false():
             assert not param.requires_grad
         else:
             assert param.requires_grad
+
 
 def test_build_model_unknown_raises():
     cfg = make_cfg(
