@@ -88,10 +88,8 @@ def best(
     best_value: float | None = None
 
     for run in sweep.runs:
-        # Only consider completed runs.
+        # Only consider successfully finished runs
         state = getattr(run, "state", "")
-        if state not in {"finished", "crashed", "failed"}:
-            continue
         if state != "finished":
             continue
 

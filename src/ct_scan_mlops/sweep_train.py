@@ -27,9 +27,16 @@ _CONFIG_DIR = str(_PROJECT_ROOT / "configs")
 
 
 def _resolve_output_base(cfg: DictConfig) -> Path:
+    """Resolve the output base directory from config.
+
+    Handles both absolute and relative paths correctly.
+    """
     resolved = OmegaConf.to_container(cfg, resolve=True)
     out = resolved.get("output_dir", "outputs") if isinstance(resolved, dict) else "outputs"
-    return (Path(_PROJECT_ROOT) / str(out)).resolve() if not str(out).startswith("outputs") else Path(out)
+    out_path = Path(out)
+    if out_path.is_absolute():
+        return out_path
+    return (_PROJECT_ROOT / out_path).resolve()
 
 
 def sweep_train(
@@ -117,22 +124,23 @@ def sweep_train(
         configure_logging(str(output_dir))
         logger.info(f"Sweep run output dir: {output_dir}")
 
+        # Attach to existing wandb run instead of creating a new one
+        # This prevents duplicate runs in the W&B dashboard
         wandb_logger = WandbLogger(
-            project=cfg.wandb.project,
-            entity=cfg.wandb.get("entity"),
+            experiment=run,
             save_dir=str(output_dir),
-            tags=list(cfg.wandb.get("tags", [])),
-            mode=cfg.wandb.get("mode", "online"),
-            job_type="train",
-            config=OmegaConf.to_container(cfg, resolve=True),
         )
 
         model_path = train_model(cfg, str(output_dir), wandb_logger)
         logger.info(f"Sweep training complete. Model saved to {model_path}")
 
-        wandb_logger.experiment.summary["output_dir"] = str(output_dir)
-        wandb_logger.experiment.summary["model_path"] = model_path
+        run.summary["output_dir"] = str(output_dir)
+        run.summary["model_path"] = model_path
 
+    except Exception as e:
+        logger.exception(f"Sweep run failed: {e}")
+        run.summary["error"] = str(e)
+        raise
     finally:
         wandb.finish()
 

@@ -9,9 +9,19 @@
 name: ct-scan-hparam-sweep
 method: bayes
 
+# Maximum number of runs to execute
+run_cap: 50
+
 metric:
   name: val_acc
   goal: maximize
+
+# Early termination using Hyperband
+# Stops underperforming runs early to save compute
+early_terminate:
+  type: hyperband
+  min_iter: 5
+  eta: 3
 
 parameters:
   lr:
