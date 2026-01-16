@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 from invoke import Context, task
 
@@ -164,29 +165,38 @@ def docker_build_cuda(ctx: Context, progress: str = "plain") -> None:
 
 
 @task
-def docker_train(ctx: Context, entity: str = "", cuda: bool = True, args: str = "") -> None:
+def docker_train(
+    ctx: Context,
+    entity: str = "mathiashl-danmarks-tekniske-universitet-dtu",
+    cuda: bool = True,
+    args: str = "",
+) -> None:
     """Run training in Docker container.
 
     Args:
-        entity: Your wandb username (required for logging)
+        entity: Your wandb username (default: mathiashl-danmarks-tekniske-universitet-dtu)
         cuda: Use CUDA-enabled image (default: True)
         args: Additional Hydra config overrides
 
     Examples:
-        invoke docker-train --entity your-wandb-username
-        invoke docker-train --entity your-wandb-username --args "model=resnet18"
+        invoke docker-train
+        invoke docker-train --no-cuda
+        invoke docker-train --args "model=resnet18"
+        invoke docker-train --entity other-username --args "train.max_epochs=10"
     """
-    if not entity:
-        print("ERROR: --entity is required for wandb logging.")
-        print("Usage: invoke docker-train --entity YOUR_WANDB_USERNAME")
-        return
+    # Get absolute path to avoid Docker mount issues
+    cwd = Path.cwd()
 
     image = "train-cuda:latest" if cuda else "train:latest"
     gpu_flag = "--gpus all" if cuda else ""
     train_args = f"wandb.entity={entity} {args}".strip()
+    wandb_api_key = os.environ.get("WANDB_API_KEY", "")
     ctx.run(
-        f"docker run {gpu_flag} -v $(pwd)/data:/app/data -v $(pwd)/models:/app/models "
-        f"-e WANDB_API_KEY=$WANDB_API_KEY {image} {train_args}",
+        f"docker run --rm {gpu_flag} "
+        f"--shm-size=2g "
+        f"-v {cwd}/data:/app/data "
+        f"-v {cwd}/models:/app/models "
+        f"-e WANDB_API_KEY={wandb_api_key} {image} {train_args}",
         echo=True,
         pty=not WINDOWS,
     )
