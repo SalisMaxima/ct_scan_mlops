@@ -183,10 +183,8 @@ def docker_train(
         invoke docker-train --args "model=resnet18"
         invoke docker-train --entity other-username --args "train.max_epochs=10"
     """
-    import subprocess
-
     # Get absolute path to avoid Docker mount issues
-    cwd = subprocess.run(["pwd"], capture_output=True, text=True).stdout.strip()
+    cwd = os.getcwd()
 
     image = "train-cuda:latest" if cuda else "train:latest"
     gpu_flag = "--gpus all" if cuda else ""
