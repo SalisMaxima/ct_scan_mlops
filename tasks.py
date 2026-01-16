@@ -189,12 +189,13 @@ def docker_train(
     image = "train-cuda:latest" if cuda else "train:latest"
     gpu_flag = "--gpus all" if cuda else ""
     train_args = f"wandb.entity={entity} {args}".strip()
+    wandb_api_key = os.environ.get('WANDB_API_KEY', '')
     ctx.run(
         f"docker run --rm {gpu_flag} "
         f"--shm-size=2g "
         f"-v {cwd}/data:/app/data "
         f"-v {cwd}/models:/app/models "
-        f"-e WANDB_API_KEY=$WANDB_API_KEY {image} {train_args}",
+        f"-e WANDB_API_KEY={wandb_api_key} {image} {train_args}",
         echo=True,
         pty=not WINDOWS,
     )
