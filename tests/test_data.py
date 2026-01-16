@@ -11,7 +11,25 @@ import pytest
 import torch
 from PIL import Image
 
-from ct_scan_mlops.data import CLASSES, ChestCTDataModule, normalize, preprocess
+
+from ct_scan_mlops.data import (
+    CLASSES,
+    ChestCTDataModule,
+    ChestCTDataset,
+    ProcessedChestCTDataset,
+    get_transforms,
+    normalize,
+    preprocess,
+    _find_data_root,
+    _infer_label_from_folder,
+)
+
+def torch_load_compat(path: Path):
+    """torch.load(weights_only=...) is not available in all torch versions."""
+    try:
+        return torch.load(path, weights_only=True)
+    except TypeError:
+        return torch.load(path)
 
 
 def test_normalize():
@@ -38,14 +56,12 @@ def test_classes_defined():
 
 def test_processed_dataset_exists():
     """Test that ProcessedChestCTDataset can be imported."""
-    from ct_scan_mlops.data import ProcessedChestCTDataset
 
     assert ProcessedChestCTDataset is not None
 
 
 def test_chest_ct_dataset_exists():
     """Test that ChestCTDataset can be imported."""
-    from ct_scan_mlops.data import ChestCTDataset
 
     assert ChestCTDataset is not None
 
@@ -105,6 +121,75 @@ def test_normalize_output_dtype():
     images_float32 = torch.randn(4, 3, 32, 32, dtype=torch.float32)
     normalized = normalize(images_float32)
     assert normalized.dtype == torch.float32
+
+#---------
+# Unit tests for helpers
+#---------
+
+
+@pytest.mark.parametrize(
+    "folder_name,expected_class",
+    [
+        ("adenocarcinoma_foo", "adenocarcinoma"),
+        ("large.cell.carcinoma_123", "large_cell_carcinoma"),
+        ("large_cell_carcinoma_x", "large_cell_carcinoma"),
+        ("squamous.cell.carcinoma_any", "squamous_cell_carcinoma"),
+        ("squamous_cell_carcinoma_any", "squamous_cell_carcinoma"),
+        ("normal_stuff", "normal"),
+    ],
+)
+def test_infer_label_from_folder(folder_name: str, expected_class: str):
+    class_to_idx = {c: i for i, c in enumerate(CLASSES)}
+    label = _infer_label_from_folder(folder_name, class_to_idx)
+    assert label == class_to_idx[expected_class]
+
+def test_infer_label_from_folder_raises_on_unknown():
+    class_to_idx = {c: i for i, c in enumerate(CLASSES)}
+    with pytest.raises(ValueError):
+        _infer_label_from_folder("some_unknown_class", class_to_idx)
+
+def test_find_data_root_prefers_expected_location(tmp_path: Path):
+    """
+    If raw_dir/chest-ctscan-images/Data exists, _find_data_root should return it.
+    """
+    raw_dir = tmp_path / "raw"
+    data_root = raw_dir / "chest-ctscan-images" / "Data"
+    (data_root / "train").mkdir(parents=True)
+    (data_root / "test").mkdir(parents=True)
+
+    found = _find_data_root(raw_dir)
+    assert found == data_root.resolve()
+
+def test_find_data_root_accepts_direct_structure(tmp_path: Path):
+    """
+    If raw_dir/train and raw_dir/test exist, _find_data_root should return raw_dir.
+    """
+    raw_dir = tmp_path / "raw"
+    (raw_dir / "train").mkdir(parents=True)
+    (raw_dir / "test").mkdir(parents=True)
+
+    found = _find_data_root(raw_dir)
+    assert found == raw_dir.resolve()
+
+def test_get_transforms_outputs_tensor_correct_shape():
+    tfm = get_transforms("train", image_size=64)  # no augmentation_cfg => base transforms only
+    img = np.zeros((100, 120, 3), dtype=np.uint8)
+    out = tfm(image=img)["image"]
+
+    assert isinstance(out, torch.Tensor)
+    assert out.shape == (3, 64, 64)
+
+def test_get_transforms_rejects_unknown_split():
+    # get_transforms itself doesn’t validate split; but it’s still useful to document current behavior:
+    # anything other than "train" behaves like eval transforms (resize+normalize+ToTensorV2).
+    tfm = get_transforms("whatever", image_size=32)
+    img = np.zeros((10, 10, 3), dtype=np.uint8)
+    out = tfm(image=img)["image"]
+    assert out.shape == (3, 32, 32)
+
+#-------
+# Fixtures + preprocess tests
+#-------
 
 
 @pytest.fixture
@@ -198,6 +283,40 @@ def test_preprocess_normalization(dummy_raw_data_dir: Path, tmp_path: Path):
     assert abs(mean.item()) < 0.5, f"Mean {mean} not close to 0"
     assert 0.5 < std.item() < 2.0, f"Std {std} not close to 1"
 
+#----------
+# Dataset class tests
+#----------
+
+def test_chest_ct_dataset_len_and_getitem(dummy_raw_data_dir: Path):
+    ds = ChestCTDataset(dummy_raw_data_dir, split="train", image_size=32)
+    assert len(ds) == 8  # 4 classes * 2 imgs
+
+    x, y = ds[0]
+    assert isinstance(x, torch.Tensor)
+    assert x.shape == (3, 32, 32)
+    assert y.dtype == torch.long
+    assert 0 <= int(y.item()) < len(CLASSES)
+
+def test_processed_dataset_raises_when_missing(tmp_path: Path):
+    with pytest.raises(FileNotFoundError):
+        ProcessedChestCTDataset(tmp_path, split="train")
+
+def test_processed_dataset_len_and_getitem(tmp_path: Path):
+    # Create minimal processed files
+    images = torch.randn(5, 3, 16, 16)
+    labels = torch.tensor([0, 1, 2, 3, 0], dtype=torch.long)
+    torch.save(images, tmp_path / "train_images.pt")
+    torch.save(labels, tmp_path / "train_labels.pt")
+
+    ds = ProcessedChestCTDataset(tmp_path, split="train")
+    assert len(ds) == 5
+    x, y = ds[0]
+    assert x.shape == (3, 16, 16)
+    assert y.dtype == torch.long
+
+#----------
+# DataModule tests (CI-safe)
+#----------
 
 def test_chest_ct_datamodule_exists():
     """Test that ChestCTDataModule can be imported."""
