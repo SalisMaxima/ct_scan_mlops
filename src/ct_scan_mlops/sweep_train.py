@@ -21,7 +21,6 @@ from pytorch_lightning.loggers import WandbLogger
 
 from ct_scan_mlops.train import configure_logging, train_model
 
-
 # Find project root for Hydra config path
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 _CONFIG_DIR = str(_PROJECT_ROOT / "configs")

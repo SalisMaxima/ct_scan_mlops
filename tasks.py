@@ -74,7 +74,9 @@ def train(ctx: Context, entity: str = "", args: str = "") -> None:
 
 
 @task
-def sweep(ctx: Context, sweep_config: str = "configs/sweeps/train_sweep.yaml", project: str = "", entity: str = "") -> None:
+def sweep(
+    ctx: Context, sweep_config: str = "configs/sweeps/train_sweep.yaml", project: str = "", entity: str = ""
+) -> None:
     """Create a W&B sweep from a sweep YAML.
 
     Args:
