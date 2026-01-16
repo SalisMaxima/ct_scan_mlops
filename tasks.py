@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 from invoke import Context, task
 
@@ -184,12 +185,12 @@ def docker_train(
         invoke docker-train --entity other-username --args "train.max_epochs=10"
     """
     # Get absolute path to avoid Docker mount issues
-    cwd = os.getcwd()
+    cwd = Path.cwd()
 
     image = "train-cuda:latest" if cuda else "train:latest"
     gpu_flag = "--gpus all" if cuda else ""
     train_args = f"wandb.entity={entity} {args}".strip()
-    wandb_api_key = os.environ.get('WANDB_API_KEY', '')
+    wandb_api_key = os.environ.get("WANDB_API_KEY", "")
     ctx.run(
         f"docker run --rm {gpu_flag} "
         f"--shm-size=2g "
