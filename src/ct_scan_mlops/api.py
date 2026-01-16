@@ -4,6 +4,7 @@ from __future__ import annotations
 import io
 import os
 from pathlib import Path
+from typing import Annotated
 
 import torch
 from fastapi import FastAPI, File, HTTPException, UploadFile
@@ -66,7 +67,7 @@ def health():
 
 
 @app.post("/predict")
-async def predict(file: UploadFile = File(...)):
+async def predict(file: Annotated[UploadFile, File(...)]):
     if model is None:
         raise HTTPException(status_code=503, detail="Model not loaded")
 
@@ -74,7 +75,7 @@ async def predict(file: UploadFile = File(...)):
     try:
         img = Image.open(io.BytesIO(img_bytes)).convert("RGB")
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Invalid image: {e}")
+        raise HTTPException(status_code=400, detail=f"Invalid image: {e}") from e
 
     x = tfm(img).unsqueeze(0).to(DEVICE)
 
