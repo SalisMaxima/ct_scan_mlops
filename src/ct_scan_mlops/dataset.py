@@ -48,7 +48,9 @@ def _build_pil_grid(samples: list[tuple[Path, int]], image_size: int = 224, ncol
     draw = ImageDraw.Draw(grid)
     try:
         font = ImageFont.load_default()
-    except Exception:
+    except OSError as exc:
+        # Best-effort font loading: continue without custom font if it fails
+        print(f"Warning: Failed to load default font: {exc!r}")
         font = None
 
     for idx, (img_path, label) in enumerate(samples):
