@@ -23,7 +23,7 @@ jobs:
         run: uv sync --dev
 
       - name: Generate dataset samples
-        run: uv run python -m ct_scan_mlops.dataset --save-images true
+        run: uv run python -m ct_scan_mlops.dataset --save-images
 
       - name: Add sample image to summary
         run: |
