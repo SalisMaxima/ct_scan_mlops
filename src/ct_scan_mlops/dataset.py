@@ -56,7 +56,8 @@ def _build_pil_grid(samples: list[tuple[Path, int]], image_size: int = 224, ncol
     for idx, (img_path, label) in enumerate(samples):
         row = idx // ncols
         col = idx % ncols
-        img = Image.open(img_path).convert("RGB").resize((image_size, image_size))
+        with Image.open(img_path) as img_src:
+            img = img_src.convert("RGB").resize((image_size, image_size))
         grid.paste(img, (col * image_size, row * image_size))
         label_text = CLASSES[label]
         draw.text((col * image_size + 5, row * image_size + 5), label_text, fill=(255, 255, 255), font=font)
