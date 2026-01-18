@@ -41,6 +41,8 @@ We create our own **CNN model** that takes images and performs multi-classificat
 
 See [GetStarted.md](GetStarted.md) for setup instructions.
 
+For a complete list of all project dependencies, see [DEPENDENCIES.md](DEPENDENCIES.md).
+
 ---
 
 ## Team Collaboration
