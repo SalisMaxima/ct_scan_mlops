@@ -6,11 +6,6 @@ permissions:
   pull-requests: write
 
 on:
-  push:
-    paths:
-      - "**/*.dvc"
-      - ".dvc/**"
-      - "data/**"
   pull_request:
     paths:
       - "**/*.dvc"
