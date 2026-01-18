@@ -176,7 +176,7 @@ def load_model_from_checkpoint(
     # Build model from config
     model = build_model(cfg).to(device)
 
-    # Load checkpoint (allow pickle for Lightning checkpoints)
+    # Load checkpoint with weights_only=True for security (supports Lightning checkpoints)
     checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=True)
 
     # Handle different checkpoint formats
