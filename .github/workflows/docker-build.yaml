@@ -12,9 +12,10 @@ on:
 
 env:
   # Google Artifact Registry for cache storage (shared with docker-publish.yaml)
-  GAR_LOCATION: europe-west1
+  # Set these in GitHub repo settings: Settings > Secrets and variables > Actions > Variables
+  GAR_LOCATION: ${{ vars.GAR_LOCATION }}
   GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
-  GAR_REPO: ct-scan-mlops
+  GAR_REPO: ${{ vars.GAR_REPO }}
 
 jobs:
   docker-build:

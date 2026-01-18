@@ -40,7 +40,6 @@ ENV PATH="/app/.venv/bin:$PATH"
 #     -v /host/path/to/models:/app/models \
 #     your-image-name
 # Ensure that /host/path/to/models contains the required model files.
-VOLUME /app/models
 
 EXPOSE 8000
 

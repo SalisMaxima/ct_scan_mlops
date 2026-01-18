@@ -16,8 +16,7 @@ RUN --mount=type=cache,target=/var/cache/apt \
     apt-get install --no-install-recommends -y software-properties-common && \
     add-apt-repository ppa:deadsnakes/ppa && \
     apt-get update && \
-    apt-get install --no-install-recommends -y python3.12 python3.12-venv && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get install --no-install-recommends -y python3.12 python3.12-venv
 
 # Set python3.12 as default
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.12 1 && \
@@ -31,8 +30,7 @@ RUN --mount=type=cache,target=/var/cache/apt \
     --mount=type=cache,target=/var/lib/apt \
     apt-get update && \
     apt-get install --no-install-recommends -y \
-        python3.12-dev build-essential gcc && \
-    rm -rf /var/lib/apt/lists/*
+        python3.12-dev build-essential gcc
 
 # Install uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv

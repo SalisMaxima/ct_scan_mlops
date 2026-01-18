@@ -14,9 +14,10 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
   # Google Artifact Registry for cache storage
-  GAR_LOCATION: europe-west1
+  # Set these in GitHub repo settings: Settings > Secrets and variables > Actions > Variables
+  GAR_LOCATION: ${{ vars.GAR_LOCATION }}
   GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
-  GAR_REPO: ct-scan-mlops
+  GAR_REPO: ${{ vars.GAR_REPO }}
 
 jobs:
   publish:
