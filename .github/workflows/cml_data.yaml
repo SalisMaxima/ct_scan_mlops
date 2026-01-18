@@ -22,6 +22,14 @@ jobs:
       - name: Install dependencies
         run: uv sync --dev
 
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Pull data via DVC
+        run: uv run dvc pull
+
       - name: Generate dataset samples
         run: uv run python -m ct_scan_mlops.dataset --save-images
 
