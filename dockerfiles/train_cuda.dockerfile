@@ -74,5 +74,5 @@ COPY --from=builder /app/configs /app/configs
 # Set PATH to use the virtual environment
 ENV PATH="/app/.venv/bin:$PATH"
 
-ENTRYPOINT ["python", "-u", "-m", "ct_scan_mlops.train"]
+ENTRYPOINT ["uv", "run", "--frozen", "python", "-u", "-m", "ct_scan_mlops.train"]
 CMD []
