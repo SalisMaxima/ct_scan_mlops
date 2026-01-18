@@ -1,0 +1,39 @@
+name: Security Audit
+# Based on recommendations from: https://github.com/sdras/awesome-actions
+# Official Bandit Repository: https://github.com/PyCQA/bandit
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+
+jobs:
+  bandit:
+    name: Security check (Bandit)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install Bandit
+
+        run: uv tool install bandit
+
+      - name: Run Bandit Scan
+
+        run: uv tool run bandit -r src/ -ll -ii
