@@ -1,0 +1,26 @@
+# 📂 Source Code Changes
+"source-code":
+  - changed-files:
+      - any-glob-to-any-file: "src/**/*"
+
+# 🧪 Test Changes
+"tests":
+  - changed-files:
+      - any-glob-to-any-file: "tests/**/*"
+
+# ⚙️ CI/CD & Config Changes
+"ci-cd":
+  - changed-files:
+      - any-glob-to-any-file: ".github/**/*"
+
+# 📦 Dependency Changes (uv, pyproject)
+"dependencies":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "pyproject.toml"
+          - "uv.lock"
+
+# 📄 Documentation
+"documentation":
+  - changed-files:
+      - any-glob-to-any-file: "**/*.md"

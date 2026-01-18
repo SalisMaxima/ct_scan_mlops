@@ -1,0 +1,25 @@
+name: PR Labeler
+
+# Based on: https://github.com/actions/labeler
+# Part of: https://github.com/sdras/awesome-actions
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - main
+      - master
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  label:
+    name: Add Labels
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/labeler@v5
+        with:
+          repo-token: "${{ secrets.GITHUB_TOKEN }}"
+          sync-labels: true # Removes labels if files are reverted/removed
