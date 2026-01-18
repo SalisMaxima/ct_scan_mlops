@@ -10,6 +10,12 @@ on:
       - "uv.lock"
       - ".github/workflows/docker-build.yaml"
 
+env:
+  # Google Artifact Registry for cache storage (shared with docker-publish.yaml)
+  GAR_LOCATION: europe-west1
+  GCP_PROJECT_ID: dtu-mlops-data-482907
+  GAR_REPO: ct-scan-mlops
+
 jobs:
   docker-build:
     runs-on: ubuntu-latest
@@ -19,13 +25,15 @@ jobs:
         include:
           - dockerfile: dockerfiles/train.dockerfile
             tag: ct-scan-mlops:train
+            cache-tag: train-latest
           - dockerfile: dockerfiles/train_cuda.dockerfile
             tag: ct-scan-mlops:train-cuda
+            cache-tag: train-cuda-latest
           - dockerfile: dockerfiles/api.dockerfile
             tag: ct-scan-mlops:api
+            cache-tag: api-latest
 
     steps:
-      # Use a dedicated action to maximize free space (More aggressive than manual script)
       - name: Free Disk Space (Ubuntu)
         uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # v1.3.1
         with:
@@ -40,6 +48,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ env.GAR_LOCATION }}-docker.pkg.dev --quiet
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -50,6 +66,6 @@ jobs:
           file: ${{ matrix.dockerfile }}
           push: false
           tags: ${{ matrix.tag }}
-          # Use GHA caching to speed up builds without filling local disk
-          cache-from: type=gha,scope=${{ matrix.tag }}
-          cache-to: type=gha,mode=max,scope=${{ matrix.tag }}
+          # Use same GAR cache as docker-publish.yaml (shared cache!)
+          cache-from: type=registry,ref=${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GAR_REPO }}/cache:${{ matrix.cache-tag }}
+          cache-to: type=registry,ref=${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GAR_REPO }}/cache:${{ matrix.cache-tag }},mode=max

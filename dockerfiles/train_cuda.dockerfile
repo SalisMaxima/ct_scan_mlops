@@ -1,28 +1,41 @@
 # CUDA-enabled training dockerfile for GPU training
-# Multistage build to remove build tools from final image
+# 3-stage build: python-base -> builder -> runtime
+# Optimized to install Python only ONCE (in python-base stage)
 
-# === Builder stage ===
-FROM nvidia/cuda:12.4.0-runtime-ubuntu22.04 AS builder
+# === Stage 1: Python base (shared between builder and runtime) ===
+FROM nvidia/cuda:12.4.0-runtime-ubuntu22.04 AS python-base
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=Europe/Copenhagen
 
-# Install Python 3.12 and build tools (needed for compilation)
-RUN apt-get update && \
+# Install Python 3.12 runtime only (no dev packages, no build tools)
+# Using APT cache mounts to speed up builds
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update && \
     apt-get install --no-install-recommends -y software-properties-common && \
     add-apt-repository ppa:deadsnakes/ppa && \
     apt-get update && \
-    apt-get install --no-install-recommends -y \
-        python3.12 python3.12-venv python3.12-dev \
-        build-essential gcc && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
-
-# Install uv
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+    apt-get install --no-install-recommends -y python3.12 python3.12-venv && \
+    rm -rf /var/lib/apt/lists/*
 
 # Set python3.12 as default
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.12 1 && \
     update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 1
+
+# === Stage 2: Builder (adds build tools on top of python-base) ===
+FROM python-base AS builder
+
+# Install build tools needed for compilation (python3.12-dev, gcc, etc.)
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update && \
+    apt-get install --no-install-recommends -y \
+        python3.12-dev build-essential gcc && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
 WORKDIR /app
 
@@ -45,23 +58,10 @@ COPY configs/ configs/
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen
 
-# === Runtime stage (no build tools) ===
-FROM nvidia/cuda:12.4.0-runtime-ubuntu22.04 AS runtime
+# === Stage 3: Runtime (inherits from python-base, no build tools) ===
+FROM python-base AS runtime
 
-ENV DEBIAN_FRONTEND=noninteractive
-ENV TZ=Europe/Copenhagen
-
-# Install only Python runtime (no build tools)
-RUN apt-get update && \
-    apt-get install --no-install-recommends -y software-properties-common && \
-    add-apt-repository ppa:deadsnakes/ppa && \
-    apt-get update && \
-    apt-get install --no-install-recommends -y python3.12 python3.12-venv && \
-    apt-get clean && rm -rf /var/lib/apt/lists/* && \
-    update-alternatives --install /usr/bin/python python /usr/bin/python3.12 1 && \
-    update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 1
-
-# Copy uv
+# Copy uv for runtime commands
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
 WORKDIR /app
