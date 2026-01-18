@@ -35,7 +35,7 @@ jobs:
     steps:
       # Use a dedicated action to maximize free space (More aggressive than manual script)
       - name: Free Disk Space (Ubuntu)
-        uses: jlumbroso/free-disk-space@v1.3.1
+        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # v1.3.1
         with:
           tool-cache: false
           android: true
@@ -50,8 +50,6 @@ jobs:
 
       - name: Lowercase image name
         run: echo "IMAGE_NAME_LC=${IMAGE_NAME,,}" >> $GITHUB_ENV
-        env:
-          IMAGE_NAME: ${{ github.repository }}
         shell: bash
 
       - name: Set up Docker Buildx
@@ -72,5 +70,5 @@ jobs:
           push: true
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LC }}:${{ matrix.tag-suffix }}
           # Use GHA caching to speed up builds without filling local disk
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=${{ matrix.tag-suffix }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.tag-suffix }}
