@@ -34,8 +34,12 @@ COPY --from=builder /app/src /app/src
 # Set PATH to use the virtual environment
 ENV PATH="/app/.venv/bin:$PATH"
 
-# Models should be mounted at runtime, not baked into image
-VOLUME /app/models
+# NOTE: Models are no longer baked into this image.
+# They must be mounted at runtime, e.g.:
+#   docker run --rm -p 8000:8000 \
+#     -v /host/path/to/models:/app/models \
+#     your-image-name
+# Ensure that /host/path/to/models contains the required model files.
 
 EXPOSE 8000
 
