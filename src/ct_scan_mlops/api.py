@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import io
 import os
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Annotated
 
@@ -14,8 +15,6 @@ from torchvision import transforms
 
 from ct_scan_mlops.model import build_model
 
-app = FastAPI(title="CT Scan Inference API", version="0.1.0")
-
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Point this to the training run folder that contains:
@@ -26,6 +25,13 @@ CONFIG_PATH = RUN_DIR / ".hydra" / "config.yaml"
 MODEL_FILENAME = os.environ.get("MODEL_FILENAME", "model.pt")
 MODEL_PATH = RUN_DIR / MODEL_FILENAME
 
+CLASS_NAMES = [
+    "adenocarcinoma",
+    "large_cell_carcinoma",
+    "normal",
+    "squamous_cell_carcinoma",
+]
+
 model: torch.nn.Module | None = None
 tfm = transforms.Compose(
     [
@@ -35,8 +41,9 @@ tfm = transforms.Compose(
 )
 
 
-@app.on_event("startup")
-def load() -> None:
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    """Load model on startup, cleanup on shutdown."""
     global model
 
     if not CONFIG_PATH.exists():
@@ -53,9 +60,22 @@ def load() -> None:
     model.to(DEVICE)
     model.eval()
 
+    yield
+
+    # Cleanup
+    del model
+
+
+app = FastAPI(title="CT Scan Inference API", version="0.1.0", lifespan=lifespan)
+
 
 @app.get("/health")
-def health():
+def health() -> dict:
+    """Check API health status and model availability.
+
+    Returns:
+        dict: Health status including device info and model state.
+    """
     return {
         "ok": True,
         "device": str(DEVICE),
@@ -67,7 +87,18 @@ def health():
 
 
 @app.post("/predict")
-async def predict(file: Annotated[UploadFile, File(...)]):
+async def predict(file: Annotated[UploadFile, File(...)]) -> dict:
+    """Classify a CT scan image.
+
+    Args:
+        file: Uploaded CT scan image (PNG, JPEG, etc.)
+
+    Returns:
+        dict: Prediction index and class name.
+
+    Raises:
+        HTTPException: 503 if model not loaded, 400 if invalid image.
+    """
     if model is None:
         raise HTTPException(status_code=503, detail="Model not loaded")
 
@@ -83,4 +114,7 @@ async def predict(file: Annotated[UploadFile, File(...)]):
         logits = model(x)
         pred = int(torch.argmax(logits, dim=1).item())
 
-    return {"pred_index": pred}
+    return {
+        "pred_index": pred,
+        "pred_class": CLASS_NAMES[pred],
+    }
