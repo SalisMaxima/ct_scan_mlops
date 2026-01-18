@@ -1,5 +1,10 @@
 name: DVC Workflow
 
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
 on:
   push:
     paths:
@@ -77,7 +82,7 @@ jobs:
             echo "## CT Scan Sample Images"
             echo
             if [ -f "$image_path" ]; then
-              cml publish "$image_path" --md
+              echo "![ct-scan-samples](${image_path})"
             else
               echo "Sample image not found."
             fi
