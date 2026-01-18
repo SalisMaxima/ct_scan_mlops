@@ -1,7 +1,17 @@
 name: DVC Workflow
 
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
 on:
   push:
+    paths:
+      - "**/*.dvc"
+      - ".dvc/**"
+      - "data/**"
+  pull_request:
     paths:
       - "**/*.dvc"
       - ".dvc/**"
@@ -52,22 +62,38 @@ jobs:
 
       - name: Add sample image to summary
         run: |
-          python - <<'PY'
-          import base64
-          import os
+          image_path="reports/figures/ct_scan_images.png"
 
-          image_path = "reports/figures/ct_scan_images.png"
-          summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+          {
+            echo "## CT Scan Sample Images"
+            echo
+            if [ -f "$image_path" ]; then
+              encoded=$(base64 -w 0 "$image_path")
+              echo "![ct-scan-samples](data:image/png;base64,${encoded})"
+            else
+              echo "Sample image not found."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
 
-          if not summary_path:
-              raise SystemExit("GITHUB_STEP_SUMMARY not set")
+      - name: Set up CML
+        if: github.event_name == 'pull_request'
+        uses: iterative/setup-cml@v2
 
-          with open(summary_path, "a", encoding="utf-8") as summary:
-              summary.write("## CT Scan Sample Images\n\n")
-              if os.path.exists(image_path):
-                  with open(image_path, "rb") as image_file:
-                      encoded = base64.b64encode(image_file.read()).decode("utf-8")
-                  summary.write(f"![ct-scan-samples](data:image/png;base64,{encoded})\n")
-              else:
-                  summary.write("Sample image not found.\n")
-          PY
+      - name: Post PR comment with sample image
+        if: github.event_name == 'pull_request'
+        env:
+          REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          image_path="reports/figures/ct_scan_images.png"
+
+          {
+            echo "## CT Scan Sample Images"
+            echo
+            if [ -f "$image_path" ]; then
+              echo "![ct-scan-samples](${image_path})"
+            else
+              echo "Sample image not found."
+            fi
+          } > report.md
+
+          cml comment create report.md
