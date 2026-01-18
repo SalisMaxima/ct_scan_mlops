@@ -69,6 +69,5 @@ jobs:
           file: ${{ matrix.dockerfile }}
           push: false
           tags: ${{ matrix.tag }}
-          # Use same GAR cache as docker-publish.yaml (shared cache!)
+          # Read cache from GAR (populated by docker-publish.yaml on main branch)
           cache-from: type=registry,ref=${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GAR_REPO }}/cache:${{ matrix.cache-tag }}
-          cache-to: type=registry,ref=${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GAR_REPO }}/cache:${{ matrix.cache-tag }},mode=max
