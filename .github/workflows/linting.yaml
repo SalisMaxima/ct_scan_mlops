@@ -1,6 +1,7 @@
 name: Code linting
 
 on:
+  pull_request: 
   schedule:
     - cron: "0 6 * * *"  # Daily at 6 AM UTC
   workflow_dispatch: {}
