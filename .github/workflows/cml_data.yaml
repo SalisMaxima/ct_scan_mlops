@@ -6,6 +6,11 @@ on:
       - "**/*.dvc"
       - ".dvc/**"
       - "data/**"
+  pull_request:
+    paths:
+      - "**/*.dvc"
+      - ".dvc/**"
+      - "data/**"
   workflow_dispatch:
 
 jobs:
@@ -56,3 +61,26 @@ jobs:
               echo "Sample image not found."
             fi
           } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Set up CML
+        if: github.event_name == 'pull_request'
+        uses: iterative/setup-cml@v2
+
+      - name: Post PR comment with sample image
+        if: github.event_name == 'pull_request'
+        env:
+          REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          image_path="reports/figures/ct_scan_images.png"
+
+          {
+            echo "## CT Scan Sample Images"
+            echo
+            if [ -f "$image_path" ]; then
+              cml-publish "$image_path" --md
+            else
+              echo "Sample image not found."
+            fi
+          } > report.md
+
+          cml comment create report.md
