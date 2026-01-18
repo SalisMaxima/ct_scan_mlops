@@ -117,10 +117,7 @@ async def predict(file: Annotated[UploadFile, File(...)]) -> dict:
     if not (0 <= pred < len(CLASS_NAMES)):
         raise HTTPException(
             status_code=500,
-            detail=(
-                f"Model predicted invalid class index {pred}; "
-                f"expected 0-{len(CLASS_NAMES) - 1}"
-            ),
+            detail=(f"Model predicted invalid class index {pred}; expected 0-{len(CLASS_NAMES) - 1}"),
         )
     return {
         "pred_index": pred,
