@@ -4,8 +4,7 @@ FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
 WORKDIR /app
 
 # Copy lock + metadata first for caching
-COPY uv.lock uv.lock
-COPY pyproject.toml pyproject.toml
+COPY uv.lock pyproject.toml README.md LICENSE ./
 
 # Install deps except the project itself with BuildKit cache
 RUN --mount=type=cache,target=/root/.cache/uv \
@@ -15,13 +14,9 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision torchaudio
 
-# Copy code/configs
+# Copy code/configs (changes frequently - put last)
 COPY src/ src/
 COPY configs/ configs/
-
-# Copy README.md
-COPY README.md README.md
-COPY LICENSE LICENSE
 
 # Install project package (and any remaining deps)
 RUN --mount=type=cache,target=/root/.cache/uv \
