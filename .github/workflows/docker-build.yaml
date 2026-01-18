@@ -4,6 +4,13 @@ on:
   push:
     branches: ["main", "master"]
   pull_request:
+    branches: ["main", "master"]
+    paths:
+      - "Dockerfile*"
+      - "dockerfiles/**"
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".github/workflows/docker-build.yaml"
 
 jobs:
   docker-build:

@@ -5,10 +5,22 @@ on:
     branches:
       - main
       - master
+    paths:
+      - "src/**"
+      - "tests/**"
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".github/workflows/tests.yaml"
   pull_request:
     branches:
       - main
       - master
+    paths:
+      - "src/**"
+      - "tests/**"
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".github/workflows/tests.yaml"
 
 jobs:
   test:
