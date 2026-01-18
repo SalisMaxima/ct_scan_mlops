@@ -15,7 +15,7 @@ env:
   IMAGE_NAME: ${{ github.repository }}
   # Google Artifact Registry for cache storage
   GAR_LOCATION: europe-west1
-  GCP_PROJECT_ID: dtu-mlops-data-482907
+  GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
   GAR_REPO: ct-scan-mlops
 
 jobs:

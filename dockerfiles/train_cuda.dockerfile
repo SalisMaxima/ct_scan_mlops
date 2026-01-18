@@ -10,8 +10,8 @@ ENV TZ=Europe/Copenhagen
 
 # Install Python 3.12 runtime only (no dev packages, no build tools)
 # Using APT cache mounts to speed up builds
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+RUN --mount=type=cache,target=/var/cache/apt \
+    --mount=type=cache,target=/var/lib/apt \
     apt-get update && \
     apt-get install --no-install-recommends -y software-properties-common && \
     add-apt-repository ppa:deadsnakes/ppa && \
@@ -27,8 +27,8 @@ RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.12 1 &
 FROM python-base AS builder
 
 # Install build tools needed for compilation (python3.12-dev, gcc, etc.)
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+RUN --mount=type=cache,target=/var/cache/apt \
+    --mount=type=cache,target=/var/lib/apt \
     apt-get update && \
     apt-get install --no-install-recommends -y \
         python3.12-dev build-essential gcc && \
