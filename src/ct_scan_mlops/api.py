@@ -114,6 +114,11 @@ async def predict(file: Annotated[UploadFile, File(...)]) -> dict:
         logits = model(x)
         pred = int(torch.argmax(logits, dim=1).item())
 
+    if not (0 <= pred < len(CLASS_NAMES)):
+        raise HTTPException(
+            status_code=500,
+            detail=(f"Model predicted invalid class index {pred}; expected 0-{len(CLASS_NAMES) - 1}"),
+        )
     return {
         "pred_index": pred,
         "pred_class": CLASS_NAMES[pred],
