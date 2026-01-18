@@ -14,27 +14,44 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
-permissions:
-  contents: read
-  packages: write
-
 jobs:
   publish:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - dockerfile: dockerfiles/train.dockerfile
+            tag-suffix: train-latest
+          - dockerfile: dockerfiles/train_cuda.dockerfile
+            tag-suffix: train-cuda-latest
+          - dockerfile: dockerfiles/api.dockerfile
+            tag-suffix: api-latest
+
+    permissions:
+      contents: read
+      packages: write
+
     steps:
-      - name: Free disk space
-        run: |
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /usr/local/lib/android
-          sudo rm -rf /opt/ghc
-          sudo rm -rf /opt/hostedtoolcache/CodeQL
-          sudo docker image prune -af
+      # Use a dedicated action to maximize free space (More aggressive than manual script)
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
 
       - name: Checkout
         uses: actions/checkout@v6
 
       - name: Lowercase image name
         run: echo "IMAGE_NAME_LC=${IMAGE_NAME,,}" >> $GITHUB_ENV
+        env:
+          IMAGE_NAME: ${{ github.repository }}
         shell: bash
 
       - name: Set up Docker Buildx
@@ -47,27 +64,13 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push (train image)
+      - name: Build and push (${{ matrix.tag-suffix }})
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: dockerfiles/train.dockerfile
+          file: ${{ matrix.dockerfile }}
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LC }}:train-latest
-
-      - name: Build and push (train CUDA image)
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: dockerfiles/train_cuda.dockerfile
-          push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LC }}:train-cuda-latest
-
-      # Optional: API image
-      - name: Build and push (api image)
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: dockerfiles/api.dockerfile
-          push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LC }}:api-latest
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LC }}:${{ matrix.tag-suffix }}
+          # Use GHA caching to speed up builds without filling local disk
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
