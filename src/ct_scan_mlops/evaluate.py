@@ -177,7 +177,7 @@ def load_model_from_checkpoint(
     model = build_model(cfg).to(device)
 
     # Load checkpoint (allow pickle for Lightning checkpoints)
-    checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
+    checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=True)
 
     # Handle different checkpoint formats
     if isinstance(checkpoint, dict):

@@ -54,7 +54,7 @@ async def lifespan(_app: FastAPI):
     cfg = OmegaConf.load(CONFIG_PATH)
     model = build_model(cfg)
 
-    state = torch.load(MODEL_PATH, map_location="cpu")
+    state = torch.load(MODEL_PATH, map_location="cpu", weights_only=True)
     model.load_state_dict(state)
 
     model.to(DEVICE)
