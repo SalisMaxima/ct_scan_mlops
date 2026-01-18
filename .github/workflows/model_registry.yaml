@@ -1,0 +1,35 @@
+name: Model Registry Workflow
+
+on:
+  push:
+    paths:
+      - "models/**"
+      - "configs/model/**"
+  workflow_dispatch:
+
+jobs:
+  model-registry-changes:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          uv sync --all-extras --dev
+          uv pip list
+
+      - name: Model registry change detected
+        run: |
+          echo "Model registry changes detected in models/ or configs/model/." >> $GITHUB_STEP_SUMMARY

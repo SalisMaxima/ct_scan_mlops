@@ -11,16 +11,33 @@ on:
 jobs:
   data-changes:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v6
 
-      - name: Set up uv
+      - name: Install uv
         uses: astral-sh/setup-uv@v7
         with:
+          enable-cache: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
           python-version: "3.12"
+
       - name: Install dependencies
-        run: uv sync --dev
+        run: |
+          uv sync --all-extras --dev
+          uv pip list
+
+      - name: Authenticate to Google Cloud
+
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - name: Pull data with DVC
+        run: uv run dvc pull
 
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v2
