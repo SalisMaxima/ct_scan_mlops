@@ -31,9 +31,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install Bandit
-
         run: uv tool install bandit
 
       - name: Run Bandit Scan
-
         run: uv tool run bandit -r src/ -ll -ii
