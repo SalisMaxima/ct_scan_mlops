@@ -3,6 +3,12 @@ name: Docker publish
 on:
   push:
     branches: ["main", "master"]
+    paths:
+      - "Dockerfile*"
+      - "dockerfiles/**"
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".github/workflows/docker-publish.yaml"
 
 env:
   REGISTRY: ghcr.io
