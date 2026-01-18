@@ -38,7 +38,7 @@ class LitModel(pl.LightningModule):
         self.save_hyperparameters(ignore=["model"])
 
         # Track training history for plotting
-        self.training_history = {
+        self.training_history: dict[str, list[float]] = {
             "train_loss": [],
             "train_acc": [],
             "val_loss": [],

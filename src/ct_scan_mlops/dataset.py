@@ -71,7 +71,7 @@ def dataset_statistics(datadir: str = "data/raw", show_images: bool = False, sav
 
     transform = A.Compose([A.Resize(224, 224), ToTensorV2()])
 
-    splits = {"train": None, "valid": None, "test": None}
+    splits: dict[str, ChestCTDataset | None] = {"train": None, "valid": None, "test": None}
     for split in list(splits.keys()):
         split_dir = data_root / split
         if split_dir.exists():

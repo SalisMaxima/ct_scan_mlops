@@ -303,7 +303,7 @@ def evaluate_cli(
 
 
 @hydra.main(config_path=_CONFIG_PATH, config_name="config", version_base="1.3")
-def evaluate_hydra(cfg: DictConfig) -> None:
+def evaluate_hydra(cfg: DictConfig) -> dict[str, float] | None:
     """Evaluate with Hydra config (for integration with training pipeline).
 
     This can be called after training completes or as a separate step.
