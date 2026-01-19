@@ -49,6 +49,7 @@ dependencies = [
     "kagglehub>=0.4.0",
     "torch-tb-profiler>=0.4.3",
     "python-multipart>=0.0.21",
+    "httpx>=0.28.1",
 ]
 
 [dependency-groups]
