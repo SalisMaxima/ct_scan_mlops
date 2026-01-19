@@ -31,5 +31,5 @@ RUN uv sync --frozen
 
 # --- Pull data then train ---
 # This guarantees training has the data even if the python module doesn't pull.
-ENTRYPOINT ["bash", "-lc", "dvc pull -v && uv run python -m ct_scan_mlops.train"]
+ENTRYPOINT ["bash", "-lc", "dvc pull -v && uv run python -m ct_scan_mlops.train $@", "--"]
 CMD []

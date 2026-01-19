@@ -56,6 +56,15 @@ COPY configs/ configs/
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen
 
+# Install DVC with GCS support
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install "dvc[gcs]"
+
+# Copy DVC metadata
+COPY .dvc/ .dvc/
+COPY dvc.yaml dvc.lock ./
+COPY *.dvc ./
+
 # === Stage 3: Runtime (inherits from python-base, no build tools) ===
 FROM python-base AS runtime
 
@@ -68,9 +77,12 @@ WORKDIR /app
 COPY --from=builder /app/.venv /app/.venv
 COPY --from=builder /app/src /app/src
 COPY --from=builder /app/configs /app/configs
+COPY --from=builder /app/.dvc /app/.dvc
+COPY --from=builder /app/dvc.yaml /app/dvc.yaml
+COPY --from=builder /app/dvc.lock /app/dvc.lock
 
 # Set PATH to use the virtual environment
 ENV PATH="/app/.venv/bin:$PATH"
 
-ENTRYPOINT ["uv", "run", "--frozen", "python", "-u", "-m", "ct_scan_mlops.train"]
+ENTRYPOINT ["bash", "-lc", "dvc pull -v && uv run --frozen python -u -m ct_scan_mlops.train $@", "--"]
 CMD []
