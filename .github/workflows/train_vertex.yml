@@ -74,21 +74,16 @@ jobs:
             echo "accelerator_count=0" >> $GITHUB_OUTPUT
           fi
 
+      - name: Auth Docker to Artifact Registry
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
       - name: Build & push image
         run: |
           IMAGE_URI="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_REPO }}/ct-scan-train-${{ steps.config.outputs.image_suffix }}:${{ github.sha }}"
           echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
 
-          # Create cloudbuild.yaml for custom dockerfile
-          cat > cloudbuild.yaml <<EOF
-          steps:
-            - name: 'gcr.io/cloud-builders/docker'
-              args: ['build', '-t', '$IMAGE_URI', '-f', '${{ steps.config.outputs.dockerfile }}', '.']
-          images:
-            - '$IMAGE_URI'
-          EOF
-
-          gcloud builds submit . --config=cloudbuild.yaml
+          docker build -t "$IMAGE_URI" -f "${{ steps.config.outputs.dockerfile }}" .
+          docker push "$IMAGE_URI"
 
       - name: Create Vertex AI job config
         run: |  # pragma: allowlist secret
