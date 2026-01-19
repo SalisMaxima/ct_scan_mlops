@@ -26,7 +26,7 @@ ct_scan_mlops/
 ├── LICENSE                 # MIT License
 │
 ├── README.md               # Main project documentation
-├── CLAUDE.md               # AI assistant instructions
+├── CLAUDE.md               # AI assistant instructions (source of truth)
 ├── GetStarted.md           # Setup guide
 ├── COLLABORATION.md        # W&B team workflow guide
 ├── DEPENDENCIES.md         # Dependency documentation
@@ -156,6 +156,7 @@ CI/CD pipeline definitions.
 
 ```
 .github/
+├── copilot-instructions.md # GitHub Copilot instructions (synced from CLAUDE.md)
 ├── dependabot.yaml         # Dependency update configuration
 ├── labeler.yml             # PR auto-labeling rules
 └── workflows/
@@ -362,6 +363,9 @@ invoke process-data  # Process raw data
 # Docker
 invoke docker-build  # Build Docker image
 invoke docker-run    # Run Docker container
+
+# AI Config
+invoke sync-ai-config  # Sync CLAUDE.md -> copilot-instructions.md
 ```
 
 ### Key Entry Points

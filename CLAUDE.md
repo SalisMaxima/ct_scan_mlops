@@ -5,6 +5,7 @@ Chest CT scan multi-classification for lung tumor detection (4 classes: adenocar
 ## IMPORTANT
 - **ALWAYS activate environment first: `source .venv/bin/activate`**
 - **After code changes run: `invoke ruff`**
+- **After changing CLAUDE.md or copilot-instructions.md run: `invoke sync-ai-config`**
 - **Always use `uv run` for Python commands** (e.g., `uv run python`, `uv run pytest`)
 - **Always use `uv add` to install packages** (never `pip install`)
 
