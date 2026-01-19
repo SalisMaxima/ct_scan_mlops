@@ -357,12 +357,12 @@ invoke test          # Run tests
 invoke train         # Train model
 
 # Data
-invoke dvc-pull      # Pull data from remote
-invoke process-data  # Process raw data
+invoke dvc-pull        # Pull data from remote
+invoke preprocess-data # Process raw data
 
 # Docker
-invoke docker-build  # Build Docker image
-invoke docker-run    # Run Docker container
+invoke docker-build    # Build Docker image
+invoke docker-run      # Run Docker container
 
 # AI Config
 invoke sync-ai-config  # Sync CLAUDE.md -> copilot-instructions.md
