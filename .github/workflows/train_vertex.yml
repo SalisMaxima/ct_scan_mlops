@@ -97,17 +97,18 @@ jobs:
           docker push "$IMAGE_URI"
 
       - name: Create Vertex AI job config
-        run: |  # pragma: allowlist secret
+        run: |
+          # Create the base worker pool spec
+          # We remove 'displayName' and 'jobSpec' keys here so the file 
+          # is a valid WorkerPoolSpec list for the --config flag.
           cat > job.yaml <<EOF
-          displayName: ct-scan-train-${{ github.sha }}
-          jobSpec:
-            workerPoolSpecs:
+          workerPoolSpecs:
             - replicaCount: 1
               machineSpec:
                 machineType: ${{ steps.config.outputs.machine_type }}
           EOF
 
-          # Add GPU config if requested
+          # Append GPU config if requested
           if [ -n "${{ steps.config.outputs.accelerator_type }}" ]; then
             cat >> job.yaml <<EOF
                 acceleratorType: ${{ steps.config.outputs.accelerator_type }}
@@ -115,7 +116,7 @@ jobs:
           EOF
           fi
 
-          # Add container spec
+          # Append Container Spec (Logic for args and env vars)
           cat >> job.yaml <<EOF
               containerSpec:
                 imageUri: ${IMAGE_URI}
@@ -130,11 +131,11 @@ jobs:
                     value: "mathiashl-danmarks-tekniske-universitet-dtu"
           EOF
 
-          # Add secret reference for WANDB_API_KEY (only if not disabled)  # pragma: allowlist secret
+          # Append Secret Env Vars (only if W&B is not disabled)
           if [ "${{ inputs.wandb_mode || 'online' }}" != "disabled" ]; then
             cat >> job.yaml <<EOF
                 secretEnvVariables:
-                  - secretName: projects/${{ env.PROJECT_ID }}/secrets/wandb-api-key/versions/latest  # pragma: allowlist secret
+                  - secretName: projects/${{ env.PROJECT_ID }}/secrets/wandb-api-key/versions/latest
                     envName: WANDB_API_KEY
           EOF
           fi
@@ -144,8 +145,10 @@ jobs:
 
       - name: Run Vertex training
         run: |
+          # Use the job.yaml created in the previous step
           gcloud ai custom-jobs create \
-            --region=${{ env.REGION }} \
+            --region=${{ vars.GAR_LOCATION }} \
+            --display-name="ct-scan-train-$(date +%Y%m%d-%H%M%S)" \
             --config=job.yaml
 
       - name: Show monitoring link
