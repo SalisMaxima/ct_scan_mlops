@@ -62,8 +62,9 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 # Copy DVC metadata
 COPY .dvc/ .dvc/
-COPY dvc.yaml dvc.lock ./
-COPY *.dvc ./
+# Copy .dvc files (this project uses .dvc files, not dvc.yaml)
+COPY data/*.dvc data/
+COPY artifacts/*.dvc artifacts/
 
 # === Stage 3: Runtime (inherits from python-base, no build tools) ===
 FROM python-base AS runtime
@@ -78,8 +79,8 @@ COPY --from=builder /app/.venv /app/.venv
 COPY --from=builder /app/src /app/src
 COPY --from=builder /app/configs /app/configs
 COPY --from=builder /app/.dvc /app/.dvc
-COPY --from=builder /app/dvc.yaml /app/dvc.yaml
-COPY --from=builder /app/dvc.lock /app/dvc.lock
+COPY --from=builder /app/data/*.dvc /app/data/
+COPY --from=builder /app/artifacts/*.dvc /app/artifacts/
 
 # Set PATH to use the virtual environment
 ENV PATH="/app/.venv/bin:$PATH"
