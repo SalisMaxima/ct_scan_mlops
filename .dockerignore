@@ -42,21 +42,21 @@ htmlcov/
 .dvc/cache/
 .dvc/tmp/
 
-# ML artifacts (keep configs and .dvc files, exclude outputs)
-artifacts/*
-!artifacts/*.dvc
-!artifacts/.gitignore
+# ML artifacts (exclude large files but keep .dvc metadata)
+artifacts/profiling/
+artifacts/ct_scan_classifier_model*/
 wandb/
 outputs/
 mlruns/
 models/*.ckpt
 models/*.pth
 
-# Data (exclude actual data, keep .dvc tracking files)
-data/raw/
-data/processed/
-!data/*.dvc
-!data/.gitignore
+# Data (exclude actual data directories)
+data/raw/*
+data/processed/*
+# But keep .gitignore files
+!data/raw/.gitignore
+!data/processed/.gitignore
 
 # Documentation
 docs/
