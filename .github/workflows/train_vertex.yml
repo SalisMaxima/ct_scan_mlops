@@ -78,9 +78,17 @@ jobs:
         run: |
           IMAGE_URI="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_REPO }}/ct-scan-train-${{ steps.config.outputs.image_suffix }}:${{ github.sha }}"
           echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
-          gcloud builds submit . \
-            --tag="$IMAGE_URI" \
-            --dockerfile="${{ steps.config.outputs.dockerfile }}"
+
+          # Create cloudbuild.yaml for custom dockerfile
+          cat > cloudbuild.yaml <<EOF
+          steps:
+            - name: 'gcr.io/cloud-builders/docker'
+              args: ['build', '-t', '$IMAGE_URI', '-f', '${{ steps.config.outputs.dockerfile }}', '.']
+          images:
+            - '$IMAGE_URI'
+          EOF
+
+          gcloud builds submit . --config=cloudbuild.yaml
 
       - name: Create Vertex AI job config
         run: |  # pragma: allowlist secret
