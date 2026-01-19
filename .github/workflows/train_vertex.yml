@@ -54,7 +54,7 @@ jobs:
           large-packages: true
           docker-images: true
           swap-storage: true
-          
+
       - uses: actions/checkout@v4
 
       - name: Auth to GCP
@@ -91,15 +91,28 @@ jobs:
       - name: Build & push image
         run: |
           IMAGE_URI="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_REPO }}/ct-scan-train-${{ steps.config.outputs.image_suffix }}:${{ github.sha }}"
+          LATEST_URI="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_REPO }}/ct-scan-train-${{ steps.config.outputs.image_suffix }}:latest"
+
           echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
 
-          docker build -t "$IMAGE_URI" -f "${{ steps.config.outputs.dockerfile }}" .
+          # 1. Try to pull the latest image to use as a cache (ignore errors if it doesn't exist yet)
+          docker pull "$LATEST_URI" || true
+
+          # 2. Build using the pulled image as a cache source
+          docker build \
+            --cache-from "$LATEST_URI" \
+            -t "$IMAGE_URI" \
+            -t "$LATEST_URI" \
+            -f "${{ steps.config.outputs.dockerfile }}" .
+
+          # 3. Push both the specific SHA tag and the 'latest' tag (so next run can cache from it)
           docker push "$IMAGE_URI"
+          docker push "$LATEST_URI"
 
       - name: Create Vertex AI job config
-        run: |
+        run: | # pragma: allowlist secret
           # Create the base worker pool spec
-          # We remove 'displayName' and 'jobSpec' keys here so the file 
+          # We remove 'displayName' and 'jobSpec' keys here so the file
           # is a valid WorkerPoolSpec list for the --config flag.
           cat > job.yaml <<EOF
           workerPoolSpecs:
@@ -148,7 +161,7 @@ jobs:
           # 1. Fetch W&B API Key from Secret Manager (if needed)
           WANDB_API_KEY_VAL=""
           MODE="${{ inputs.wandb_mode || 'online' }}"
-          
+
           if [ "$MODE" != "disabled" ]; then
             echo "Fetching W&B API Key from Secret Manager..."
             WANDB_API_KEY_VAL=$(gcloud secrets versions access latest --secret="wandb-api-key" --project="${{ env.PROJECT_ID }}")
