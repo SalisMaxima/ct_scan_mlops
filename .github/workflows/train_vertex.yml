@@ -20,13 +20,6 @@ jobs:
         with:
           project_id: ${{ vars.GCP_PROJECT_ID }}
 
-      - name: Enable APIs
-        run: |
-          gcloud services enable \
-            aiplatform.googleapis.com \
-            artifactregistry.googleapis.com \
-            cloudbuild.googleapis.com
-
       - name: Build & push image
         run: |
           IMAGE_URI="${{ vars.GAR_LOCATION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GAR_REPO }}/ct-scan-train:latest"
