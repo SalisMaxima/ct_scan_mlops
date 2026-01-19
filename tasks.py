@@ -291,6 +291,39 @@ def git(ctx: Context, message: str) -> None:
     ctx.run("git push", echo=True, pty=not WINDOWS)
 
 
+@task
+def branch(ctx: Context, name: str, message: str, files: str = ".") -> None:
+    """Create a new branch, commit changes, and push to remote.
+
+    Args:
+        name: Branch name (e.g., "feature/new-feature" or "docs/readme-update")
+        message: Commit message
+        files: Files to add (default: "." for all changes)
+
+    Examples:
+        invoke branch --name feature/auth --message "Add authentication"
+        invoke branch --name docs/readme --message "Update README" --files README.md
+    """
+    print("Running ruff to format and lint code...")
+    ctx.run("uv run ruff check . --fix", echo=True, pty=not WINDOWS)
+    ctx.run("uv run ruff format .", echo=True, pty=not WINDOWS)
+
+    print(f"\nCreating and switching to branch: {name}")
+    ctx.run(f"git checkout -b {name}", echo=True, pty=not WINDOWS)
+
+    print(f"\nAdding files: {files}")
+    ctx.run(f"git add {files}", echo=True, pty=not WINDOWS)
+
+    print("\nCommitting changes...")
+    ctx.run(f'git commit -m "{message}"', echo=True, pty=not WINDOWS)
+
+    print("\nPushing branch to remote...")
+    ctx.run(f"git push -u origin {name}", echo=True, pty=not WINDOWS)
+
+    print(f"\n✓ Branch '{name}' created and pushed!")
+    print(f"   Create PR at: https://github.com/SalisMaxima/ct_scan_mlops/compare/{name}")
+
+
 # DVC commands
 @task
 def dvc_pull(ctx: Context) -> None:
