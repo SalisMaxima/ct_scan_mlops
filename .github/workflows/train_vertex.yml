@@ -1,0 +1,51 @@
+name: Train on Vertex AI
+
+on:
+  workflow_dispatch:
+
+jobs:
+  train:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Auth to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+
+      - name: Enable APIs
+        run: |
+          gcloud services enable \
+            aiplatform.googleapis.com \
+            artifactregistry.googleapis.com \
+            cloudbuild.googleapis.com
+
+      - name: Build & push image
+        run: |
+          IMAGE_URI="${{ vars.GAR_LOCATION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GAR_REPO }}/ct-scan-train:latest"
+          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+          gcloud builds submit --file=train.dockerfile --tag="$IMAGE_URI" .
+
+      - name: Run Vertex training
+        run: |
+          cat > job.yaml <<EOF
+          displayName: ct-scan-train
+          jobSpec:
+            workerPoolSpecs:
+            - replicaCount: 1
+              machineSpec:
+                machineType: n1-standard-8
+              containerSpec:
+                imageUri: ${IMAGE_URI}
+          EOF
+
+          gcloud ai custom-jobs create \
+            --region=${{ vars.GAR_LOCATION }} \
+            --config=job.yaml
