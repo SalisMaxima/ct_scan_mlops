@@ -19,6 +19,7 @@ RUN uv pip install "dvc[gcs]"
 # Copy DVC metadata (required for dvc pull)
 COPY .dvc/ .dvc/
 # Copy .dvc files (this project uses .dvc files, not dvc.yaml)
+RUN mkdir -p data artifacts
 COPY data/*.dvc data/
 COPY artifacts/*.dvc artifacts/
 
