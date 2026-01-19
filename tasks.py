@@ -308,6 +308,9 @@ def branch(ctx: Context, name: str, message: str, files: str = ".") -> None:
     ctx.run("uv run ruff check . --fix", echo=True, pty=not WINDOWS)
     ctx.run("uv run ruff format .", echo=True, pty=not WINDOWS)
 
+    print("\nRunning pre-commit hooks to fix formatting issues...")
+    ctx.run("uv run pre-commit run --all-files", echo=True, pty=not WINDOWS, warn=True)
+
     print(f"\nCreating and switching to branch: {name}")
     ctx.run(f"git checkout -b {name}", echo=True, pty=not WINDOWS)
 
