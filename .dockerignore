@@ -42,17 +42,21 @@ htmlcov/
 .dvc/cache/
 .dvc/tmp/
 
-# ML artifacts (keep configs, exclude outputs)
-artifacts/
+# ML artifacts (keep configs and .dvc files, exclude outputs)
+artifacts/*
+!artifacts/*.dvc
+!artifacts/.gitignore
 wandb/
 outputs/
 mlruns/
 models/*.ckpt
 models/*.pth
 
-# Data (usually mounted via volumes)
+# Data (exclude actual data, keep .dvc tracking files)
 data/raw/
 data/processed/
+!data/*.dvc
+!data/.gitignore
 
 # Documentation
 docs/
