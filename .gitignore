@@ -200,9 +200,4 @@ outputs/
 
 # Credentials
 .config/gcloud/application_default_credentials.json
-
-# Claude Code (custom agents and commands)
-CLAUDE.md
-.claude/
-Feature_Extraction.md
 github-dvc-key.json

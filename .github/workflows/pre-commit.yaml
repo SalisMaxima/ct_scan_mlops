@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [main, master]
 
+permissions:
+  contents: write
+
 jobs:
   pre-commit:
     name: Check pre-commit
@@ -14,22 +17,21 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v6
+      with:
+        ref: ${{ github.head_ref }}
+        token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Set up Python
       uses: actions/setup-python@v6
       with:
         python-version: "3.12"
 
-    - name: Install pre-commit
+    - name: Run pre-commit
       uses: pre-commit/action@v3.0.1
-#      with:
-#        continue-on-error: true
+      continue-on-error: true
 
-#    - name: List modified files
-#      run: git diff --name-only
-
-#    - name: Commit changes
-#      uses: stefanzweifel/git-auto-commit-action@v7
-#      with:
-#        commit_message: Pre-commit fixes
-#        commit_options: '--no-verify'
+    - name: Auto-commit fixes
+      uses: stefanzweifel/git-auto-commit-action@v7
+      with:
+        commit_message: "style: auto-fix pre-commit issues"
+        commit_options: "--no-verify"
