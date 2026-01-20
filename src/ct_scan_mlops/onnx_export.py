@@ -24,7 +24,7 @@ def main():
     cfg = OmegaConf.load(config_path)
 
     model = build_model(cfg)
-    model.load_state_dict(torch.load(model_path, map_location="cpu"))
+    model.load_state_dict(torch.load(model_path, map_location="cpu", weights_only=True))
     model.eval()
     model.to(DEVICE)
 
