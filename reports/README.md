@@ -120,7 +120,7 @@ will check the repositories and the code to verify your answers.
 
 ### Question 1
 > **Enter the group number you signed up on <learn.inside.dtu.dk>**
-> 
+>
 > Answer: MLOps 2
 
 --- question 1 fill here ---
@@ -158,7 +158,7 @@ will check the repositories and the code to verify your answers.
 > **through to get an exact copy of your environment.**
 >
 > Recommended answer length: 100-200 words
-> 
+>
 > Example:
 > *We used ... for managing our dependencies. The list of dependencies was auto-generated using ... . To get a*
 > *complete copy of our development environment, one would have to run the following commands*
