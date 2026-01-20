@@ -124,6 +124,7 @@ known-third-party = ["wandb", "torch", "lightning"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*.py" = ["D100", "D103"]
+"reports/*.py" = ["E", "W", "F", "I", "UP", "B", "SIM", "PTH", "NPY", "C4", "RET"]  # External template, skip linting
 
 [tool.ruff.format]
 quote-style = "double"
@@ -140,6 +141,10 @@ markers = [
 ]
 # Run tests without data by default (CI-friendly)
 addopts = "-v --tb=short"
+
+[tool.mypy]
+ignore_missing_imports = true
+exclude = ["reports/"]
 
 [tool.coverage.run]
 omit = [

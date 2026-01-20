@@ -33,6 +33,7 @@ COPY --from=builder /app/src /app/src
 
 # Set PATH to use the virtual environment
 ENV PATH="/app/.venv/bin:$PATH"
+ENV PYTHONUNBUFFERED=1
 
 # NOTE: Models are no longer baked into this image.
 # They must be mounted at runtime, e.g.:

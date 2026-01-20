@@ -2,12 +2,59 @@ name: Train on Vertex AI
 
 on:
   workflow_dispatch:
+    inputs:
+      model_choice:
+        description: 'Model to train'
+        required: false
+        default: 'cnn'
+        type: choice
+        options:
+          - cnn
+          - resnet18
+      max_epochs:
+        description: 'Maximum training epochs'
+        required: false
+        default: '50'
+        type: string
+      wandb_mode:
+        description: 'W&B logging mode'
+        required: false
+        default: 'online'
+        type: choice
+        options:
+          - online
+          - offline
+          - disabled
+      accelerator:
+        description: 'Training accelerator'
+        required: false
+        default: 'cpu'
+        type: choice
+        options:
+          - cpu
+          - gpu-t4
+
+env:
+  PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+  REGION: ${{ vars.GAR_LOCATION }}
+  GAR_REPO: ${{ vars.GAR_REPO }}
 
 jobs:
   train:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # v1.3.1
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
+
       - uses: actions/checkout@v4
 
       - name: Auth to GCP
@@ -18,27 +65,107 @@ jobs:
       - name: Setup gcloud
         uses: google-github-actions/setup-gcloud@v2
         with:
-          project_id: ${{ vars.GCP_PROJECT_ID }}
+          project_id: ${{ env.PROJECT_ID }}
+
+      - name: Set image config
+        id: config
+        run: |
+          ACCELERATOR="${{ inputs.accelerator || 'cpu' }}"
+          if [ "$ACCELERATOR" == "gpu-t4" ]; then
+            echo "dockerfile=dockerfiles/train_cuda.dockerfile" >> $GITHUB_OUTPUT
+            echo "image_suffix=cuda" >> $GITHUB_OUTPUT
+            echo "machine_type=n1-standard-8" >> $GITHUB_OUTPUT
+            echo "accelerator_type=NVIDIA_TESLA_T4" >> $GITHUB_OUTPUT
+            echo "accelerator_count=1" >> $GITHUB_OUTPUT
+          else
+            echo "dockerfile=Dockerfile" >> $GITHUB_OUTPUT
+            echo "image_suffix=cpu" >> $GITHUB_OUTPUT
+            echo "machine_type=n1-standard-8" >> $GITHUB_OUTPUT
+            echo "accelerator_type=" >> $GITHUB_OUTPUT
+            echo "accelerator_count=0" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Auth Docker to Artifact Registry
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
 
       - name: Build & push image
         run: |
-          IMAGE_URI="${{ vars.GAR_LOCATION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GAR_REPO }}/ct-scan-train:latest"
+          IMAGE_URI="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_REPO }}/ct-scan-train-${{ steps.config.outputs.image_suffix }}:${{ github.sha }}"
+          LATEST_URI="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_REPO }}/ct-scan-train-${{ steps.config.outputs.image_suffix }}:latest"
+
           echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
-          gcloud builds submit . --tag="$IMAGE_URI"
+
+          # 1. Try to pull the latest image to use as a cache (ignore errors if it doesn't exist yet)
+          docker pull "$LATEST_URI" || true
+
+          # 2. Build using the pulled image as a cache source
+          docker build \
+            --cache-from "$LATEST_URI" \
+            -t "$IMAGE_URI" \
+            -t "$LATEST_URI" \
+            -f "${{ steps.config.outputs.dockerfile }}" .
+
+          # 3. Push both the specific SHA tag and the 'latest' tag (so next run can cache from it)
+          docker push "$IMAGE_URI"
+          docker push "$LATEST_URI"
+
+      - name: Create Vertex AI job config
+        run: | # pragma: allowlist secret
+          # Create the base worker pool spec
+          # We remove 'displayName' and 'jobSpec' keys here so the file
+          # is a valid WorkerPoolSpec list for the --config flag.
+          cat > job.yaml <<EOF
+          workerPoolSpecs:
+            - replicaCount: 1
+              machineSpec:
+                machineType: ${{ steps.config.outputs.machine_type }}
+          EOF
+
+          # Append GPU config if requested
+          if [ -n "${{ steps.config.outputs.accelerator_type }}" ]; then
+            cat >> job.yaml <<EOF
+                acceleratorType: ${{ steps.config.outputs.accelerator_type }}
+                acceleratorCount: ${{ steps.config.outputs.accelerator_count }}
+          EOF
+          fi
+
+          # Append Container Spec (Logic for args and env vars)
+          cat >> job.yaml <<EOF
+              containerSpec:
+                imageUri: ${IMAGE_URI}
+                args:
+                  - "model=${{ inputs.model_choice || 'cnn' }}"
+                  - "train.max_epochs=${{ inputs.max_epochs || '50' }}"
+                  - "wandb.mode=${{ inputs.wandb_mode || 'online' }}"
+                env:
+                  - name: WANDB_PROJECT
+                    value: "CT_Scan_MLOps"
+                  - name: WANDB_ENTITY
+                    value: "mathiashl-danmarks-tekniske-universitet-dtu"
+          EOF
+
+          # Append Secret Env Vars (only if W&B is not disabled)
+          if [ "${{ inputs.wandb_mode || 'online' }}" != "disabled" ]; then
+            cat >> job.yaml <<EOF
+                secretEnvVariables:
+                  - secretName: projects/${{ env.PROJECT_ID }}/secrets/wandb-api-key/versions/latest
+                    envName: WANDB_API_KEY
+          EOF
+          fi
+
+          echo "=== Generated job.yaml ==="
+          cat job.yaml
 
       - name: Run Vertex training
         run: |
-          cat > job.yaml <<EOF
-          displayName: ct-scan-train
-          jobSpec:
-            workerPoolSpecs:
-            - replicaCount: 1
-              machineSpec:
-                machineType: n1-standard-8
-              containerSpec:
-                imageUri: ${IMAGE_URI}
-          EOF
-
-          gcloud ai custom-jobs create \
+          # Submit the job using the securely configured job.yaml from previous step
+          JOB_NAME=$(gcloud ai custom-jobs create \
             --region=${{ vars.GAR_LOCATION }} \
-            --config=job.yaml
+            --display-name="ct-scan-train-$(date +%Y%m%d-%H%M%S)" \
+            --config=job.yaml \
+            --format="value(name)")
+          echo "JOB_NAME=$JOB_NAME" >> "$GITHUB_ENV"
+
+      - name: Show monitoring link
+        run: |
+          echo "::notice::Monitor training job $JOB_NAME at: https://console.cloud.google.com/vertex-ai/training/custom-jobs/$JOB_NAME?project=${{ env.PROJECT_ID }}"
