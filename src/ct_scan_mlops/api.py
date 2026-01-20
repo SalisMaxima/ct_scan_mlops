@@ -71,11 +71,7 @@ app = FastAPI(title="CT Scan Inference API", version="0.1.0", lifespan=lifespan)
 
 @app.get("/health")
 def health() -> dict:
-    """Check API health status and model availability.
-
-    Returns:
-        dict: Health status including device info and model state.
-    """
+    """Check API health status and model availability."""
     return {
         "ok": True,
         "device": str(DEVICE),
@@ -87,17 +83,7 @@ def health() -> dict:
 
 @app.post("/predict")
 async def predict(file: Annotated[UploadFile, File(...)]) -> dict:
-    """Classify a CT scan image.
-
-    Args:
-        file: Uploaded CT scan image (PNG, JPEG, etc.)
-
-    Returns:
-        dict: Prediction index and class name.
-
-    Raises:
-        HTTPException: 503 if model not loaded, 400 if invalid image.
-    """
+    """Classify a CT scan image."""
     if model is None:
         raise HTTPException(status_code=503, detail="Model not loaded")
 
@@ -116,8 +102,9 @@ async def predict(file: Annotated[UploadFile, File(...)]) -> dict:
     if not (0 <= pred < len(CLASS_NAMES)):
         raise HTTPException(
             status_code=500,
-            detail=(f"Model predicted invalid class index {pred}; expected 0-{len(CLASS_NAMES) - 1}"),
+            detail=f"Model predicted invalid class index {pred}; expected 0-{len(CLASS_NAMES) - 1}",
         )
+
     return {
         "pred_index": pred,
         "pred_class": CLASS_NAMES[pred],
