@@ -29,16 +29,17 @@ def main():
     model.to(DEVICE)
 
     image_size = cfg.data.image_size
-    dummy_input = torch.randn(1, 3, image_size, image_size)
+    dummy_input = torch.randn(1, 3, image_size, image_size, device=DEVICE)
 
-    torch.onnx.export(
-        model,
-        dummy_input,
-        onnx_path,
-        input_names=["input"],
-        output_names=["output"],
-        opset_version=18,
-    )
+    with torch.inference_mode():
+        torch.onnx.export(
+            model,
+            dummy_input,
+            onnx_path,
+            input_names=["input"],
+            output_names=["output"],
+            opset_version=18,
+        )
 
     print(f"ONNX model saved to: {onnx_path}")
 
