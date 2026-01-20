@@ -32,4 +32,3 @@ jobs:
           PYTHONPATH: src
         run: |
           uv run pytest -q tests/test_api.py
-

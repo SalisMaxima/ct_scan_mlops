@@ -14,8 +14,6 @@ class ApiUser(HttpUser):
 
     @task(1)
     def predict(self):
-        with open(IMAGE_PATH, "rb") as f:
-            files = {
-                "file": ("sample.png", f, "image/png")
-            }
+        with IMAGE_PATH.open("rb") as f:
+            files = {"file": ("sample.png", f, "image/png")}
             self.client.post("/predict", files=files)
