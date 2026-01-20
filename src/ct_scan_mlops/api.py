@@ -20,7 +20,7 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # --- Deployment-friendly paths (no dependence on outputs/<date>/<time>) ---
 # You can override these in Cloud Run via env vars: CONFIG_PATH, MODEL_PATH
 DEFAULT_CONFIG_PATH = Path("configs") / "config.yaml"  # change if your file name differs
-DEFAULT_MODEL_PATH = Path("models") / "model.pt"       # change if your weights live elsewhere
+DEFAULT_MODEL_PATH = Path("models") / "model.pt"  # change if your weights live elsewhere
 
 CONFIG_PATH = Path(os.environ.get("CONFIG_PATH", str(DEFAULT_CONFIG_PATH)))
 MODEL_PATH = Path(os.environ.get("MODEL_PATH", str(DEFAULT_MODEL_PATH)))
