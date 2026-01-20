@@ -62,10 +62,10 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 # Copy DVC metadata
 COPY .dvc/ .dvc/
-# Copy .dvc files (this project uses .dvc files, not dvc.yaml)
+# Copy data and artifacts directories (including any .dvc files)
 RUN mkdir -p data artifacts
-COPY data/*.dvc data/
-COPY artifacts/*.dvc artifacts/
+COPY data/ data/
+COPY artifacts/ artifacts/
 
 # === Stage 3: Runtime (inherits from python-base, no build tools) ===
 FROM python-base AS runtime
@@ -83,11 +83,12 @@ COPY --from=builder /app/.venv /app/.venv
 COPY --from=builder /app/src /app/src
 COPY --from=builder /app/configs /app/configs
 COPY --from=builder /app/.dvc /app/.dvc
-COPY --from=builder /app/data/*.dvc /app/data/
-COPY --from=builder /app/artifacts/*.dvc /app/artifacts/
+COPY --from=builder /app/data/ /app/data/
+COPY --from=builder /app/artifacts/ /app/artifacts/
 
 # Set PATH to use the virtual environment
 ENV PATH="/app/.venv/bin:$PATH"
+ENV PYTHONUNBUFFERED=1
 
-ENTRYPOINT ["bash", "-lc", "dvc pull -v && uv run --frozen python -u -m ct_scan_mlops.train $@", "--"]
+ENTRYPOINT ["bash", "-c", "dvc pull -v && exec uv run --frozen python -u -m ct_scan_mlops.train \"$@\"", "--"]
 CMD []

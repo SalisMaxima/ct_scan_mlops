@@ -158,43 +158,14 @@ jobs:
 
       - name: Run Vertex training
         run: |
-          # 1. Fetch W&B API Key from Secret Manager (if needed)
-          WANDB_API_KEY_VAL=""
-          MODE="${{ inputs.wandb_mode || 'online' }}"
-
-          if [ "$MODE" != "disabled" ]; then
-            echo "Fetching W&B API Key from Secret Manager..."
-            WANDB_API_KEY_VAL=$(gcloud secrets versions access latest --secret="wandb-api-key" --project="${{ env.PROJECT_ID }}")
-          fi
-
-          # 2. Create the job spec configuration
-          # We inject the fetched key directly into the 'env' section
-          cat > job.yaml <<EOF
-          workerPoolSpecs:
-          - replicaCount: 1
-            machineSpec:
-              machineType: n1-standard-8
-            containerSpec:
-              imageUri: ${IMAGE_URI}
-              args:
-                - "model=${{ inputs.model_choice || 'cnn' }}"
-                - "train.max_epochs=${{ inputs.max_epochs || '50' }}"
-                - "wandb.mode=$MODE"
-              env:
-                - name: WANDB_PROJECT
-                  value: "CT_Scan_MLOps"
-                - name: WANDB_ENTITY
-                  value: "mathiashl-danmarks-tekniske-universitet-dtu"
-                - name: WANDB_API_KEY
-                  value: "$WANDB_API_KEY_VAL"
-          EOF
-
-          # 3. Submit the job
-          gcloud ai custom-jobs create \
+          # Submit the job using the securely configured job.yaml from previous step
+          JOB_NAME=$(gcloud ai custom-jobs create \
             --region=${{ vars.GAR_LOCATION }} \
             --display-name="ct-scan-train-$(date +%Y%m%d-%H%M%S)" \
-            --config=job.yaml
+            --config=job.yaml \
+            --format="value(name)")
+          echo "JOB_NAME=$JOB_NAME" >> "$GITHUB_ENV"
 
       - name: Show monitoring link
         run: |
-          echo "::notice::Monitor training at: https://console.cloud.google.com/vertex-ai/training/custom-jobs?project=${{ env.PROJECT_ID }}"
+          echo "::notice::Monitor training job $JOB_NAME at: https://console.cloud.google.com/vertex-ai/training/custom-jobs/$JOB_NAME?project=${{ env.PROJECT_ID }}"
