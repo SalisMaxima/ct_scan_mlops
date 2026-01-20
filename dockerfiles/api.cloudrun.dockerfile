@@ -34,5 +34,6 @@ RUN python -m pip install -e .
 ENV CONFIG_PATH="/app/configs/config.yaml"
 ENV MODEL_PATH="/app/models/model.pt"
 
+ENV PORT=8080
 EXPOSE 8080
 CMD ["bash","-lc","uvicorn ct_scan_mlops.api:app --host 0.0.0.0 --port ${PORT}"]
