@@ -14,7 +14,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 # Force CPU PyTorch (overrides the CUDA-pinned torch from the lock)
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision torchaudio
+    uv pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
 
 # Copy code/configs (changes frequently - put last)
 COPY src/ src/
