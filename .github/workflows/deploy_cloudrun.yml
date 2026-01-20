@@ -1,0 +1,42 @@
+name: Deploy API to Cloud Run
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ master ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Auth to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+
+      - name: Configure Docker auth for Artifact Registry
+        run: |
+          gcloud auth configure-docker ${{ vars.GAR_LOCATION }}-docker.pkg.dev --quiet
+
+      - name: Build & push image (GitHub runner)
+        run: |
+          IMAGE_URI="${{ vars.GAR_LOCATION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GAR_REPO }}/ct-scan-api:${{ github.sha }}"
+          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+          docker build -f dockerfiles/api.cloudrun.dockerfile -t "$IMAGE_URI" .
+          docker push "$IMAGE_URI"
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy ct-scan-api \
+            --image "$IMAGE_URI" \
+            --region "${{ vars.GAR_LOCATION }}" \
+            --platform managed \
+            --allow-unauthenticated \
+            --set-env-vars "RUN_DIR=/app/outputs/2026-01-15/11-57-23,MODEL_FILENAME=model.pt"
