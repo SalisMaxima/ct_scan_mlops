@@ -291,6 +291,42 @@ def git(ctx: Context, message: str) -> None:
     ctx.run("git push", echo=True, pty=not WINDOWS)
 
 
+@task
+def branch(ctx: Context, name: str, message: str, files: str = ".") -> None:
+    """Create a new branch, commit changes, and push to remote.
+
+    Args:
+        name: Branch name (e.g., "feature/new-feature" or "docs/readme-update")
+        message: Commit message
+        files: Files to add (default: "." for all changes)
+
+    Examples:
+        invoke branch --name feature/auth --message "Add authentication"
+        invoke branch --name docs/readme --message "Update README" --files README.md
+    """
+    print("Running ruff to format and lint code...")
+    ctx.run("uv run ruff check . --fix", echo=True, pty=not WINDOWS)
+    ctx.run("uv run ruff format .", echo=True, pty=not WINDOWS)
+
+    print("\nRunning pre-commit hooks to fix formatting issues...")
+    ctx.run("uv run pre-commit run --all-files", echo=True, pty=not WINDOWS)
+
+    print(f"\nCreating and switching to branch: {name}")
+    ctx.run(f"git checkout -b {name}", echo=True, pty=not WINDOWS)
+
+    print(f"\nAdding files: {files}")
+    ctx.run(f"git add {files}", echo=True, pty=not WINDOWS)
+
+    print("\nCommitting changes...")
+    ctx.run(f'git commit -m "{message}"', echo=True, pty=not WINDOWS)
+
+    print("\nPushing branch to remote...")
+    ctx.run(f"git push -u origin {name}", echo=True, pty=not WINDOWS)
+
+    print(f"\n✓ Branch '{name}' created and pushed!")
+    print(f"   Create PR at: https://github.com/SalisMaxima/ct_scan_mlops/compare/{name}")
+
+
 # DVC commands
 @task
 def dvc_pull(ctx: Context) -> None:
@@ -346,3 +382,32 @@ def api(ctx: Context, reload: bool = True, port: int = 8000) -> None:
     ctx.run(
         f"uv run uvicorn {PROJECT_NAME}.api:app --host 0.0.0.0 --port {port}{reload_flag}", echo=True, pty=not WINDOWS
     )
+
+
+@task
+def sync_ai_config(_ctx: Context) -> None:
+    """Sync AI assistant config files from CLAUDE.md (source of truth).
+
+    Updates .github/copilot-instructions.md to match CLAUDE.md content.
+    """
+    source = Path("CLAUDE.md")
+    copilot_dest = Path(".github/copilot-instructions.md")
+
+    if not source.exists():
+        print("ERROR: CLAUDE.md not found")
+        return
+
+    content = source.read_text()
+
+    # Transform for Copilot (add header, adjust title)
+    copilot_content = content.replace(
+        "# CT Scan MLOps",
+        "# CT Scan MLOps - Copilot Instructions",
+        1,
+    )
+    copilot_content = copilot_content.replace("## IMPORTANT", "## IMPORTANT RULES", 1)
+
+    copilot_dest.parent.mkdir(parents=True, exist_ok=True)
+    copilot_dest.write_text(copilot_content)
+
+    print(f"✓ Synced CLAUDE.md -> {copilot_dest}")
