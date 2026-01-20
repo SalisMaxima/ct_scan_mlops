@@ -76,6 +76,9 @@ def main(
     # Determine run directory
     if run_dir:
         run_dir_path = Path(run_dir)
+        if not run_dir_path.exists():
+            logger.error(f"Specified run directory does not exist: {run_dir_path}")
+            raise typer.Exit(1)
         logger.info(f"Using specified run directory: {run_dir_path}")
     else:
         logger.info(f"Auto-detecting most recent run from experiment: {experiment_name}")
@@ -91,6 +94,8 @@ def main(
 
     if output_path:
         onnx_path = Path(output_path)
+        # Ensure output directory exists
+        onnx_path.parent.mkdir(parents=True, exist_ok=True)
     else:
         onnx_path = run_dir_path / "model.onnx"
 
