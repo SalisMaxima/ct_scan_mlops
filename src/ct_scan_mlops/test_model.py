@@ -73,7 +73,7 @@ def load_model(checkpoint_path: Path, device: torch.device) -> torch.nn.Module:
     model = build_model(cfg).to(device)
 
     # Load weights
-    checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
+    checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=True)
 
     if isinstance(checkpoint, dict):
         if "state_dict" in checkpoint:
