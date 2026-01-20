@@ -56,6 +56,17 @@ COPY configs/ configs/
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen
 
+# Install DVC with GCS support
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install "dvc[gcs]"
+
+# Copy DVC metadata
+COPY .dvc/ .dvc/
+# Copy .dvc files (this project uses .dvc files, not dvc.yaml)
+RUN mkdir -p data artifacts
+COPY data/*.dvc data/
+COPY artifacts/*.dvc artifacts/
+
 # === Stage 3: Runtime (inherits from python-base, no build tools) ===
 FROM python-base AS runtime
 
@@ -64,13 +75,19 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
 WORKDIR /app
 
+# Create directories for DVC files
+RUN mkdir -p data artifacts
+
 # Copy virtual environment and source from builder
 COPY --from=builder /app/.venv /app/.venv
 COPY --from=builder /app/src /app/src
 COPY --from=builder /app/configs /app/configs
+COPY --from=builder /app/.dvc /app/.dvc
+COPY --from=builder /app/data/*.dvc /app/data/
+COPY --from=builder /app/artifacts/*.dvc /app/artifacts/
 
 # Set PATH to use the virtual environment
 ENV PATH="/app/.venv/bin:$PATH"
 
-ENTRYPOINT ["uv", "run", "--frozen", "python", "-u", "-m", "ct_scan_mlops.train"]
+ENTRYPOINT ["bash", "-lc", "dvc pull -v && uv run --frozen python -u -m ct_scan_mlops.train $@", "--"]
 CMD []

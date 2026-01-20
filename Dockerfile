@@ -18,9 +18,10 @@ RUN uv pip install "dvc[gcs]"
 
 # Copy DVC metadata (required for dvc pull)
 COPY .dvc/ .dvc/
-COPY dvc.yaml dvc.lock ./
-# If your repo uses .dvc files alongside dvc.yaml, include them too:
-COPY *.dvc ./
+# Copy .dvc files (this project uses .dvc files, not dvc.yaml)
+RUN mkdir -p data artifacts
+COPY data/*.dvc data/
+COPY artifacts/*.dvc artifacts/
 
 # --- Copy code/configs last (changes frequently) ---
 COPY src/ src/
@@ -31,5 +32,5 @@ RUN uv sync --frozen
 
 # --- Pull data then train ---
 # This guarantees training has the data even if the python module doesn't pull.
-ENTRYPOINT ["bash", "-lc", "dvc pull -v && uv run python -m ct_scan_mlops.train"]
+ENTRYPOINT ["bash", "-lc", "dvc pull -v && uv run python -m ct_scan_mlops.train $@", "--"]
 CMD []
