@@ -120,7 +120,8 @@ def main(
 
     # Export to ONNX
     image_size = cfg.data.image_size
-    dummy_input = torch.randn(1, 3, image_size, image_size, device=DEVICE)
+    input_channels = OmegaConf.select(cfg, "model.input_channels", default=3)
+    dummy_input = torch.randn(1, input_channels, image_size, image_size, device=DEVICE)
 
     logger.info(f"Exporting model to ONNX: {onnx_path}")
     with torch.inference_mode():
