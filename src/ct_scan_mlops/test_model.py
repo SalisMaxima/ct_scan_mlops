@@ -23,11 +23,12 @@ MAX_INFERENCE_TIME_MS = 100  # Maximum acceptable inference time in milliseconds
 MIN_ACCURACY = 0.70  # Minimum acceptable accuracy (if metadata available)
 
 
-def download_model_from_wandb(model_path: str) -> tuple[Path, dict]:
+def download_model_from_wandb(model_path: str, project: str) -> tuple[Path, dict]:
     """Download model artifact from W&B.
 
     Args:
         model_path: W&B artifact path (e.g., entity/project/model:alias)
+        project: W&B project name
 
     Returns:
         Tuple of (local model path, artifact metadata)
@@ -35,7 +36,7 @@ def download_model_from_wandb(model_path: str) -> tuple[Path, dict]:
     logger.info(f"Downloading model from W&B: {model_path}")
 
     # Initialize wandb for artifact download
-    run = wandb.init(project="CT_Scan_MLOps", job_type="model-testing", mode="online")
+    run = wandb.init(project=project, job_type="model-testing", mode="online")
 
     try:
         artifact = run.use_artifact(model_path, type="model")
@@ -96,7 +97,9 @@ def load_model(checkpoint_path: Path, device: torch.device) -> torch.nn.Module:
     return model
 
 
-def test_inference_speed(model: torch.nn.Module, device: torch.device, n_samples: int = 100) -> float:
+def test_inference_speed(
+    model: torch.nn.Module, device: torch.device, image_size: int = 224, n_samples: int = 100
+) -> float:
     """Test model inference speed.
 
     Following course pattern from cml.md.
@@ -104,13 +107,14 @@ def test_inference_speed(model: torch.nn.Module, device: torch.device, n_samples
     Args:
         model: Model to test
         device: Device to run inference on
+        image_size: Input image size (default: 224)
         n_samples: Number of inference runs
 
     Returns:
         Average inference time in milliseconds
     """
     # Create sample input (matching expected input size)
-    x = torch.randn(1, 3, 224, 224).to(device)
+    x = torch.randn(1, 3, image_size, image_size).to(device)
 
     # Warmup
     with torch.no_grad():
@@ -144,20 +148,44 @@ def main():
         default=MAX_INFERENCE_TIME_MS,
         help=f"Maximum acceptable inference time in ms (default: {MAX_INFERENCE_TIME_MS})",
     )
+    parser.add_argument(
+        "--wandb-project",
+        type=str,
+        default=None,
+        help="W&B project name (default: from config.yaml)",
+    )
+    parser.add_argument(
+        "--config-path",
+        type=str,
+        default=None,
+        help="Path to config.yaml (default: configs/config.yaml relative to project root)",
+    )
     args = parser.parse_args()
+
+    # Load config
+    if args.config_path:
+        config_path = Path(args.config_path)
+    else:
+        config_path = Path(__file__).parent.parent.parent / "configs" / "config.yaml"
+
+    cfg = OmegaConf.load(config_path)
+
+    # Get wandb project and image size from config
+    wandb_project = args.wandb_project or cfg.wandb.project
+    image_size = cfg.data.image_size
 
     # Setup device
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     logger.info(f"Using device: {device}")
 
     # Download model from W&B
-    model_file, metadata = download_model_from_wandb(args.model_path)
+    model_file, metadata = download_model_from_wandb(args.model_path, wandb_project)
 
     # Load model
     model = load_model(model_file, device)
 
     # Test inference speed
-    avg_time_ms = test_inference_speed(model, device)
+    avg_time_ms = test_inference_speed(model, device, image_size)
 
     # Check performance threshold
     if avg_time_ms > args.max_inference_time:
