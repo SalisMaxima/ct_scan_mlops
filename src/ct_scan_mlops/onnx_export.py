@@ -114,7 +114,7 @@ def main(
 
     # Disable pretrained weights - we're loading trained weights from model.pt
     # This prevents unnecessary network calls during export
-    if "pretrained" in cfg.model:
+    if OmegaConf.select(cfg, "model.pretrained") is not None:
         cfg.model.pretrained = False
 
     logger.info(f"Loading model from: {model_path}")
