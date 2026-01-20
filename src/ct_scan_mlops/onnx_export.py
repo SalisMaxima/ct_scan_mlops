@@ -21,7 +21,6 @@ def main():
     if not model_path.exists():
         raise FileNotFoundError(f"Model not found: {model_path}")
 
-
     cfg = OmegaConf.load(config_path)
 
     model = build_model(cfg)
@@ -40,7 +39,6 @@ def main():
         output_names=["output"],
         opset_version=18,
     )
-
 
     print(f"ONNX model saved to: {onnx_path}")
 
