@@ -15,8 +15,9 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
 
-# Copy source code
+# Copy source code and configs
 COPY src/ src/
+COPY configs/ configs/
 
 # Install the project
 RUN --mount=type=cache,target=/root/.cache/uv \
@@ -27,24 +28,37 @@ FROM python:3.12-slim-bookworm AS runtime
 
 WORKDIR /app
 
-# Copy virtual environment and source from builder
+# Environment variables for better pip behavior and Cloud Run
+ENV PORT=8080
+ENV PIP_DEFAULT_TIMEOUT=300
+ENV PIP_RETRIES=20
+ENV PIP_DISABLE_PIP_VERSION_CHECK=1
+ENV PYTHONUNBUFFERED=1
+
+# Ensure certs are up to date (fixes many SSL errors)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates curl \
+  && update-ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
+
+# Copy virtual environment, source, and configs from builder
 COPY --from=builder /app/.venv /app/.venv
 COPY --from=builder /app/src /app/src
+COPY --from=builder /app/configs /app/configs
 
 # Set PATH to use the virtual environment
 ENV PATH="/app/.venv/bin:$PATH"
-ENV PYTHONUNBUFFERED=1
 
-# Cloud Run will set PORT=8080 by default
+# Set default config and model paths (can be overridden at runtime)
+ENV CONFIG_PATH="/app/configs/config.yaml"
+ENV MODEL_PATH="/app/models/model.pt"
+
 # Expose port 8080 for Cloud Run
 EXPOSE 8080
 
 # NOTE: Models are no longer baked into this image.
 # They must be mounted at runtime, e.g. via Cloud Run volumes or GCS FUSE
-# Ensure that the mounted path contains:
-#   - .hydra/config.yaml
-#   - model.pt (or set MODEL_FILENAME env var)
+# Override CONFIG_PATH and MODEL_PATH env vars as needed for your deployment.
 
-# Use shell form to allow environment variable substitution
 # Cloud Run will provide PORT environment variable (default: 8080)
-CMD uvicorn ct_scan_mlops.api:app --host 0.0.0.0 --port ${PORT:-8080}
+CMD ["bash", "-c", "uvicorn ct_scan_mlops.api:app --host 0.0.0.0 --port ${PORT}"]
