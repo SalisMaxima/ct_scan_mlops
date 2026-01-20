@@ -49,6 +49,13 @@ dependencies = [
     "kagglehub>=0.4.0",
     "torch-tb-profiler>=0.4.3",
     "python-multipart>=0.0.21",
+<<<<<<< Updated upstream
+=======
+    "httpx>=0.28.1",
+    "onnx>=1.20.1",
+    "onnxruntime>=1.23.2",
+    "onnxscript>=0.5.7",
+>>>>>>> Stashed changes
 ]
 
 [dependency-groups]
