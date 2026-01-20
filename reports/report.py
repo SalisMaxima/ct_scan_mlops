@@ -15,7 +15,7 @@ from loguru import logger
 class Constraints(pydantic.BaseModel):
     """Base class for constraints."""
 
-    def __call__(self, answer: str, index: int) -> None:
+    def __call__(self, answer: str, index: int) -> bool:
         """Check constraints on the answer."""
         raise NotImplementedError
 
@@ -69,7 +69,7 @@ class MultiConstraints(Constraints):
 
     constrains: list[Constraints]
 
-    def __call__(self, answer: str, index: int) -> None:
+    def __call__(self, answer: str, index: int) -> bool:
         """Check multiple constraints on the answer."""
         value = True
         for fn in self.constrains:

@@ -60,8 +60,13 @@ jobs:
             --model-path "${{ steps.model.outputs.path }}"
 
       - name: Summary
+        if: always()
         run: |
           echo "## Model Registry Update" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Model**: \`${{ steps.model.outputs.path }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **Status**: ✅ Promoted to production" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ job.status }}" = "success" ]; then
+            echo "- **Status**: ✅ Promoted to production" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- **Status**: ❌ Failed - model did not pass tests" >> $GITHUB_STEP_SUMMARY
+          fi
