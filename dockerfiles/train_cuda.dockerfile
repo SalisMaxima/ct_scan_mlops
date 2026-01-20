@@ -88,6 +88,7 @@ COPY --from=builder /app/artifacts/*.dvc /app/artifacts/
 
 # Set PATH to use the virtual environment
 ENV PATH="/app/.venv/bin:$PATH"
+ENV PYTHONUNBUFFERED=1
 
 ENTRYPOINT ["bash", "-lc", "dvc pull -v && uv run --frozen python -u -m ct_scan_mlops.train $@", "--"]
 CMD []

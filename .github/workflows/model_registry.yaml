@@ -1,14 +1,19 @@
 name: Model Registry Workflow
 
+# Triggered by W&B Model Registry webhook via repository_dispatch
+# See: https://skaftenicki.github.io/dtu_mlops/s5_continuous_integration/cml/
 on:
-  push:
-    paths:
-      - "models/**"
-      - "configs/model/**"
+  repository_dispatch:
+    types: [staging]
   workflow_dispatch:
+    inputs:
+      model_path:
+        description: "W&B model artifact path (e.g., entity/project/model:alias)"
+        required: true
+        type: string
 
 jobs:
-  model-registry-changes:
+  test-model:
     runs-on: ubuntu-latest
 
     steps:
@@ -30,6 +35,33 @@ jobs:
           uv sync --all-extras --dev
           uv pip list
 
-      - name: Model registry change detected
+      - name: Determine model path
+        id: model
         run: |
-          echo "Model registry changes detected in models/ or configs/model/." >> $GITHUB_STEP_SUMMARY
+          if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
+            echo "path=${{ github.event.client_payload.model_path }}" >> $GITHUB_OUTPUT
+          else
+            echo "path=${{ github.event.inputs.model_path }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Test model performance
+        env:
+          WANDB_API_KEY: ${{ secrets.WANDB_API_KEY }}
+        run: |
+          uv run python -m ct_scan_mlops.test_model \
+            --model-path "${{ steps.model.outputs.path }}"
+
+      - name: Promote to production
+        if: success()
+        env:
+          WANDB_API_KEY: ${{ secrets.WANDB_API_KEY }}
+        run: |
+          uv run python -m ct_scan_mlops.promote_model \
+            --model-path "${{ steps.model.outputs.path }}"
+
+      - name: Summary
+        run: |
+          echo "## Model Registry Update" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Model**: \`${{ steps.model.outputs.path }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status**: ✅ Promoted to production" >> $GITHUB_STEP_SUMMARY

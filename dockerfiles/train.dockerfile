@@ -1,6 +1,8 @@
 # CPU-only training dockerfile (for CI/testing)
 FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
 
+ENV PYTHONUNBUFFERED=1
+
 WORKDIR /app
 
 # Copy lock + metadata first for caching
