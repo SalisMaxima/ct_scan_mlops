@@ -112,6 +112,11 @@ def main(
     logger.info(f"Loading config from: {config_path}")
     cfg = OmegaConf.load(config_path)
 
+    # Disable pretrained weights - we're loading trained weights from model.pt
+    # This prevents unnecessary network calls during export
+    if OmegaConf.select(cfg, "model.pretrained") is not None:
+        cfg.model.pretrained = False
+
     logger.info(f"Loading model from: {model_path}")
     model = build_model(cfg)
     model.load_state_dict(torch.load(model_path, map_location="cpu", weights_only=True))
