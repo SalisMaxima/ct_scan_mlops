@@ -39,4 +39,4 @@ jobs:
             --region "${{ vars.GAR_LOCATION }}" \
             --platform managed \
             --allow-unauthenticated \
-            --set-env-vars "RUN_DIR=/app/outputs/2026-01-15/11-57-23,MODEL_FILENAME=model.pt"
+            --set-env-vars "CONFIG_PATH=/app/configs/config.yaml,MODEL_PATH=/app/models/model.pt"

@@ -17,13 +17,13 @@ from ct_scan_mlops.model import build_model
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# Point this to the training run folder that contains:
-#   - .hydra/config.yaml
-#   - model.pt   (or change MODEL_FILENAME below)
-RUN_DIR = Path(os.environ.get("RUN_DIR", "outputs/2026-01-15/11-57-23"))
-CONFIG_PATH = RUN_DIR / ".hydra" / "config.yaml"
-MODEL_FILENAME = os.environ.get("MODEL_FILENAME", "model.pt")
-MODEL_PATH = RUN_DIR / MODEL_FILENAME
+# --- Deployment-friendly paths (no dependence on outputs/<date>/<time>) ---
+# You can override these in Cloud Run via env vars: CONFIG_PATH, MODEL_PATH
+DEFAULT_CONFIG_PATH = Path("configs") / "config.yaml"  # change if your file name differs
+DEFAULT_MODEL_PATH = Path("models") / "model.pt"  # change if your weights live elsewhere
+
+CONFIG_PATH = Path(os.environ.get("CONFIG_PATH", str(DEFAULT_CONFIG_PATH)))
+MODEL_PATH = Path(os.environ.get("MODEL_PATH", str(DEFAULT_MODEL_PATH)))
 
 CLASS_NAMES = [
     "adenocarcinoma",
@@ -47,9 +47,9 @@ async def lifespan(_app: FastAPI):
     global model
 
     if not CONFIG_PATH.exists():
-        raise RuntimeError(f"Missing Hydra config: {CONFIG_PATH}")
+        raise RuntimeError(f"Missing config: {CONFIG_PATH}. Set CONFIG_PATH or add the default file.")
     if not MODEL_PATH.exists():
-        raise RuntimeError(f"Missing model weights: {MODEL_PATH}")
+        raise RuntimeError(f"Missing model weights: {MODEL_PATH}. Set MODEL_PATH or include weights in the image.")
 
     cfg = OmegaConf.load(CONFIG_PATH)
     model = build_model(cfg)
@@ -80,7 +80,6 @@ def health() -> dict:
         "ok": True,
         "device": str(DEVICE),
         "model_loaded": model is not None,
-        "run_dir": str(RUN_DIR),
         "config_path": str(CONFIG_PATH),
         "model_path": str(MODEL_PATH),
     }
