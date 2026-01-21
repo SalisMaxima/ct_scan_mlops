@@ -164,7 +164,7 @@ will check the repositories and the code to verify your answers.
 > *complete copy of our development environment, one would have to run the following commands*
 >
 > Answer: We managed dependencies using uv together with pyproject.toml and uv.lock, following the course’s emphasis on reproducibility and environment consistency. The pyproject.toml file specifies the intended dependencies of the project, including runtime, development, and optional groups, while uv.lock pins the exact versions of all direct and transitive dependencies. This ensures that the same environment can be reproduced across different machines, operating systems, CI pipelines, and deployment targets.
-> 
+>
 >  To obtain an exact copy of the development environment, a new team member would first install a compatible Python version (as specified in the project) and then install uv. After cloning the repository, they simply run uv sync. This command creates a local virtual environment and installs dependencies exactly as defined in uv.lock. Because the lock file is committed to version control, every team member and automated workflow installs identical package versions. This setup minimizes “works on my machine” issues and aligns well with the course material on package management, reproducibility, and reliable software development practices.
 
 --- question 4 fill here ---
