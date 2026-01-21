@@ -55,6 +55,7 @@ dependencies = [
     "onnxscript>=0.5.7",
     "psutil>=6.0.0",
     "prometheus-fastapi-instrumentator>=7.0.0",
+    "evidently>=0.7.20",
 ]
 
 [dependency-groups]
