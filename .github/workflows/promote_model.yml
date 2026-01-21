@@ -111,11 +111,17 @@ jobs:
           # Determine if conversion is needed based on file extension
           if [[ "$INPUT_FILE" == *.ckpt ]]; then
             echo "Converting .ckpt to .pt for secure production loading..."
-            uv run python -c "
+            export INPUT_FILE OUTPUT_FILE
+            uv run python - << 'PYTHON'
+          from os import environ
           from pathlib import Path
           from ct_scan_mlops.promote_model import convert_ckpt_to_pt
-          convert_ckpt_to_pt(Path('$INPUT_FILE'), Path('$OUTPUT_FILE'))
-          "
+          
+          convert_ckpt_to_pt(
+              Path(environ["INPUT_FILE"]),
+              Path(environ["OUTPUT_FILE"]),
+          )
+          PYTHON
           elif [[ "$INPUT_FILE" == *.pt ]]; then
             echo "File is already .pt, copying as-is..."
             cp "$INPUT_FILE" "$OUTPUT_FILE"
