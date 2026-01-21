@@ -9,31 +9,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Free disk space
-        run: |
-          echo "Disk usage before cleanup:"
-          df -h
-          echo "Removing large preinstalled directories..."
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /opt/ghc
-          sudo rm -rf /usr/local/lib/android
-          if [ -n "${AGENT_TOOLSDIRECTORY:-}" ]; then
-            sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-          else
-            echo "AGENT_TOOLSDIRECTORY is not set; skipping removal."
-          fi
-          echo "Cleaning apt cache..."
-          sudo apt-get clean
-          echo "Pruning Docker data..."
-          if command -v docker >/dev/null 2>&1; then
-            docker system prune -af || true
-          else
-            echo "Docker not available; skipping docker system prune."
-          fi
-          echo "Disk usage after cleanup:"
-          df -h
-      
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Auth to GCP
         uses: google-github-actions/auth@v2
@@ -49,21 +25,6 @@ jobs:
         run: |
           gcloud auth configure-docker ${{ vars.GAR_LOCATION }}-docker.pkg.dev --quiet
 
-      # Download model from W&B and upload to GCS
-      # WANDB_MODEL_ARTIFACT should be set in GitHub variables with format: entity/project/artifact:version
-      - name: Download model from W&B and upload to GCS
-        env:
-          WANDB_API_KEY: ${{ secrets.WANDB_API_KEY }}
-        run: |
-          # Install uv if not already available
-          if ! command -v uv &> /dev/null; then
-            curl -LsSf https://astral.sh/uv/install.sh | sh
-            export PATH="$HOME/.local/bin:$PATH"
-          fi
-          rm -rf models/ && mkdir models
-          uv tool run wandb artifact get ${{ vars.WANDB_MODEL_ARTIFACT }} --root models/
-          gsutil cp models/model.pt gs://${{ vars.GCS_BUCKET }}/models/model.pt
-
       - name: Build & push image (GitHub runner)
         run: |
           IMAGE_URI="${{ vars.GAR_LOCATION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GAR_REPO }}/ct-scan-api:${{ github.sha }}"
@@ -78,6 +39,6 @@ jobs:
             --region "${{ vars.GAR_LOCATION }}" \
             --platform managed \
             --allow-unauthenticated \
-            --set-env-vars "CONFIG_PATH=/app/configs/config.yaml,MODEL_PATH=/gcs/models/model.pt" \
             --add-volume name=models,type=cloud-storage,bucket=${{ vars.GCS_BUCKET }} \
-            --add-volume-mount volume=models,mount-path=/gcs
+            --add-volume-mount volume=models,mount-path=/models \
+            --set-env-vars "CONFIG_PATH=/app/configs/config.yaml,MODEL_PATH=/models/model.pt"

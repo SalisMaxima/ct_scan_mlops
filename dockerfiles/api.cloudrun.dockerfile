@@ -15,7 +15,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
 
-# Copy source code and configs (models loaded from GCS at runtime)
+# Copy source code and configs
 COPY src/ src/
 COPY configs/ configs/
 
@@ -37,7 +37,7 @@ ENV PYTHONUNBUFFERED=1
 
 # Ensure certs are up to date (fixes many SSL errors)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates \
+    ca-certificates curl \
   && update-ca-certificates \
   && rm -rf /var/lib/apt/lists/*
 
@@ -49,13 +49,16 @@ COPY --from=builder /app/configs /app/configs
 # Set PATH to use the virtual environment
 ENV PATH="/app/.venv/bin:$PATH"
 
-# Set default config and model paths
-# Model is mounted from GCS via Cloud Run volume mount
+# Set default config and model paths (can be overridden at runtime)
 ENV CONFIG_PATH="/app/configs/config.yaml"
-ENV MODEL_PATH="/gcs/models/model.pt"
+ENV MODEL_PATH="/app/models/model.pt"
 
 # Expose port 8080 for Cloud Run
 EXPOSE 8080
+
+# NOTE: Models are no longer baked into this image.
+# They must be mounted at runtime, e.g. via Cloud Run volumes or GCS FUSE
+# Override CONFIG_PATH and MODEL_PATH env vars as needed for your deployment.
 
 # Cloud Run will provide PORT environment variable (default: 8080)
 CMD ["bash", "-c", "uvicorn ct_scan_mlops.api:app --host 0.0.0.0 --port ${PORT}"]

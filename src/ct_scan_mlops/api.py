@@ -11,7 +11,8 @@ from typing import Annotated
 import psutil
 import torch
 from fastapi import FastAPI, File, HTTPException, UploadFile
-from omegaconf import OmegaConf
+from hydra import compose, initialize_config_dir
+from omegaconf import DictConfig, OmegaConf
 from PIL import Image
 from prometheus_client import Gauge
 from prometheus_fastapi_instrumentator import Instrumentator
@@ -21,13 +22,56 @@ from ct_scan_mlops.model import build_model
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# Point this to the training run folder that contains:
-#   - .hydra/config.yaml
-#   - model.pt   (or change MODEL_FILENAME below)
-RUN_DIR = Path(os.environ.get("RUN_DIR", "outputs/2026-01-15/11-57-23"))
-CONFIG_PATH = RUN_DIR / ".hydra" / "config.yaml"
-MODEL_FILENAME = os.environ.get("MODEL_FILENAME", "model.pt")
-MODEL_PATH = RUN_DIR / MODEL_FILENAME
+# --- Deployment-friendly paths (no dependence on outputs/<date>/<time>) ---
+# You can override these in Cloud Run via env vars: CONFIG_PATH, MODEL_PATH
+DEFAULT_CONFIG_PATH = Path("configs") / "config.yaml"  # change if your file name differs
+DEFAULT_CKPT_PATH = Path("models") / "best_model.ckpt"
+DEFAULT_PT_PATH = Path("models") / "model.pt"
+
+CONFIG_PATH = Path(os.environ.get("CONFIG_PATH", str(DEFAULT_CONFIG_PATH)))
+MODEL_PATH_ENV = os.environ.get("MODEL_PATH")
+
+
+def resolve_model_path() -> Path:
+    """Resolve model path with .ckpt preferred, .pt as fallback.
+
+    Env var MODEL_PATH takes precedence when set.
+    """
+    if MODEL_PATH_ENV:
+        return Path(MODEL_PATH_ENV)
+    if DEFAULT_CKPT_PATH.exists():
+        return DEFAULT_CKPT_PATH
+    return DEFAULT_PT_PATH
+
+
+def load_config(cfg_path: Path) -> DictConfig:
+    """Load a Hydra config, composing if needed.
+
+    Raises:
+        RuntimeError: If the config cannot be loaded or composed.
+    """
+    try:
+        cfg = OmegaConf.load(cfg_path)
+    except Exception as exc:  # pragma: no cover - defensive, depends on filesystem / Hydra
+        msg = f"Failed to load config from '{cfg_path}': {exc}"
+        raise RuntimeError(msg) from exc
+
+    if "model" in cfg:
+        return cfg
+
+    if "defaults" in cfg:
+        try:
+            with initialize_config_dir(
+                version_base=None,
+                config_dir=str(cfg_path.parent),
+            ):
+                return compose(config_name=cfg_path.stem)
+        except Exception as exc:  # pragma: no cover - defensive, depends on Hydra internals
+            msg = f"Failed to compose Hydra config from '{cfg_path}': {exc}"
+            raise RuntimeError(msg) from exc
+
+    return cfg
+
 
 CLASS_NAMES = [
     "adenocarcinoma",
@@ -75,14 +119,19 @@ async def lifespan(_app: FastAPI):
     global model
 
     if not CONFIG_PATH.exists():
-        raise RuntimeError(f"Missing Hydra config: {CONFIG_PATH}")
-    if not MODEL_PATH.exists():
-        raise RuntimeError(f"Missing model weights: {MODEL_PATH}")
+        raise RuntimeError(f"Missing config: {CONFIG_PATH}. Set CONFIG_PATH or add the default file.")
+    model_path = resolve_model_path()
+    if not model_path.exists():
+        raise RuntimeError(f"Missing model weights: {model_path}. Set MODEL_PATH or include weights in the image.")
 
-    cfg = OmegaConf.load(CONFIG_PATH)
+    cfg = load_config(CONFIG_PATH)
     model = build_model(cfg)
 
-    state = torch.load(MODEL_PATH, map_location="cpu", weights_only=True)
+    state = torch.load(model_path, map_location="cpu", weights_only=True)
+    if isinstance(state, dict) and "state_dict" in state:
+        state = state["state_dict"]
+    if isinstance(state, dict) and all(k.startswith("model.") for k in state):
+        state = {k.replace("model.", "", 1): v for k, v in state.items()}
     model.load_state_dict(state)
 
     model.to(DEVICE)
@@ -116,9 +165,8 @@ def health() -> dict:
         "ok": True,
         "device": str(DEVICE),
         "model_loaded": model is not None,
-        "run_dir": str(RUN_DIR),
         "config_path": str(CONFIG_PATH),
-        "model_path": str(MODEL_PATH),
+        "model_path": str(resolve_model_path()),
     }
 
 
