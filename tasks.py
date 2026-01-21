@@ -263,6 +263,56 @@ def docker_api(ctx: Context, port: int = 8000) -> None:
     ctx.run(f"docker run -p {port}:8000 -v $(pwd)/models:/app/models api:latest", echo=True, pty=not WINDOWS)
 
 
+@task
+def docker_api_frontend(
+    ctx: Context,
+    api_port: int = 8000,
+    frontend_port: int = 8501,
+    model_dir: str = "outputs/ct_scan_classifier/sweeps/a2mo2otc",
+    config_path: str = "configs/config_production.yaml",
+) -> None:
+    """Build API image, run container, and launch Streamlit frontend.
+
+    Args:
+        api_port: API port to expose locally
+        frontend_port: Streamlit port
+        model_dir: Host path to the folder containing model.pt
+        config_path: Host path to config YAML
+    """
+    cwd = Path.cwd()
+    model_host = (cwd / model_dir).resolve()
+    config_host = (cwd / config_path).resolve()
+
+    ctx.run("docker build -t ct-scan-api . -f dockerfiles/api.dockerfile", echo=True, pty=not WINDOWS)
+
+    model_mount = f'"{model_host}:/app/models"'
+    config_mount = f'"{config_host.parent}:/app/configs"'
+    api_container = "ct-scan-api-dev"
+
+    ctx.run(
+        f"docker rm -f {api_container} || exit 0",
+        echo=True,
+        pty=not WINDOWS,
+    )
+    ctx.run(
+        "docker run -d "
+        f"--name {api_container} "
+        f"-p {api_port}:8000 "
+        f"-v {model_mount} "
+        f"-v {config_mount} "
+        f"-e MODEL_PATH=/app/models/model.pt "
+        f"-e CONFIG_PATH=/app/configs/{config_host.name} "
+        "ct-scan-api",
+        echo=True,
+        pty=not WINDOWS,
+    )
+    ctx.run(
+        f"uv run streamlit run src/{PROJECT_NAME}/frontend/pages/home.py --server.port {frontend_port}",
+        echo=True,
+        pty=not WINDOWS,
+    )
+
+
 # Documentation commands
 @task
 def build_docs(ctx: Context) -> None:

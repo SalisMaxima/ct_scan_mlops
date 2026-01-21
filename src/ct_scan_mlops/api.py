@@ -1,17 +1,17 @@
-# src/ct_scan_mlops/api.py
 from __future__ import annotations
 
 import asyncio
 import io
 import logging
 import os
+import uuid
 from contextlib import asynccontextmanager, suppress
 from pathlib import Path
 from typing import Annotated
 
 import psutil
 import torch
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from hydra import compose, initialize_config_dir
 from omegaconf import DictConfig, OmegaConf
 from PIL import Image
@@ -30,6 +30,9 @@ DEFAULT_CKPT_PATH = Path("models") / "best_model.ckpt"
 DEFAULT_PT_PATH = Path("models") / "model.pt"
 
 CONFIG_PATH = Path(os.environ.get("CONFIG_PATH", str(DEFAULT_CONFIG_PATH)))
+
+MODEL_PATH = Path(os.environ.get("MODEL_PATH", str(DEFAULT_PT_PATH)))
+FEEDBACK_DIR = Path(os.environ.get("FEEDBACK_DIR", "feedback"))
 MODEL_PATH_ENV = os.environ.get("MODEL_PATH")
 
 
@@ -212,4 +215,49 @@ async def predict(file: Annotated[UploadFile, File(...)]) -> dict:
             detail=f"Model predicted invalid class index {pred}; expected 0-{len(CLASS_NAMES) - 1}",
         )
 
-    return {"pred_index": pred, "pred_class": CLASS_NAMES[pred]}
+    return {
+        "pred_index": pred,
+        "pred_class": CLASS_NAMES[pred],
+    }
+
+
+@app.post("/feedback")
+async def feedback(
+    file: Annotated[UploadFile, File(...)],
+    predicted_class: Annotated[str, Form(...)],
+    is_correct: Annotated[bool, Form(...)],
+    correct_class: Annotated[str | None, Form()] = None,
+) -> dict:
+    """Save feedback image into a class-named folder."""
+    if predicted_class not in CLASS_NAMES:
+        raise HTTPException(status_code=400, detail="Invalid predicted_class")
+
+    if not is_correct:
+        if correct_class is None:
+            raise HTTPException(status_code=400, detail="correct_class is required when is_correct is false")
+        if correct_class not in CLASS_NAMES:
+            raise HTTPException(status_code=400, detail="Invalid correct_class")
+        target_class = correct_class
+    else:
+        target_class = predicted_class
+
+    img_bytes = await file.read()
+    try:
+        img = Image.open(io.BytesIO(img_bytes)).convert("RGB")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid image: {e}") from e
+
+    FEEDBACK_DIR.mkdir(parents=True, exist_ok=True)
+    target_dir = FEEDBACK_DIR / target_class
+    target_dir.mkdir(parents=True, exist_ok=True)
+
+    original_name = Path(file.filename or "upload").stem
+    safe_name = "".join(ch for ch in original_name if ch.isalnum() or ch in {"-", "_"}) or "image"
+    filename = f"{safe_name}-{uuid.uuid4().hex}.png"
+    save_path = target_dir / filename
+    img.save(save_path, format="PNG")
+
+    return {
+        "saved_to": str(save_path),
+        "class": target_class,
+    }
