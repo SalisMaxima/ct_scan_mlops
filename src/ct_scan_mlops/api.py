@@ -4,7 +4,7 @@ from __future__ import annotations
 import asyncio
 import io
 import os
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 from pathlib import Path
 from typing import Annotated
 
@@ -55,17 +55,18 @@ process_rss_bytes = Gauge("process_rss_bytes", "Process resident set size in byt
 
 
 async def _metrics_loop(stop_event: asyncio.Event, interval_s: float = 5.0) -> None:
-    # prime CPU calculation
+    """Background loop updating system/process gauges every `interval_s` seconds."""
+    # Prime CPU calculation to avoid a misleading first sample
     psutil.cpu_percent(interval=None)
+
     while not stop_event.is_set():
         system_cpu_percent.set(psutil.cpu_percent(interval=None))
         system_memory_percent.set(psutil.virtual_memory().percent)
         process_rss_bytes.set(PROC.memory_info().rss)
 
-        try:
+        # Sleep or exit early if stop_event is set
+        with suppress(asyncio.TimeoutError):
             await asyncio.wait_for(stop_event.wait(), timeout=interval_s)
-        except TimeoutError:
-            pass
 
 
 @asynccontextmanager
@@ -83,23 +84,23 @@ async def lifespan(_app: FastAPI):
 
     state = torch.load(MODEL_PATH, map_location="cpu", weights_only=True)
     model.load_state_dict(state)
+
     model.to(DEVICE)
     model.eval()
 
-    # start system metrics background loop
+    # Start system metrics background loop
     stop_event = asyncio.Event()
     task = asyncio.create_task(_metrics_loop(stop_event))
 
     yield
 
+    # Shutdown: stop background task + cleanup model
     stop_event.set()
     task.cancel()
-    try:
+    with suppress(Exception):
         await task
-    except Exception:
-        pass
 
-    del model
+    model = None
 
 
 app = FastAPI(title="CT Scan Inference API", version="0.1.0", lifespan=lifespan)
