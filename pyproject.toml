@@ -69,6 +69,7 @@ dev = [
     "httpx>=0.27.0",                  # For API testing
     "locust>=2.20.0",                 # Load testing
     "uvicorn[standard]>=0.40.0",
+    "mypy>=1.19.1",
 ]
 
 
@@ -148,6 +149,10 @@ addopts = "-v --tb=short"
 [tool.mypy]
 ignore_missing_imports = true
 exclude = ["reports/"]
+
+[[tool.mypy.overrides]]
+module = ["wandb", "wandb.*"]
+follow_imports = "skip"
 
 [tool.coverage.run]
 omit = [
