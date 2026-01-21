@@ -45,12 +45,12 @@ jobs:
 
       - name: Deploy to Cloud Run
         run: |
-          gcloud run deploy ct-scan-api \
+          gcloud beta run deploy ct-scan-api \
             --image "$IMAGE_URI" \
             --region "${{ vars.GAR_LOCATION }}" \
             --platform managed \
             --allow-unauthenticated \
-            --startup-probe tcp-socket-port=8080,period=10s,failure-threshold=48 \
+            --startup-probe tcpSocket.port=8080,periodSeconds=10,failureThreshold=48 \
             --add-volume name=models,type=cloud-storage,bucket=${{ vars.GCS_BUCKET }} \
             --add-volume-mount volume=models,mount-path=/models \
             --set-env-vars "CONFIG_PATH=/models/models/config.yaml,MODEL_PATH=/models/models/best_model.ckpt"
