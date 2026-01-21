@@ -31,7 +31,7 @@ DEFAULT_PT_PATH = Path("models") / "model.pt"
 
 CONFIG_PATH = Path(os.environ.get("CONFIG_PATH", str(DEFAULT_CONFIG_PATH)))
 
-MODEL_PATH = Path(os.environ.get("MODEL_PATH", str(DEFAULT_MODEL_PATH)))
+MODEL_PATH = Path(os.environ.get("MODEL_PATH", str(DEFAULT_PT_PATH)))
 FEEDBACK_DIR = Path(os.environ.get("FEEDBACK_DIR", "feedback"))
 MODEL_PATH_ENV = os.environ.get("MODEL_PATH")
 
