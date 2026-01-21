@@ -366,6 +366,12 @@ def train_model(
     if best_ckpt_path.exists():
         artifact.add_file(str(best_ckpt_path))
     artifact.add_file(str(final_model_path))
+
+    # Add the composed Hydra config if available
+    hydra_cfg_path = output_path / ".hydra" / "config.yaml"
+    if hydra_cfg_path.exists():
+        artifact.add_file(str(hydra_cfg_path))
+
     wandb.log_artifact(artifact)
     logger.info(f"Model artifact logged to W&B: {artifact.name}")
 

@@ -9,7 +9,18 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # v1.3.1
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
+
+      - uses: actions/checkout@v6
 
       - name: Auth to GCP
         uses: google-github-actions/auth@v2
@@ -39,4 +50,7 @@ jobs:
             --region "${{ vars.GAR_LOCATION }}" \
             --platform managed \
             --allow-unauthenticated \
-            --set-env-vars "CONFIG_PATH=/app/configs/config.yaml,MODEL_PATH=/app/models/model.pt"
+            --startup-probe tcp-socket-port=8080,period=10s,failure-threshold=48 \
+            --add-volume name=models,type=cloud-storage,bucket=${{ vars.GCS_BUCKET }} \
+            --add-volume-mount volume=models,mount-path=/models \
+            --set-env-vars "CONFIG_PATH=/models/models/config.yaml,MODEL_PATH=/models/models/best_model.ckpt"
