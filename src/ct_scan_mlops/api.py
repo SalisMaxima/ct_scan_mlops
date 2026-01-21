@@ -45,14 +45,30 @@ def resolve_model_path() -> Path:
 
 
 def load_config(cfg_path: Path):
-    """Load a Hydra config, composing if needed."""
-    cfg = OmegaConf.load(cfg_path)
+    """Load a Hydra config, composing if needed.
+
+    Raises:
+        RuntimeError: If the config cannot be loaded or composed.
+    """
+    try:
+        cfg = OmegaConf.load(cfg_path)
+    except Exception as exc:  # pragma: no cover - defensive, depends on filesystem / Hydra
+        msg = f"Failed to load config from '{cfg_path}': {exc}"
+        raise RuntimeError(msg) from exc
+
     if "model" in cfg:
         return cfg
 
     if "defaults" in cfg:
-        with initialize_config_dir(version_base=None, config_dir=str(cfg_path.parent)):
-            return compose(config_name=cfg_path.stem)
+        try:
+            with initialize_config_dir(
+                version_base=None,
+                config_dir=str(cfg_path.parent),
+            ):
+                return compose(config_name=cfg_path.stem)
+        except Exception as exc:  # pragma: no cover - defensive, depends on Hydra internals
+            msg = f"Failed to compose Hydra config from '{cfg_path}': {exc}"
+            raise RuntimeError(msg) from exc
 
     return cfg
 
