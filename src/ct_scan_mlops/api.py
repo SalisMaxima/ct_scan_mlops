@@ -17,8 +17,6 @@ from torchvision import transforms
 
 from ct_scan_mlops.model import build_model
 
-# Set up logging to stdout so Cloud Run captures it
-logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 logger = logging.getLogger(__name__)
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -52,30 +50,43 @@ async def lifespan(_app: FastAPI):
     """Load model on startup, cleanup on shutdown."""
     global model
 
+    # Configure logging to stdout so Cloud Run captures it
+    # Only configure if not already configured
+    if not logging.getLogger().handlers:
+        logging.basicConfig(
+            level=logging.DEBUG if os.environ.get("DEBUG") else logging.INFO,
+            stream=sys.stdout,
+            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        )
+    else:
+        # If already configured, just set the level
+        log_level = logging.DEBUG if os.environ.get("DEBUG") else logging.INFO
+        logging.getLogger().setLevel(log_level)
+
     logger.info(f"Startup: Checking config at {CONFIG_PATH}")
     if not CONFIG_PATH.exists():
         logger.error(f"Config not found at {CONFIG_PATH}")
-        # List files in the parent directory to help debug
+        # List files in the parent directory to help debug (only at debug level)
         parent = CONFIG_PATH.parent
         if parent.exists():
             try:
-                logger.info(f"Contents of {parent}: {[p.name for p in parent.iterdir()]}")
+                logger.debug(f"Contents of {parent}: {[p.name for p in parent.iterdir()]}")
             except Exception as e:
-                logger.error(f"Failed to list {parent}: {e}")
+                logger.debug(f"Failed to list {parent}: {e}")
         raise RuntimeError(f"Missing config: {CONFIG_PATH}. Set CONFIG_PATH or add the default file.")
 
     logger.info(f"Startup: Checking model at {MODEL_PATH}")
     if not MODEL_PATH.exists():
         logger.error(f"Model not found at {MODEL_PATH}")
-        # CRITICAL: List contents of the mount point to debug GCS fuse
+        # List contents of the mount point to debug GCS fuse (only at debug level)
         mount_point = MODEL_PATH.parent
         if mount_point.exists():
             try:
-                logger.info(f"Contents of {mount_point}: {[p.name for p in mount_point.iterdir()]}")
+                logger.debug(f"Contents of {mount_point}: {[p.name for p in mount_point.iterdir()]}")
             except Exception as e:
-                logger.error(f"Failed to list {mount_point}: {e}")
+                logger.debug(f"Failed to list {mount_point}: {e}")
         else:
-            logger.error(f"Mount point {mount_point} does not exist!")
+            logger.debug(f"Mount point {mount_point} does not exist!")
         raise RuntimeError(f"Missing model weights: {MODEL_PATH}. Set MODEL_PATH or include weights in the image.")
 
     logger.info("Startup: Loading configuration...")
