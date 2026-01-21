@@ -31,10 +31,12 @@ jobs:
         env:
           WANDB_API_KEY: ${{ secrets.WANDB_API_KEY }}
         run: |
-          curl -LsSf https://astral.sh/uv/install.sh | sh
-          export PATH="$HOME/.local/bin:$PATH"
-          rm -rf models/
-          mkdir -p models
+          # Install uv if not already available
+          if ! command -v uv &> /dev/null; then
+            curl -LsSf https://astral.sh/uv/install.sh | sh
+            export PATH="$HOME/.local/bin:$PATH"
+          fi
+          rm -rf models/ && mkdir models
           uv tool run wandb artifact get ${{ vars.WANDB_MODEL_ARTIFACT }} --root models/
           gsutil cp models/model.pt gs://${{ vars.GCS_BUCKET }}/models/model.pt
 
