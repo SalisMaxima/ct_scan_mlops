@@ -127,7 +127,13 @@ async def lifespan(_app: FastAPI):
     logger.info("Config exists=%s", CONFIG_PATH.exists())
     logger.info("Mount /models exists=%s is_dir=%s", Path("/models").exists(), Path("/models").is_dir())
     logger.info("Mount /gcs exists=%s is_dir=%s", Path("/gcs").exists(), Path("/gcs").is_dir())
-    logger.info("/models entries=%s", [p.name for p in Path("/models").glob("*")] if Path("/models").is_dir() else [])
+    models_path = Path("/models")
+    try:
+        models_entries = [p.name for p in models_path.glob("*")] if models_path.is_dir() else []
+    except OSError as exc:
+        logger.warning("Unable to list /models entries: %s", exc)
+        models_entries = []
+    logger.info("/models entries=%s", models_entries)
     model_path = resolve_model_path()
     logger.info("Resolved model_path=%s exists=%s", model_path, model_path.exists())
 
