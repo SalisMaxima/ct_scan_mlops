@@ -50,6 +50,9 @@ jobs:
             --region "${{ vars.GAR_LOCATION }}" \
             --platform managed \
             --allow-unauthenticated \
+            --memory 4Gi \
+            --cpu 2 \
+            --cpu-boost \
             --startup-probe tcpSocket.port=8080,periodSeconds=10,failureThreshold=24 \
             --add-volume name=models,type=cloud-storage,bucket=${{ vars.GCS_BUCKET }} \
             --add-volume-mount volume=models,mount-path=/models \
