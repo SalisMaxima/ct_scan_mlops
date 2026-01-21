@@ -144,10 +144,8 @@ jobs:
         run: |
           set -euo pipefail
           echo "Triggering Cloud Run redeployment..."
-          gcloud run services update "${{ inputs.cloud_run_service }}" \
-            --region="${{ inputs.cloud_run_region }}" \
-            --no-traffic
-          # Force new revision to pick up the new model
+          # Force a new revision by redeploying with the same image
+          # This causes the service to restart and load the new model from GCS
           gcloud run deploy "${{ inputs.cloud_run_service }}" \
             --region="${{ inputs.cloud_run_region }}" \
             --image="$(gcloud run services describe ${{ inputs.cloud_run_service }} --region=${{ inputs.cloud_run_region }} --format='value(spec.template.spec.containers[0].image)')"
