@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 import io
+import logging
 import os
+import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Annotated
@@ -14,6 +16,10 @@ from PIL import Image
 from torchvision import transforms
 
 from ct_scan_mlops.model import build_model
+
+# Set up logging to stdout so Cloud Run captures it
+logging.basicConfig(level=logging.INFO, stream=sys.stdout)
+logger = logging.getLogger(__name__)
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -46,19 +52,49 @@ async def lifespan(_app: FastAPI):
     """Load model on startup, cleanup on shutdown."""
     global model
 
+    logger.info(f"Startup: Checking config at {CONFIG_PATH}")
     if not CONFIG_PATH.exists():
+        logger.error(f"Config not found at {CONFIG_PATH}")
+        # List files in the parent directory to help debug
+        parent = CONFIG_PATH.parent
+        if parent.exists():
+            try:
+                logger.info(f"Contents of {parent}: {[p.name for p in parent.iterdir()]}")
+            except Exception as e:
+                logger.error(f"Failed to list {parent}: {e}")
         raise RuntimeError(f"Missing config: {CONFIG_PATH}. Set CONFIG_PATH or add the default file.")
+
+    logger.info(f"Startup: Checking model at {MODEL_PATH}")
     if not MODEL_PATH.exists():
+        logger.error(f"Model not found at {MODEL_PATH}")
+        # CRITICAL: List contents of the mount point to debug GCS fuse
+        mount_point = MODEL_PATH.parent
+        if mount_point.exists():
+            try:
+                logger.info(f"Contents of {mount_point}: {[p.name for p in mount_point.iterdir()]}")
+            except Exception as e:
+                logger.error(f"Failed to list {mount_point}: {e}")
+        else:
+            logger.error(f"Mount point {mount_point} does not exist!")
         raise RuntimeError(f"Missing model weights: {MODEL_PATH}. Set MODEL_PATH or include weights in the image.")
 
+    logger.info("Startup: Loading configuration...")
     cfg = OmegaConf.load(CONFIG_PATH)
+
+    logger.info("Startup: Building model...")
     model = build_model(cfg)
 
-    state = torch.load(MODEL_PATH, map_location="cpu", weights_only=True)
-    model.load_state_dict(state)
+    logger.info(f"Startup: Loading weights from {MODEL_PATH}...")
+    try:
+        state = torch.load(MODEL_PATH, map_location="cpu", weights_only=True)
+        model.load_state_dict(state)
+    except Exception as e:
+        logger.error(f"Failed to load model state: {e}")
+        raise
 
     model.to(DEVICE)
     model.eval()
+    logger.info("Startup: Model loaded successfully.")
 
     yield
 
