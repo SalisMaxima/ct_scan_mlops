@@ -1,29 +1,33 @@
 # src/ct_scan_mlops/api.py
 from __future__ import annotations
 
+import asyncio
 import io
 import os
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 from pathlib import Path
 from typing import Annotated
 
+import psutil
 import torch
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from omegaconf import OmegaConf
 from PIL import Image
+from prometheus_client import Gauge
+from prometheus_fastapi_instrumentator import Instrumentator
 from torchvision import transforms
 
 from ct_scan_mlops.model import build_model
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# --- Deployment-friendly paths (no dependence on outputs/<date>/<time>) ---
-# You can override these in Cloud Run via env vars: CONFIG_PATH, MODEL_PATH
-DEFAULT_CONFIG_PATH = Path("configs") / "config.yaml"  # change if your file name differs
-DEFAULT_MODEL_PATH = Path("models") / "model.pt"  # change if your weights live elsewhere
-
-CONFIG_PATH = Path(os.environ.get("CONFIG_PATH", str(DEFAULT_CONFIG_PATH)))
-MODEL_PATH = Path(os.environ.get("MODEL_PATH", str(DEFAULT_MODEL_PATH)))
+# Point this to the training run folder that contains:
+#   - .hydra/config.yaml
+#   - model.pt   (or change MODEL_FILENAME below)
+RUN_DIR = Path(os.environ.get("RUN_DIR", "outputs/2026-01-15/11-57-23"))
+CONFIG_PATH = RUN_DIR / ".hydra" / "config.yaml"
+MODEL_FILENAME = os.environ.get("MODEL_FILENAME", "model.pt")
+MODEL_PATH = RUN_DIR / MODEL_FILENAME
 
 CLASS_NAMES = [
     "adenocarcinoma",
@@ -40,6 +44,30 @@ tfm = transforms.Compose(
     ]
 )
 
+# ----------------------------
+# System metrics (Prometheus)
+# ----------------------------
+PROC = psutil.Process()
+
+system_cpu_percent = Gauge("system_cpu_percent", "System CPU utilization percent")
+system_memory_percent = Gauge("system_memory_percent", "System memory utilization percent")
+process_rss_bytes = Gauge("process_rss_bytes", "Process resident set size in bytes")
+
+
+async def _metrics_loop(stop_event: asyncio.Event, interval_s: float = 5.0) -> None:
+    """Background loop updating system/process gauges every `interval_s` seconds."""
+    # Prime CPU calculation to avoid a misleading first sample
+    psutil.cpu_percent(interval=None)
+
+    while not stop_event.is_set():
+        system_cpu_percent.set(psutil.cpu_percent(interval=None))
+        system_memory_percent.set(psutil.virtual_memory().percent)
+        process_rss_bytes.set(PROC.memory_info().rss)
+
+        # Sleep or exit early if stop_event is set
+        with suppress(asyncio.TimeoutError):
+            await asyncio.wait_for(stop_event.wait(), timeout=interval_s)
+
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
@@ -47,9 +75,9 @@ async def lifespan(_app: FastAPI):
     global model
 
     if not CONFIG_PATH.exists():
-        raise RuntimeError(f"Missing config: {CONFIG_PATH}. Set CONFIG_PATH or add the default file.")
+        raise RuntimeError(f"Missing Hydra config: {CONFIG_PATH}")
     if not MODEL_PATH.exists():
-        raise RuntimeError(f"Missing model weights: {MODEL_PATH}. Set MODEL_PATH or include weights in the image.")
+        raise RuntimeError(f"Missing model weights: {MODEL_PATH}")
 
     cfg = OmegaConf.load(CONFIG_PATH)
     model = build_model(cfg)
@@ -60,13 +88,25 @@ async def lifespan(_app: FastAPI):
     model.to(DEVICE)
     model.eval()
 
+    # Start system metrics background loop
+    stop_event = asyncio.Event()
+    task = asyncio.create_task(_metrics_loop(stop_event))
+
     yield
 
-    # Cleanup
-    del model
+    # Shutdown: stop background task + cleanup model
+    stop_event.set()
+    task.cancel()
+    with suppress(Exception):
+        await task
+
+    model = None
 
 
 app = FastAPI(title="CT Scan Inference API", version="0.1.0", lifespan=lifespan)
+
+# HTTP metrics + /metrics endpoint (Prometheus)
+Instrumentator().instrument(app).expose(app, endpoint="/metrics")
 
 
 @app.get("/health")
@@ -76,6 +116,7 @@ def health() -> dict:
         "ok": True,
         "device": str(DEVICE),
         "model_loaded": model is not None,
+        "run_dir": str(RUN_DIR),
         "config_path": str(CONFIG_PATH),
         "model_path": str(MODEL_PATH),
     }
@@ -105,7 +146,4 @@ async def predict(file: Annotated[UploadFile, File(...)]) -> dict:
             detail=f"Model predicted invalid class index {pred}; expected 0-{len(CLASS_NAMES) - 1}",
         )
 
-    return {
-        "pred_index": pred,
-        "pred_class": CLASS_NAMES[pred],
-    }
+    return {"pred_index": pred, "pred_class": CLASS_NAMES[pred]}
