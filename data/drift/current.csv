@@ -71,3 +71,4 @@ mean,std,min,max,p01,p50,p99,height,width,path
 72.5758285522461,40.084232330322266,0.0,255.0,0.0,89.0,139.0,231,410,data\raw\chest-ctscan-images\Data\valid\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000118 (5).png
 78.30313110351562,47.98988342285156,0.0,255.0,0.0,101.0,157.0,266,379,data\raw\chest-ctscan-images\Data\valid\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000119 (5).png
 72.02448272705078,50.195011138916016,0.0,255.0,0.0,99.0,155.0,236,368,data\raw\chest-ctscan-images\Data\valid\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000119.png
+2026-01-21T14:52:09.906737+00:00,238.9951629638672,48.00531005859375,33.0,255.0,35.0,255.0,255.0,772,790,0,adenocarcinoma,1.0
