@@ -9,7 +9,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Auth to GCP
         uses: google-github-actions/auth@v2
@@ -97,6 +97,6 @@ jobs:
             --region "${{ vars.GAR_LOCATION }}" \
             --platform managed \
             --allow-unauthenticated \
-            --set-env-vars "CONFIG_PATH=/app/configs/config.yaml,MODEL_PATH=/gcs/models/model.pt" \
             --add-volume name=models,type=cloud-storage,bucket=${{ vars.GCS_BUCKET }} \
-            --add-volume-mount volume=models,mount-path=/gcs
+            --add-volume-mount volume=models,mount-path=/models \
+            --set-env-vars "CONFIG_PATH=/app/configs/config.yaml,MODEL_PATH=/models/model.pt"

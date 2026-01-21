@@ -37,7 +37,7 @@ ENV PYTHONUNBUFFERED=1
 
 # Ensure certs are up to date (fixes many SSL errors)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates \
+    ca-certificates curl \
   && update-ca-certificates \
   && rm -rf /var/lib/apt/lists/*
 
