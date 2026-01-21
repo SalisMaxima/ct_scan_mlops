@@ -51,11 +51,17 @@ async def lifespan(_app: FastAPI):
     global model
 
     # Configure logging to stdout so Cloud Run captures it
-    logging.basicConfig(
-        level=logging.DEBUG if os.environ.get("DEBUG") else logging.INFO,
-        stream=sys.stdout,
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    )
+    # Only configure if not already configured
+    if not logging.getLogger().handlers:
+        logging.basicConfig(
+            level=logging.DEBUG if os.environ.get("DEBUG") else logging.INFO,
+            stream=sys.stdout,
+            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        )
+    else:
+        # If already configured, just set the level
+        log_level = logging.DEBUG if os.environ.get("DEBUG") else logging.INFO
+        logging.getLogger().setLevel(log_level)
 
     logger.info(f"Startup: Checking config at {CONFIG_PATH}")
     if not CONFIG_PATH.exists():
