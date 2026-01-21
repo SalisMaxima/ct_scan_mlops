@@ -1,17 +1,21 @@
 # src/ct_scan_mlops/api.py
 from __future__ import annotations
 
+import asyncio
 import io
 import os
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 from pathlib import Path
 from typing import Annotated
 
+import psutil
 import torch
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from hydra import compose, initialize_config_dir
 from omegaconf import OmegaConf
 from PIL import Image
+from prometheus_client import Gauge
+from prometheus_fastapi_instrumentator import Instrumentator
 from torchvision import transforms
 
 from ct_scan_mlops.model import build_model
@@ -68,6 +72,30 @@ tfm = transforms.Compose(
     ]
 )
 
+# ----------------------------
+# System metrics (Prometheus)
+# ----------------------------
+PROC = psutil.Process()
+
+system_cpu_percent = Gauge("system_cpu_percent", "System CPU utilization percent")
+system_memory_percent = Gauge("system_memory_percent", "System memory utilization percent")
+process_rss_bytes = Gauge("process_rss_bytes", "Process resident set size in bytes")
+
+
+async def _metrics_loop(stop_event: asyncio.Event, interval_s: float = 5.0) -> None:
+    """Background loop updating system/process gauges every `interval_s` seconds."""
+    # Prime CPU calculation to avoid a misleading first sample
+    psutil.cpu_percent(interval=None)
+
+    while not stop_event.is_set():
+        system_cpu_percent.set(psutil.cpu_percent(interval=None))
+        system_memory_percent.set(psutil.virtual_memory().percent)
+        process_rss_bytes.set(PROC.memory_info().rss)
+
+        # Sleep or exit early if stop_event is set
+        with suppress(asyncio.TimeoutError):
+            await asyncio.wait_for(stop_event.wait(), timeout=interval_s)
+
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
@@ -93,22 +121,30 @@ async def lifespan(_app: FastAPI):
     model.to(DEVICE)
     model.eval()
 
+    # Start system metrics background loop
+    stop_event = asyncio.Event()
+    task = asyncio.create_task(_metrics_loop(stop_event))
+
     yield
 
-    # Cleanup
-    del model
+    # Shutdown: stop background task + cleanup model
+    stop_event.set()
+    task.cancel()
+    with suppress(Exception):
+        await task
+
+    model = None
 
 
 app = FastAPI(title="CT Scan Inference API", version="0.1.0", lifespan=lifespan)
 
+# HTTP metrics + /metrics endpoint (Prometheus)
+Instrumentator().instrument(app).expose(app, endpoint="/metrics")
+
 
 @app.get("/health")
 def health() -> dict:
-    """Check API health status and model availability.
-
-    Returns:
-        dict: Health status including device info and model state.
-    """
+    """Check API health status and model availability."""
     return {
         "ok": True,
         "device": str(DEVICE),
@@ -120,17 +156,7 @@ def health() -> dict:
 
 @app.post("/predict")
 async def predict(file: Annotated[UploadFile, File(...)]) -> dict:
-    """Classify a CT scan image.
-
-    Args:
-        file: Uploaded CT scan image (PNG, JPEG, etc.)
-
-    Returns:
-        dict: Prediction index and class name.
-
-    Raises:
-        HTTPException: 503 if model not loaded, 400 if invalid image.
-    """
+    """Classify a CT scan image."""
     if model is None:
         raise HTTPException(status_code=503, detail="Model not loaded")
 
@@ -149,9 +175,7 @@ async def predict(file: Annotated[UploadFile, File(...)]) -> dict:
     if not (0 <= pred < len(CLASS_NAMES)):
         raise HTTPException(
             status_code=500,
-            detail=(f"Model predicted invalid class index {pred}; expected 0-{len(CLASS_NAMES) - 1}"),
+            detail=f"Model predicted invalid class index {pred}; expected 0-{len(CLASS_NAMES) - 1}",
         )
-    return {
-        "pred_index": pred,
-        "pred_class": CLASS_NAMES[pred],
-    }
+
+    return {"pred_index": pred, "pred_class": CLASS_NAMES[pred]}
