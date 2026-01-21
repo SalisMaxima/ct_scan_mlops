@@ -25,6 +25,14 @@ jobs:
         run: |
           gcloud auth configure-docker ${{ vars.GAR_LOCATION }}-docker.pkg.dev --quiet
 
+      - name: Download model from W&B and upload to GCS
+        env:
+          WANDB_API_KEY: ${{ secrets.WANDB_API_KEY }}
+        run: |
+          pip install wandb
+          wandb artifact get ${{ vars.WANDB_MODEL_ARTIFACT }} --root models/
+          gsutil cp models/model.pt gs://dtu-mlops-data-482907_cloudbuild/models/model.pt
+
       - name: Build & push image (GitHub runner)
         run: |
           IMAGE_URI="${{ vars.GAR_LOCATION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GAR_REPO }}/ct-scan-api:${{ github.sha }}"
@@ -39,4 +47,6 @@ jobs:
             --region "${{ vars.GAR_LOCATION }}" \
             --platform managed \
             --allow-unauthenticated \
-            --set-env-vars "CONFIG_PATH=/app/configs/config.yaml,MODEL_PATH=/app/models/model.pt"
+            --set-env-vars "CONFIG_PATH=/app/configs/config.yaml,MODEL_PATH=/gcs/models/model.pt" \
+            --add-volume name=models,type=cloud-storage,bucket=dtu-mlops-data-482907_cloudbuild \
+            --add-volume-mount volume=models,mount-path=/gcs
