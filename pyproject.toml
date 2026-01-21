@@ -55,6 +55,7 @@ dependencies = [
     "onnxscript>=0.5.7",
     "psutil>=6.0.0",
     "prometheus-fastapi-instrumentator>=7.0.0",
+    "google-cloud-storage>=2.16.0",
 ]
 
 [dependency-groups]

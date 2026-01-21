@@ -11,6 +11,7 @@ from typing import Annotated
 import psutil
 import torch
 from fastapi import FastAPI, File, HTTPException, UploadFile
+from google.cloud import storage
 from omegaconf import OmegaConf
 from PIL import Image
 from prometheus_client import Gauge
@@ -21,13 +22,27 @@ from ct_scan_mlops.model import build_model
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# Point this to the training run folder that contains:
-#   - .hydra/config.yaml
-#   - model.pt   (or change MODEL_FILENAME below)
+# ----------------------------
+# Model/config location
+# ----------------------------
+# Default local path (works locally after training)
 RUN_DIR = Path(os.environ.get("RUN_DIR", "outputs/2026-01-15/11-57-23"))
 CONFIG_PATH = RUN_DIR / ".hydra" / "config.yaml"
 MODEL_FILENAME = os.environ.get("MODEL_FILENAME", "model.pt")
 MODEL_PATH = RUN_DIR / MODEL_FILENAME
+
+# GCS fallbacks (recommended for Cloud Run)
+# Example:
+#   CONFIG_GCS_URI=gs://dtu-mlops-dvc-storage-482907/ct_scan_mlops/serving/config.yaml
+#   MODEL_GCS_URI=gs://dtu-mlops-dvc-storage-482907/ct_scan_mlops/serving/model.pt
+CONFIG_GCS_URI = os.environ.get("CONFIG_GCS_URI", "")
+MODEL_GCS_URI = os.environ.get("MODEL_GCS_URI", "")
+
+# Where we download artifacts inside the container
+DOWNLOAD_DIR = Path(os.environ.get("DOWNLOAD_DIR", "/tmp/ct_scan_mlops"))
+DOWNLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
+GCS_TIMEOUT_S = float(os.environ.get("GCS_TIMEOUT_S", "120"))
 
 CLASS_NAMES = [
     "adenocarcinoma",
@@ -54,9 +69,28 @@ system_memory_percent = Gauge("system_memory_percent", "System memory utilizatio
 process_rss_bytes = Gauge("process_rss_bytes", "Process resident set size in bytes")
 
 
+def _parse_gs_uri(uri: str) -> tuple[str, str]:
+    if not uri.startswith("gs://"):
+        raise ValueError(f"Expected gs:// URI, got: {uri}")
+    no_scheme = uri.removeprefix("gs://")
+    bucket, _, blob = no_scheme.partition("/")
+    if not bucket or not blob:
+        raise ValueError(f"Invalid gs:// URI (need bucket/path): {uri}")
+    return bucket, blob
+
+
+def _download_from_gcs(gs_uri: str, dest: Path) -> None:
+    bucket_name, blob_name = _parse_gs_uri(gs_uri)
+    client = storage.Client()  # uses ADC on Cloud Run
+    bucket = client.bucket(bucket_name)
+    blob = bucket.blob(blob_name)
+
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    blob.download_to_filename(dest, timeout=GCS_TIMEOUT_S)
+
+
 async def _metrics_loop(stop_event: asyncio.Event, interval_s: float = 5.0) -> None:
-    """Background loop updating system/process gauges every `interval_s` seconds."""
-    # Prime CPU calculation to avoid a misleading first sample
+    # Prime CPU calculation
     psutil.cpu_percent(interval=None)
 
     while not stop_event.is_set():
@@ -64,7 +98,7 @@ async def _metrics_loop(stop_event: asyncio.Event, interval_s: float = 5.0) -> N
         system_memory_percent.set(psutil.virtual_memory().percent)
         process_rss_bytes.set(PROC.memory_info().rss)
 
-        # Sleep or exit early if stop_event is set
+        # sleep until next tick OR stop_event
         with suppress(asyncio.TimeoutError):
             await asyncio.wait_for(stop_event.wait(), timeout=interval_s)
 
@@ -74,17 +108,33 @@ async def lifespan(_app: FastAPI):
     """Load model on startup, cleanup on shutdown."""
     global model
 
-    if not CONFIG_PATH.exists():
-        raise RuntimeError(f"Missing Hydra config: {CONFIG_PATH}")
-    if not MODEL_PATH.exists():
-        raise RuntimeError(f"Missing model weights: {MODEL_PATH}")
+    # If local files missing, try fetching from GCS (Cloud Run path)
+    effective_config_path = CONFIG_PATH
+    effective_model_path = MODEL_PATH
 
-    cfg = OmegaConf.load(CONFIG_PATH)
+    if not effective_config_path.exists():
+        if not CONFIG_GCS_URI:
+            raise RuntimeError(
+                f"Missing Hydra config: {effective_config_path}. "
+                "Set CONFIG_GCS_URI to a gs://.../config.yaml to download it at startup."
+            )
+        effective_config_path = DOWNLOAD_DIR / "config.yaml"
+        _download_from_gcs(CONFIG_GCS_URI, effective_config_path)
+
+    if not effective_model_path.exists():
+        if not MODEL_GCS_URI:
+            raise RuntimeError(
+                f"Missing model weights: {effective_model_path}. "
+                "Set MODEL_GCS_URI to a gs://.../model.pt to download it at startup."
+            )
+        effective_model_path = DOWNLOAD_DIR / "model.pt"
+        _download_from_gcs(MODEL_GCS_URI, effective_model_path)
+
+    cfg = OmegaConf.load(effective_config_path)
     model = build_model(cfg)
 
-    state = torch.load(MODEL_PATH, map_location="cpu", weights_only=True)
+    state = torch.load(effective_model_path, map_location="cpu", weights_only=True)
     model.load_state_dict(state)
-
     model.to(DEVICE)
     model.eval()
 
@@ -94,13 +144,12 @@ async def lifespan(_app: FastAPI):
 
     yield
 
-    # Shutdown: stop background task + cleanup model
     stop_event.set()
     task.cancel()
     with suppress(Exception):
         await task
 
-    model = None
+    del model
 
 
 app = FastAPI(title="CT Scan Inference API", version="0.1.0", lifespan=lifespan)
@@ -119,6 +168,9 @@ def health() -> dict:
         "run_dir": str(RUN_DIR),
         "config_path": str(CONFIG_PATH),
         "model_path": str(MODEL_PATH),
+        "config_gcs_uri": CONFIG_GCS_URI or None,
+        "model_gcs_uri": MODEL_GCS_URI or None,
+        "download_dir": str(DOWNLOAD_DIR),
     }
 
 
