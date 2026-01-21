@@ -1,0 +1,614 @@
+mean,std,min,max,p01,p50,p99,height,width,path
+70.73397827148438,48.7132568359375,0.0,255.0,0.0,97.0,147.0,264,409,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000000 (6).png
+69.5925064086914,49.55059814453125,0.0,255.0,0.0,96.0,166.0,243,397,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000005 (3).png
+66.53254699707031,44.67018508911133,0.0,255.0,0.0,92.0,144.0,244,392,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000005 (9).png
+63.15909194946289,47.27065658569336,0.0,255.0,0.0,87.0,163.0,220,377,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000008 (10).png
+66.80167388916016,52.401371002197266,0.0,255.0,0.0,63.0,158.0,272,373,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000009 (3).png
+62.58111572265625,49.36323165893555,0.0,255.0,0.0,92.0,147.0,288,449,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000009 (7).png
+84.37467193603516,53.69221878051758,0.0,255.0,0.0,111.0,165.0,276,389,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000013 (4).png
+75.2716064453125,57.70563888549805,0.0,255.0,0.0,87.0,177.0,328,384,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000013 (8).png
+72.14949035644531,51.00004959106445,0.0,255.0,0.0,99.0,152.0,323,417,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000014 (7).png
+71.37728881835938,50.95646286010742,0.0,255.0,0.0,90.0,175.0,247,341,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000015 (10).png
+79.47606658935547,48.85418701171875,0.0,255.0,0.0,102.0,150.0,232,386,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000015 (4).png
+71.22974395751953,51.5045280456543,0.0,255.0,0.0,100.0,159.0,246,410,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000015 (9).png
+87.39291381835938,55.382415771484375,0.0,255.0,0.0,119.0,186.0,250,390,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000016 (9).png
+63.467010498046875,44.46720886230469,0.0,255.0,0.0,88.0,136.0,274,414,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000017 (6).png
+62.54154586791992,41.59959030151367,0.0,255.0,0.0,81.0,141.0,242,423,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000017 (8).png
+90.5870361328125,53.56717300415039,0.0,255.0,0.0,113.0,181.0,269,419,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000018 (5).png
+72.81373596191406,50.67918395996094,0.0,255.0,0.0,99.0,165.0,259,429,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000019 (5).png
+67.58330535888672,48.326717376708984,0.0,255.0,0.0,92.0,163.0,211,373,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000020 (10).png
+84.32622528076172,54.68677520751953,0.0,255.0,0.0,109.0,171.0,305,413,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000020 (5).png
+73.08621215820312,52.79680633544922,0.0,255.0,0.0,104.0,160.0,286,413,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000020 (6).png
+75.94026947021484,55.61747360229492,0.0,255.0,0.0,83.0,189.0,258,387,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000021 (3).png
+86.76517486572266,61.177223205566406,0.0,255.0,0.0,122.0,183.0,284,377,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000021 (4).png
+64.73968505859375,38.37690353393555,0.0,255.0,0.0,80.0,141.0,206,432,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000021 (5).png
+69.14167785644531,53.362552642822266,0.0,255.0,0.0,103.0,159.0,295,391,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000021 (6).png
+69.37075805664062,52.357059478759766,0.0,255.0,0.0,95.0,168.0,296,396,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000021 (8).png
+58.2449836730957,47.56863784790039,0.0,255.0,0.0,44.0,160.0,232,384,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000022 (10).png
+77.28234100341797,50.29054641723633,0.0,255.0,0.0,105.0,180.0,267,418,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000022 (2).png
+59.2936897277832,50.26315689086914,0.0,255.0,0.0,41.0,154.0,313,410,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000022 (8).png
+72.35475158691406,55.03097152709961,0.0,255.0,0.0,101.0,172.0,278,416,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000022 (9).png
+74.39923095703125,47.9826774597168,0.0,255.0,0.0,97.0,157.0,196,385,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000022.png
+77.83314514160156,53.07398986816406,0.0,255.0,0.0,104.0,181.0,244,345,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000023 (10).png
+66.63141632080078,53.744232177734375,0.0,255.0,0.0,67.0,171.0,274,440,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000023 (5).png
+75.7675552368164,48.822837829589844,0.0,255.0,0.0,97.0,162.0,250,439,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000023 (7).png
+64.36903381347656,43.79425048828125,0.0,255.0,0.0,89.0,140.0,240,400,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000023 (9).png
+76.78092956542969,53.677650451660156,0.0,255.0,0.0,96.0,190.0,239,349,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000024 (10).png
+66.74054718017578,56.36368942260742,0.0,255.0,0.0,60.0,166.0,320,393,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000024 (6).png
+68.49710845947266,56.325958251953125,0.0,255.0,0.0,100.0,164.0,310,449,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000024 (7).png
+64.81785583496094,49.13951110839844,0.0,255.0,0.0,95.0,146.0,224,364,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000024.png
+70.93905639648438,47.1994743347168,0.0,255.0,0.0,93.0,149.0,249,423,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000025 (6).png
+72.91211700439453,52.926753997802734,0.0,255.0,0.0,81.0,171.0,258,338,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000026 (10).png
+72.04649353027344,54.28181076049805,0.0,255.0,0.0,75.0,173.0,252,402,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000026 (3).png
+85.24247741699219,61.77522277832031,0.0,255.0,0.0,122.0,182.0,288,377,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000027 (4).png
+91.54843139648438,53.7142448425293,0.0,255.0,0.0,114.0,171.0,309,369,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000027 (6).png
+86.00196075439453,58.52811050415039,0.0,255.0,0.0,118.0,177.0,273,372,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000029 (4).png
+80.71189880371094,54.627864837646484,0.0,255.0,0.0,108.0,185.0,245,429,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000029 (5).png
+83.80310821533203,57.32411193847656,0.0,255.0,0.0,120.0,189.0,269,393,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000029 (9).png
+85.840087890625,56.05564498901367,0.0,255.0,0.0,114.0,168.0,255,378,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000030 (4).png
+77.07319641113281,47.769466400146484,0.0,255.0,0.0,98.0,162.0,224,409,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000031 (3).png
+62.799476623535156,47.22695541381836,0.0,255.0,0.0,90.0,148.0,280,388,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000032 (8).png
+80.32196807861328,51.146690368652344,0.0,255.0,0.0,110.0,169.0,263,385,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000033 (9).png
+66.8864974975586,46.88172912597656,0.0,255.0,0.0,92.0,147.0,273,409,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000034 (6).png
+74.35556030273438,50.88568878173828,0.0,255.0,0.0,99.0,154.0,249,368,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000035 (4).png
+71.32831573486328,55.19087600708008,0.0,255.0,0.0,85.0,174.0,285,419,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000035 (5).png
+65.81817626953125,51.3965950012207,0.0,255.0,0.0,97.0,157.0,308,389,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000035 (6).png
+69.30426025390625,47.956363677978516,0.0,255.0,0.0,93.0,152.0,243,420,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000035 (8).png
+68.84061431884766,46.2138671875,0.0,255.0,0.0,93.0,141.0,272,403,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000036 (6).png
+73.97808837890625,51.200439453125,0.0,255.0,0.0,100.0,162.0,255,439,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000036 (7).png
+80.19129180908203,50.401039123535156,0.0,255.0,0.0,103.0,179.0,248,309,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000040 (10).png
+80.98030853271484,54.70674133300781,0.0,255.0,0.0,107.0,188.0,244,374,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000040 (3).png
+75.92682647705078,49.827388763427734,0.0,255.0,0.0,101.0,168.0,236,438,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000040 (5).png
+79.14508819580078,48.1019287109375,0.0,255.0,0.0,103.0,177.0,263,397,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000041 (2).png
+89.05299377441406,53.24393081665039,0.0,255.0,0.0,114.0,173.0,263,365,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000041 (4).png
+73.7127456665039,59.345314025878906,0.0,255.0,0.0,109.0,172.0,303,450,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000041 (7).png
+61.37215042114258,46.637752532958984,0.0,255.0,0.0,88.0,149.0,281,404,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000041 (8).png
+84.73320007324219,51.52263259887695,0.0,255.0,0.0,109.0,185.0,225,332,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000042 (10).png
+65.4639892578125,44.17610168457031,0.0,255.0,0.0,88.0,154.0,222,348,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000044 (10).png
+84.64808654785156,54.565494537353516,0.0,255.0,0.0,114.0,165.0,280,401,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000044 (9).png
+82.91707611083984,57.83677673339844,0.0,255.0,0.0,114.0,194.0,254,430,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000046 (5).png
+74.74578094482422,55.636104583740234,0.0,255.0,0.0,106.0,179.0,292,383,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000048 (8).png
+88.51947021484375,57.56658172607422,0.0,255.0,0.0,118.0,184.0,203,376,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000048.png
+72.72064971923828,51.23421859741211,0.0,255.0,0.0,97.0,168.0,210,467,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000049 (5).png
+91.928466796875,57.911888122558594,0.0,255.0,0.0,124.0,189.0,274,390,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000049 (9).png
+74.97013854980469,54.7378044128418,0.0,255.0,0.0,87.0,178.0,263,357,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000050 (3).png
+82.43907928466797,55.23541259765625,0.0,255.0,0.0,111.0,188.0,258,413,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000050 (5).png
+64.58711242675781,51.2358283996582,0.0,255.0,0.0,95.0,153.0,281,446,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000050 (7).png
+60.15656280517578,46.48299026489258,0.0,255.0,0.0,78.0,146.0,291,398,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000050 (8).png
+80.81103515625,56.217803955078125,0.0,255.0,0.0,104.0,179.0,245,384,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000051 (3).png
+86.26203155517578,52.816104888916016,0.0,255.0,0.0,111.0,168.0,291,351,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000051 (4).png
+84.12818908691406,53.444313049316406,0.0,255.0,0.0,110.0,190.0,231,327,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000052 (10).png
+83.9928207397461,55.29685592651367,0.0,255.0,0.0,110.0,187.0,259,412,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000054 (5).png
+41.78831481933594,29.47218132019043,0.0,255.0,0.0,56.0,93.0,261,421,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000054 (6).png
+78.19320678710938,59.87459945678711,0.0,255.0,0.0,114.0,181.0,297,440,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000054 (7).png
+93.26334381103516,56.00025177001953,0.0,255.0,0.0,119.0,182.0,202,368,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000054.png
+86.40522003173828,47.85729217529297,0.0,255.0,0.0,105.0,178.0,275,401,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000055 (2).png
+65.41989135742188,52.83319091796875,0.0,255.0,0.0,84.0,155.0,317,432,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000056 (7).png
+76.5181655883789,44.40956115722656,0.0,255.0,0.0,95.0,171.0,233,423,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000057 (2).png
+91.67620849609375,47.86970520019531,0.0,255.0,0.0,109.0,172.0,179,358,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000057.png
+97.07046508789062,60.089210510253906,0.0,255.0,0.0,127.0,185.0,276,372,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000058 (4).png
+53.23535919189453,36.86390686035156,0.0,255.0,0.0,70.0,123.0,225,431,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000058 (5).png
+75.35762023925781,56.080039978027344,0.0,255.0,0.0,106.0,171.0,302,424,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000059 (7).png
+84.17412567138672,58.81144332885742,0.0,255.0,0.0,117.0,180.0,221,368,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000061.png
+69.21834564208984,47.94387435913086,0.0,255.0,0.0,94.0,155.0,235,414,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000063 (3).png
+73.3252182006836,50.85332489013672,0.0,255.0,0.0,101.0,171.0,247,423,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000063 (5).png
+60.2051887512207,51.514713287353516,0.0,255.0,0.0,90.0,152.0,296,446,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000063 (7).png
+80.047119140625,56.395450592041016,0.0,255.0,0.0,100.0,187.0,251,381,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000065 (3).png
+57.74939727783203,49.12287139892578,0.0,255.0,0.0,41.0,150.0,304,415,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000065 (8).png
+64.69573974609375,46.30390548706055,0.0,255.0,0.0,94.0,145.0,253,406,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000065 (9).png
+62.133995056152344,47.97576904296875,0.0,255.0,0.0,88.0,156.0,239,357,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000066 (10).png
+71.69647216796875,43.15243911743164,0.0,255.0,0.0,94.0,146.0,231,384,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000066 (9).png
+78.74966430664062,55.6533317565918,0.0,255.0,0.0,90.0,186.0,243,351,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000067 (10).png
+73.4228286743164,50.7567024230957,0.0,255.0,0.0,100.0,156.0,198,386,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000067.png
+81.34894561767578,54.94297409057617,0.0,255.0,0.0,109.0,189.0,241,332,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000068 (10).png
+74.2254638671875,54.77556610107422,0.0,255.0,0.0,80.0,182.0,263,380,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000068 (3).png
+60.43718719482422,46.68012619018555,0.0,255.0,0.0,74.0,143.0,272,409,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000068 (9).png
+75.72882080078125,59.08635711669922,0.0,255.0,0.0,112.0,181.0,289,418,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000069 (6).png
+77.81314849853516,50.709842681884766,0.0,255.0,0.0,102.0,178.0,234,382,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000071 (3).png
+77.12776947021484,48.037445068359375,0.0,255.0,0.0,99.0,170.0,238,332,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000072 (10).png
+73.31355285644531,48.676204681396484,0.0,255.0,0.0,98.0,164.0,225,428,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000074 (5).png
+82.9580078125,56.81705856323242,0.0,255.0,0.0,113.0,191.0,271,415,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000075 (5).png
+68.56089782714844,49.744598388671875,0.0,255.0,0.0,98.0,153.0,272,416,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000077 (6).png
+69.12739562988281,46.66152572631836,0.0,255.0,0.0,98.0,150.0,259,395,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000077 (9).png
+77.58140563964844,61.475406646728516,0.0,255.0,0.0,115.0,184.0,303,388,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000078 (6).png
+67.49455261230469,50.85237503051758,0.0,255.0,0.0,98.0,150.0,304,385,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000079 (6).png
+66.59844970703125,46.321781158447266,0.0,255.0,0.0,90.0,161.0,230,354,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000080 (10).png
+71.74317932128906,61.94169235229492,0.0,255.0,0.0,57.0,178.0,303,430,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000080 (6).png
+75.27738952636719,46.634498596191406,0.0,255.0,0.0,98.0,171.0,256,421,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000081 (2).png
+76.56092834472656,55.205501556396484,0.0,255.0,0.0,101.0,181.0,266,349,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000083 (3).png
+70.61721801757812,51.44338607788086,0.0,255.0,0.0,102.0,154.0,283,412,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000083 (6).png
+77.11579132080078,44.011314392089844,0.0,255.0,0.0,95.0,165.0,230,422,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000084 (2).png
+77.60379791259766,51.66633987426758,0.0,255.0,0.0,103.0,182.0,237,381,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000084 (3).png
+64.45922088623047,54.86215591430664,0.0,255.0,0.0,56.0,159.0,343,413,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000084 (7).png
+68.12686920166016,51.72150802612305,0.0,255.0,0.0,100.0,154.0,227,369,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000084.png
+68.94185638427734,47.65622329711914,0.0,255.0,0.0,94.0,166.0,226,362,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000085 (10).png
+79.75871276855469,53.71002197265625,0.0,255.0,0.0,107.0,162.0,257,378,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000085 (4).png
+62.391334533691406,51.718994140625,0.0,255.0,0.0,56.0,148.0,325,424,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000085 (7).png
+67.76245880126953,49.67952346801758,0.0,255.0,0.0,84.0,160.0,251,392,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000086 (3).png
+64.31460571289062,46.191162109375,0.0,255.0,0.0,90.0,149.0,257,404,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000086 (8).png
+84.18624114990234,58.944828033447266,0.0,255.0,0.0,117.0,174.0,261,388,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000087 (4).png
+71.56443786621094,57.97084045410156,0.0,255.0,0.0,73.0,178.0,325,396,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000087 (8).png
+70.30026245117188,54.22923278808594,0.0,255.0,0.0,94.0,170.0,320,377,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000089 (8).png
+66.39704895019531,47.72953796386719,0.0,255.0,0.0,94.0,172.0,284,416,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000090 (2).png
+74.8521957397461,52.76333236694336,0.0,255.0,0.0,95.0,172.0,253,375,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000091 (3).png
+66.38077545166016,56.606201171875,0.0,255.0,0.0,71.5,162.0,339,414,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000091 (7).png
+89.00724792480469,61.542442321777344,0.0,255.0,0.0,123.0,185.0,228,383,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000091.png
+75.02327728271484,56.10697555541992,0.0,255.0,0.0,73.0,194.0,243,363,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000092 (10).png
+67.38510131835938,47.05019760131836,0.0,255.0,0.0,91.0,167.0,220,361,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000093 (10).png
+93.55661010742188,52.964141845703125,0.0,255.0,0.0,118.0,170.52999877929688,268,361,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000093 (4).png
+71.75894165039062,56.66819763183594,0.0,255.0,0.0,106.0,175.0,292,405,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000093 (6).png
+78.35440063476562,54.00411605834961,0.0,255.0,0.0,106.0,165.0,303,395,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000095 (6).png
+84.22245788574219,54.4044075012207,0.0,255.0,0.0,112.0,174.0,209,369,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000095.png
+68.19915771484375,48.159523010253906,0.0,255.0,0.0,93.0,158.0,260,437,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000096 (7).png
+62.544769287109375,46.70890426635742,0.0,255.0,0.0,88.0,156.0,220,378,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000097 (10).png
+75.5077896118164,43.98971939086914,0.0,255.0,0.0,94.0,168.0,222,428,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000097 (2).png
+81.91280364990234,55.1688232421875,0.0,255.0,0.0,109.0,178.0,264,357,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000097 (3).png
+77.45136260986328,48.21106719970703,0.0,255.0,0.0,99.0,168.0,218,418,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000098 (5).png
+68.62958526611328,46.88583755493164,0.0,255.0,0.0,93.0,150.0,263,393,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000098 (8).png
+74.84541320800781,56.496524810791016,0.0,255.0,0.0,107.0,172.0,279,445,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000099 (7).png
+72.55194854736328,51.35358428955078,0.0,255.0,0.0,78.0,174.0,243,338,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000100 (10).png
+63.01670455932617,47.52599334716797,0.0,255.0,0.0,90.0,148.0,271,444,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000101 (7).png
+67.32180786132812,46.68998718261719,0.0,255.0,0.0,92.0,161.0,255,426,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000102 (2).png
+91.12557220458984,51.003238677978516,0.0,255.0,0.0,113.0,170.0,268,344,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000102 (3).png
+75.16951751708984,52.25901412963867,0.0,255.0,0.0,102.0,155.0,315,410,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000102 (7).png
+93.64704132080078,63.56267166137695,0.0,255.0,0.0,128.0,192.0,224,380,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000102.png
+77.12394714355469,57.18002700805664,0.0,255.0,0.0,115.0,179.0,267,414,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000103 (9).png
+78.45893096923828,42.902889251708984,0.0,255.0,0.0,100.0,147.0,241,325,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000104 (10).png
+93.02764892578125,62.35454559326172,0.0,255.0,0.0,127.0,187.0,267,376,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000104 (4).png
+75.63196563720703,51.966007232666016,0.0,255.0,0.0,100.0,174.0,251,361,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000105 (3).png
+70.75761413574219,51.90267562866211,0.0,255.0,0.0,99.0,152.0,252,394,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000105 (4).png
+89.48162078857422,63.85358428955078,0.0,255.0,0.0,126.0,192.0,230,382,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000105.png
+77.03641510009766,55.88497543334961,0.0,255.0,0.0,81.0,187.0,245,345,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000106 (10).png
+75.68302154541016,52.3705940246582,0.0,255.0,0.0,103.0,158.0,263,373,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000106 (4).png
+80.60482788085938,56.507713317871094,0.0,255.0,0.0,112.0,179.0,318,383,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000106 (8).png
+69.85682678222656,46.68360137939453,0.0,255.0,0.0,97.0,153.0,257,395,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000107 (9).png
+71.04334259033203,60.40736770629883,0.0,255.0,0.0,69.0,172.0,326,438,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000118 (4).png
+75.2498779296875,55.91130065917969,0.0,255.0,0.0,101.0,173.0,325,380,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000118 (6).png
+89.97953033447266,55.475547790527344,0.0,255.0,0.0,116.0,171.0,235,386,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000119 (10).png
+67.73063659667969,56.05763244628906,0.0,255.0,0.0,91.0,168.0,314,445,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000119 (4).png
+66.76704406738281,52.96889877319336,0.0,255.0,0.0,89.0,157.0,309,397,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000119 (5).png
+49.7226676940918,28.002960205078125,0.0,255.0,0.0,60.0,106.0,225,420,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000119 (6).png
+93.74838256835938,58.089820861816406,0.0,255.0,0.0,120.0,174.0,300,365,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000121 (10).png
+87.67194366455078,49.643768310546875,0.0,255.0,0.0,111.0,162.0,268,354,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000121 (9).png
+79.06604766845703,49.82282638549805,0.0,255.0,0.0,103.0,162.0,197,362,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000121.png
+96.47907257080078,60.58231735229492,0.0,255.0,0.0,127.0,190.0,219,360,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\000122.png
+182.34918212890625,68.57990264892578,26.0,255.0,61.0,221.0,255.0,153,219,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\ad1.png
+124.21379089355469,69.81927490234375,0.0,255.0,0.0,136.0,245.0,874,1200,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\ad10.png
+156.8743133544922,82.87565612792969,0.0,255.0,0.0,207.0,255.0,147,221,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\ad11.png
+126.2990951538086,72.91197967529297,15.0,255.0,35.0,101.0,249.0,152,175,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\ad12.png
+142.69808959960938,62.05732345581055,18.0,255.0,44.0,171.0,245.0,154,206,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\ad13.png
+108.90470123291016,86.94563293457031,0.0,255.0,0.0,64.0,255.0,200,252,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\ad14.png
+167.101318359375,78.78384399414062,0.0,255.0,0.0,207.0,255.0,374,609,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\ad15.png
+140.29641723632812,77.55352783203125,8.0,255.0,47.0,100.0,255.0,225,225,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\ad16.png
+176.54600524902344,71.52281951904297,26.0,255.0,60.0,220.0,255.0,161,224,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\ad17.png
+129.41250610351562,72.71723937988281,15.0,255.0,34.0,132.0,249.0,144,172,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\ad18.png
+157.28097534179688,79.28205108642578,0.0,255.0,0.0,186.0,255.0,802,1200,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\ad19.png
+168.0452117919922,77.84026336669922,0.0,255.0,0.0,210.0,255.0,143,223,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\ad2.png
+107.71221160888672,71.40296936035156,0.0,255.0,27.0,62.0,236.0,170,212,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\ad20.png
+140.29641723632812,77.55352783203125,8.0,255.0,47.0,100.0,255.0,225,225,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\ad21.png
+107.06903839111328,71.37115478515625,0.0,255.0,26.0,62.0,236.0,164,223,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\ad22.png
+124.47227478027344,69.18392181396484,0.0,255.0,0.0,135.0,239.0,192,263,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\ad3.png
+148.59210205078125,81.38236236572266,0.0,255.0,0.0,198.0,255.0,134,240,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\ad4.png
+167.7431182861328,77.90836334228516,0.0,255.0,34.5099983215332,203.0,255.0,172,241,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\ad5.png
+162.34817504882812,81.73423767089844,0.0,255.0,0.0,208.0,255.0,136,216,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\ad6.png
+157.16073608398438,75.4336929321289,1.0,255.0,22.0,194.0,254.0,130,172,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\ad7.png
+141.43121337890625,85.41203308105469,0.0,255.0,0.0,192.0,255.0,125,214,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\ad8.png
+161.1561279296875,91.38185119628906,7.0,255.0,38.0,197.0,255.0,110,172,data\raw\chest-ctscan-images\Data\train\adenocarcinoma_left.lower.lobe_T2_N0_M0_Ib\ad9.png
+76.87400817871094,48.787601470947266,0.0,255.0,0.0,101.0,163.0,213,423,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000002.png
+45.14004898071289,27.047306060791016,0.0,255.0,0.0,57.0,91.0,258,437,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000003 (3).png
+44.08089828491211,27.545055389404297,0.0,255.0,0.0,56.0,91.0,260,443,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000003 (4).png
+38.65543746948242,28.71116828918457,0.0,255.0,0.0,55.0,90.0,270,440,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000009 (3).png
+40.63128662109375,28.105531692504883,0.0,255.0,0.0,55.0,91.0,267,423,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000009 (4).png
+62.98537826538086,53.71284866333008,0.0,255.0,0.0,44.0,169.0,281,369,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000010.png
+68.58845520019531,52.67129898071289,0.0,255.0,0.0,100.0,158.0,266,401,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000015.png
+62.41571807861328,41.10454177856445,0.0,255.0,0.0,82.0,139.0,251,414,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000016 (3).png
+59.47197723388672,41.903587341308594,0.0,255.0,0.0,82.0,137.0,279,412,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000016 (4).png
+62.90040588378906,55.46915817260742,0.0,255.0,0.0,35.0,176.0,266,394,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000017.png
+69.2651138305664,49.62866973876953,0.0,255.0,0.0,94.0,157.0,189,402,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000018 (2).png
+55.555049896240234,34.90497970581055,0.0,255.0,0.0,71.0,113.0,258,439,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000019 (3).png
+56.549949645996094,34.55637741088867,0.0,255.0,0.0,71.0,114.0,241,444,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000019 (4).png
+45.3083381652832,31.338708877563477,0.0,255.0,0.0,61.0,105.0,259,426,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000020 (3).png
+42.276283264160156,32.167545318603516,0.0,255.0,0.0,61.0,104.0,297,412,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000020 (4).png
+68.27874755859375,55.13920211791992,0.0,255.0,0.0,55.0,167.0,265,385,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000021.png
+67.46711730957031,47.86482620239258,0.0,255.0,0.0,91.0,149.0,174,432,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000023 (2).png
+41.35494613647461,32.12739562988281,0.0,255.0,0.0,57.0,103.0,186,453,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000024 (2).png
+58.72968292236328,51.822750091552734,0.0,255.0,0.0,32.0,163.0,256,417,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000026 (2).png
+64.70848083496094,52.84221649169922,0.0,255.0,0.0,55.0,157.0,291,382,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000026.png
+72.61954498291016,47.06452941894531,0.0,255.0,0.0,96.0,151.0,227,352,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000027 (2).png
+70.14600372314453,47.03679275512695,0.0,255.0,0.0,94.0,150.0,231,381,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000027.png
+68.75135803222656,52.37261199951172,0.0,255.0,0.0,97.0,162.0,207,403,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000031 (2).png
+84.85623931884766,54.773067474365234,0.0,255.0,0.0,114.0,165.0,277,361,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000031.png
+66.58069610595703,57.12571334838867,0.0,255.0,0.0,42.0,169.0,317,377,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000032.png
+38.73295974731445,30.464933395385742,0.0,255.0,0.0,57.0,91.0,296,431,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000033 (3).png
+39.6994743347168,30.264066696166992,0.0,255.0,0.0,58.0,91.0,287,423,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000033 (4).png
+68.02311706542969,51.68986129760742,0.0,255.0,0.0,90.0,160.0,211,411,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000034 (2).png
+47.05416488647461,26.59989356994629,0.0,255.0,0.0,57.0,93.0,254,430,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000039 (3).png
+44.465999603271484,27.919130325317383,0.0,255.0,0.0,57.0,92.0,266,435,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000039 (4).png
+51.97865295410156,27.653724670410156,0.0,255.0,0.0,63.0,104.0,161,419,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000040 (2).png
+62.55524444580078,41.9687385559082,0.0,255.0,0.0,83.0,136.0,259,422,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000041 (3).png
+59.69917678833008,42.746700286865234,0.0,255.0,0.0,83.0,135.0,289,418,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000041 (4).png
+65.5150375366211,55.02909851074219,0.0,255.0,0.0,53.0,164.0,281,415,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000041.png
+69.6768569946289,52.40949249267578,0.0,255.0,0.0,93.0,161.0,215,399,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000042 (2).png
+45.239376068115234,34.32382583618164,0.0,255.0,0.0,61.0,116.0,180,435,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000043 (2).png
+69.93395233154297,56.50117111206055,0.0,255.0,0.0,54.0,183.0,255,381,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000045.png
+91.16096496582031,57.70775604248047,0.0,255.0,0.0,121.0,178.0,274,355,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000046.png
+46.86149597167969,30.750844955444336,0.0,255.0,0.0,59.0,109.0,176,401,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000047 (2).png
+74.9561996459961,58.79338836669922,0.0,255.0,0.0,67.0,188.0,249,372,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000051.png
+41.92825698852539,29.07705307006836,0.0,255.0,0.0,57.0,90.0,268,445,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000055 (3).png
+44.19758987426758,28.1839656829834,0.0,255.0,0.0,57.0,91.0,261,434,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000055 (4).png
+64.19378662109375,54.33309555053711,0.0,255.0,0.0,46.0,158.0,324,370,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000055.png
+53.689720153808594,40.21871566772461,0.0,255.0,0.0,77.0,128.0,278,430,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000056 (3).png
+55.59685516357422,39.803192138671875,0.0,255.0,0.0,77.0,129.0,271,429,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000056 (4).png
+44.98167419433594,27.232990264892578,0.0,255.0,0.0,56.0,91.0,257,434,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000057 (3).png
+44.0341682434082,27.657691955566406,0.0,255.0,0.0,56.0,91.0,262,437,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000057 (4).png
+65.11799621582031,52.75956726074219,0.0,255.0,0.0,54.0,161.0,306,367,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000057.png
+50.48273468017578,36.4652099609375,0.0,255.0,0.0,71.0,117.0,282,420,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000058 (3).png
+51.14737319946289,36.26966094970703,0.0,255.0,0.0,71.0,117.0,276,421,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000058 (4).png
+40.863948822021484,27.468496322631836,0.0,255.0,0.0,55.0,87.0,260,426,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000059 (3).png
+39.813987731933594,27.819759368896484,0.0,255.0,0.0,55.0,87.0,273,425,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000059 (4).png
+71.4284896850586,47.64455795288086,0.0,255.0,0.0,99.0,142.0,298,358,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000060.png
+75.50540924072266,54.417022705078125,0.0,255.0,0.0,102.0,174.0,245,361,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000062 (2).png
+46.069580078125,27.846250534057617,0.0,255.0,0.0,57.0,92.0,295,390,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000062 (3).png
+40.58034133911133,29.9414005279541,0.0,255.0,0.0,55.0,90.0,350,377,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000062 (4).png
+67.97335815429688,61.982421875,0.0,255.0,0.0,31.0,180.0,300,399,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000062.png
+66.10194396972656,50.66328048706055,0.0,255.0,0.0,94.0,161.0,228,414,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000063 (2).png
+56.80580520629883,53.2202262878418,0.0,255.0,0.0,27.0,154.0,312,406,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000063.png
+38.876922607421875,31.7719783782959,0.0,255.0,0.0,55.0,100.0,208,418,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000065 (2).png
+75.54009246826172,54.76514434814453,0.0,255.0,0.0,102.0,169.0,229,366,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000066 (2).png
+65.76811981201172,52.42692947387695,0.0,255.0,0.0,54.0,155.0,288,369,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000066.png
+51.653568267822266,37.823238372802734,0.0,255.0,0.0,73.0,119.0,284,414,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000068 (3).png
+48.47795104980469,38.53408432006836,0.0,255.0,0.0,71.0,117.0,286,431,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000068 (4).png
+63.575157165527344,54.860965728759766,0.0,255.0,0.0,38.0,172.0,277,386,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000068.png
+65.15669250488281,53.90110778808594,0.0,255.0,0.0,51.0,164.0,306,378,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000069.png
+59.254695892333984,52.3846435546875,0.0,255.0,0.0,37.0,156.0,231,418,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000071 (2).png
+76.18714904785156,59.33523178100586,0.0,255.0,0.0,81.0,180.0,220,410,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000072 (2).png
+69.32838439941406,51.25938415527344,0.0,255.0,0.0,98.0,160.0,196,410,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000073 (2).png
+43.45685577392578,33.06583023071289,0.0,255.0,0.0,63.0,102.0,266,449,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000076 (3).png
+46.06856918334961,32.35932540893555,0.0,255.0,0.0,64.0,103.0,261,436,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000076 (4).png
+62.820011138916016,53.67286682128906,0.0,255.0,0.0,39.0,158.0,295,393,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000077.png
+65.42695617675781,44.84294128417969,0.0,255.0,0.0,87.0,138.0,298,412,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000078 (3).png
+60.66508483886719,46.14596176147461,0.0,255.0,0.0,86.0,137.0,316,426,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000078 (4).png
+75.4889907836914,48.39873123168945,0.0,255.0,0.0,100.0,152.0,221,401,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000080.png
+63.80586242675781,57.66192626953125,0.0,255.0,0.0,33.0,166.0,308,394,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000081.png
+72.1299819946289,51.73625946044922,0.0,255.0,0.0,102.0,159.0,224,371,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000084 (2).png
+61.86652374267578,56.925575256347656,0.0,255.0,0.0,31.0,166.0,304,404,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000084.png
+65.55265808105469,57.56779479980469,0.0,255.0,0.0,37.0,169.0,322,362,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000089.png
+39.73959732055664,29.35260581970215,0.0,255.0,0.0,55.0,91.0,284,442,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000093 (3).png
+41.17646026611328,28.933279037475586,0.0,255.0,0.0,55.0,91.0,292,410,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000093 (4).png
+70.13372039794922,57.7613525390625,0.0,255.0,0.0,57.0,177.0,248,388,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000094 (2).png
+43.77158737182617,27.370677947998047,0.0,255.0,0.0,56.0,89.0,266,429,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000094 (3).png
+40.63185501098633,28.57879638671875,0.0,255.0,0.0,55.0,88.0,287,438,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000094 (4).png
+72.15373229980469,57.19297790527344,0.0,255.0,0.0,64.0,173.0,239,384,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000095 (2).png
+54.28858184814453,40.484554290771484,0.0,255.0,0.0,76.0,122.0,276,435,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000095 (3).png
+53.996063232421875,40.51699447631836,0.0,255.0,0.0,76.0,122.0,314,399,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000095 (4).png
+60.907588958740234,47.96875762939453,0.0,255.0,0.0,87.0,148.0,239,406,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000095.png
+66.63165283203125,48.492462158203125,0.0,255.0,0.0,93.0,148.0,243,399,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000097 (2).png
+55.68927001953125,52.742645263671875,0.0,255.0,0.0,26.0,153.0,325,388,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000097.png
+40.644771575927734,28.183265686035156,0.0,255.0,0.0,55.0,92.0,279,425,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000098 (3).png
+37.49848556518555,29.094804763793945,0.0,255.0,0.0,54.0,91.0,293,441,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000098 (4).png
+70.69608306884766,51.90986633300781,0.0,255.0,0.0,92.0,157.0,216,396,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000104 (2).png
+56.8240852355957,60.18757629394531,0.0,255.0,0.0,20.0,177.0,313,427,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000104.png
+70.63595581054688,49.988468170166016,0.0,255.0,0.0,97.0,153.0,193,403,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000105 (2).png
+75.6189956665039,57.013545989990234,0.0,255.0,0.0,96.0,168.0,303,365,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000105.png
+65.7844467163086,47.70344161987305,0.0,255.0,0.0,90.0,144.0,231,380,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000106 (2).png
+56.05693817138672,54.9251823425293,0.0,255.0,0.0,26.0,173.0,298,405,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000106.png
+78.36881256103516,54.6633415222168,0.0,255.0,0.0,108.0,178.0,211,387,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000133.png
+84.32174682617188,53.2294807434082,0.0,255.0,0.0,109.0,168.0,237,335,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000137.png
+67.36925506591797,45.50069808959961,0.0,255.0,0.0,92.0,140.0,220,361,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000143.png
+70.60446166992188,57.085052490234375,0.0,255.0,0.0,58.0,173.0,256,365,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000149.png
+82.61410522460938,53.398399353027344,0.0,255.0,0.0,106.0,159.0,222,372,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000150.png
+89.96310424804688,54.5549201965332,0.0,255.0,0.0,113.0,166.0,230,348,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000154.png
+63.41666793823242,52.93174743652344,0.0,255.0,0.0,47.0,160.0,223,411,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000159.png
+43.74641799926758,31.11097526550293,0.0,255.0,0.0,58.0,105.0,191,419,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000169.png
+72.69752502441406,56.73847198486328,0.0,255.0,0.0,70.0,172.0,205,403,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000172.png
+81.46849822998047,58.94926452636719,0.0,255.0,0.0,115.0,187.0,217,387,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\000173.png
+128.9061279296875,84.37362670898438,0.0,255.0,22.0,93.0,255.0,630,630,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\di1.png
+128.84194946289062,84.08580780029297,0.0,255.0,17.0,93.0,255.0,225,225,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\l1.png
+123.36302947998047,74.29051208496094,0.0,255.0,19.0,166.0,246.0,156,218,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\l2.png
+79.4128646850586,70.64041900634766,0.0,255.0,0.0,68.0,254.02000427246094,147,217,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\l3.png
+87.93980407714844,87.5562973022461,0.0,255.0,0.0,49.0,255.0,210,240,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\l4.png
+131.7938232421875,87.64735412597656,0.0,255.0,2.0,189.0,231.0,404,425,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\l5.png
+75.01277923583984,70.70659637451172,0.0,255.0,0.0,63.0,253.0,122,168,data\raw\chest-ctscan-images\Data\train\large.cell.carcinoma_left.hilum_T2_N2_M0_IIIa\l6.png
+105.30396270751953,80.65678405761719,0.0,255.0,0.0,59.0,247.0,251,371,data\raw\chest-ctscan-images\Data\train\normal\10 (2) - Copy.png
+105.30396270751953,80.65678405761719,0.0,255.0,0.0,59.0,247.0,251,371,data\raw\chest-ctscan-images\Data\train\normal\10 (2).png
+105.59444427490234,80.980712890625,0.0,255.0,0.0,59.0,248.0,251,371,data\raw\chest-ctscan-images\Data\train\normal\10 - Copy (2) - Copy.png
+105.59444427490234,80.980712890625,0.0,255.0,0.0,59.0,248.0,251,371,data\raw\chest-ctscan-images\Data\train\normal\10 - Copy (2).png
+105.52981567382812,80.57231140136719,0.0,255.0,0.0,59.0,247.0,251,371,data\raw\chest-ctscan-images\Data\train\normal\10 - Copy (3).png
+105.8819351196289,80.78600311279297,0.0,255.0,0.0,60.0,248.0,251,371,data\raw\chest-ctscan-images\Data\train\normal\10 - Copy - Copy.png
+105.8819351196289,80.78600311279297,0.0,255.0,0.0,60.0,248.0,251,371,data\raw\chest-ctscan-images\Data\train\normal\10 - Copy.png
+105.52981567382812,80.57231140136719,0.0,255.0,0.0,59.0,247.0,251,371,data\raw\chest-ctscan-images\Data\train\normal\10.png
+140.69125366210938,79.67280578613281,0.0,255.0,37.0,146.0,255.0,345,440,data\raw\chest-ctscan-images\Data\train\normal\11 (2) - Copy.png
+140.69125366210938,79.67280578613281,0.0,255.0,37.0,146.0,255.0,345,440,data\raw\chest-ctscan-images\Data\train\normal\11 (2).png
+143.26690673828125,78.84426879882812,0.0,255.0,40.0,170.0,255.0,341,441,data\raw\chest-ctscan-images\Data\train\normal\11 - Copy (2) - Copy.png
+143.26690673828125,78.84426879882812,0.0,255.0,40.0,170.0,255.0,341,441,data\raw\chest-ctscan-images\Data\train\normal\11 - Copy (2).png
+140.77264404296875,79.55715942382812,0.0,255.0,39.0,146.0,255.0,345,440,data\raw\chest-ctscan-images\Data\train\normal\11 - Copy (3).png
+143.6226043701172,78.67189025878906,23.0,255.0,41.0,172.0,255.0,341,441,data\raw\chest-ctscan-images\Data\train\normal\11 - Copy - Copy.png
+143.6226043701172,78.67189025878906,23.0,255.0,41.0,172.0,255.0,341,441,data\raw\chest-ctscan-images\Data\train\normal\11 - Copy.png
+140.77264404296875,79.55715942382812,0.0,255.0,39.0,146.0,255.0,345,440,data\raw\chest-ctscan-images\Data\train\normal\11.png
+74.67082214355469,84.83333587646484,0.0,255.0,0.0,4.0,255.0,481,619,data\raw\chest-ctscan-images\Data\train\normal\12 (2) - Copy.png
+74.67082214355469,84.83333587646484,0.0,255.0,0.0,4.0,255.0,481,619,data\raw\chest-ctscan-images\Data\train\normal\12 (2).png
+75.68077850341797,85.4873275756836,0.0,255.0,0.0,6.0,255.0,462,586,data\raw\chest-ctscan-images\Data\train\normal\12 - Copy (2) - Copy.png
+75.68077850341797,85.4873275756836,0.0,255.0,0.0,6.0,255.0,462,586,data\raw\chest-ctscan-images\Data\train\normal\12 - Copy (2).png
+74.01575469970703,84.38214111328125,0.0,255.0,0.0,4.0,255.0,481,619,data\raw\chest-ctscan-images\Data\train\normal\12 - Copy (3).png
+74.68952178955078,84.856201171875,0.0,255.0,0.0,4.0,255.0,481,619,data\raw\chest-ctscan-images\Data\train\normal\12 - Copy - Copy.png
+74.68952178955078,84.856201171875,0.0,255.0,0.0,4.0,255.0,481,619,data\raw\chest-ctscan-images\Data\train\normal\12 - Copy.png
+74.01575469970703,84.38214111328125,0.0,255.0,0.0,4.0,255.0,481,619,data\raw\chest-ctscan-images\Data\train\normal\12.png
+189.44923400878906,64.18141174316406,62.0,255.0,87.0,227.0,255.0,517,668,data\raw\chest-ctscan-images\Data\train\normal\13 (2) - Copy.png
+189.44923400878906,64.18141174316406,62.0,255.0,87.0,227.0,255.0,517,668,data\raw\chest-ctscan-images\Data\train\normal\13 (2).png
+186.12982177734375,64.7049789428711,0.0,255.0,83.0,224.0,255.0,508,665,data\raw\chest-ctscan-images\Data\train\normal\13 - Copy (2) - Copy.png
+186.12982177734375,64.7049789428711,0.0,255.0,83.0,224.0,255.0,508,665,data\raw\chest-ctscan-images\Data\train\normal\13 - Copy (2).png
+180.200927734375,68.75212860107422,58.0,255.0,77.0,222.0,255.0,533,847,data\raw\chest-ctscan-images\Data\train\normal\13 - Copy (3).png
+179.90968322753906,69.12198638916016,0.0,255.0,77.0,221.0,255.0,533,847,data\raw\chest-ctscan-images\Data\train\normal\13 - Copy - Copy.png
+179.90968322753906,69.12198638916016,0.0,255.0,77.0,221.0,255.0,533,847,data\raw\chest-ctscan-images\Data\train\normal\13 - Copy.png
+180.200927734375,68.75212860107422,58.0,255.0,77.0,222.0,255.0,533,847,data\raw\chest-ctscan-images\Data\train\normal\13.png
+113.49980163574219,79.98174285888672,0.0,255.0,0.0,100.0,251.0,234,366,data\raw\chest-ctscan-images\Data\train\normal\16 (2) - Copy.png
+113.49980163574219,79.98174285888672,0.0,255.0,0.0,100.0,251.0,234,366,data\raw\chest-ctscan-images\Data\train\normal\16 (2).png
+130.41668701171875,73.14897155761719,0.0,255.0,26.0,170.0,250.0,210,279,data\raw\chest-ctscan-images\Data\train\normal\16 - Copy (2) - Copy.png
+130.41668701171875,73.14897155761719,0.0,255.0,26.0,170.0,250.0,210,279,data\raw\chest-ctscan-images\Data\train\normal\16 - Copy (2).png
+112.9218521118164,79.59945678710938,0.0,255.0,0.0,96.0,248.0,234,366,data\raw\chest-ctscan-images\Data\train\normal\16 - Copy (3).png
+113.48348999023438,79.79508209228516,0.0,255.0,0.0,101.0,249.0,234,366,data\raw\chest-ctscan-images\Data\train\normal\16 - Copy - Copy.png
+113.48348999023438,79.79508209228516,0.0,255.0,0.0,101.0,249.0,234,366,data\raw\chest-ctscan-images\Data\train\normal\16 - Copy.png
+112.9218521118164,79.59945678710938,0.0,255.0,0.0,96.0,248.0,234,366,data\raw\chest-ctscan-images\Data\train\normal\16.png
+91.1782455444336,86.04714965820312,0.0,255.0,0.0,43.0,247.0,475,543,data\raw\chest-ctscan-images\Data\train\normal\17 (2) - Copy.png
+91.1782455444336,86.04714965820312,0.0,255.0,0.0,43.0,247.0,475,543,data\raw\chest-ctscan-images\Data\train\normal\17 (2).png
+99.00900268554688,87.72769927978516,0.0,255.0,0.0,59.0,250.0,425,453,data\raw\chest-ctscan-images\Data\train\normal\17 - Copy (2) - Copy.png
+99.00900268554688,87.72769927978516,0.0,255.0,0.0,59.0,250.0,425,453,data\raw\chest-ctscan-images\Data\train\normal\17 - Copy (2).png
+91.1014404296875,86.1135025024414,0.0,255.0,0.0,41.0,247.0,475,543,data\raw\chest-ctscan-images\Data\train\normal\17 - Copy (3).png
+91.8479232788086,86.53295135498047,0.0,255.0,0.0,44.0,249.0,475,543,data\raw\chest-ctscan-images\Data\train\normal\17 - Copy - Copy.png
+91.8479232788086,86.53295135498047,0.0,255.0,0.0,44.0,249.0,475,543,data\raw\chest-ctscan-images\Data\train\normal\17 - Copy.png
+91.1014404296875,86.1135025024414,0.0,255.0,0.0,41.0,247.0,475,543,data\raw\chest-ctscan-images\Data\train\normal\17.png
+143.44662475585938,79.1966323852539,0.0,255.0,37.0,171.0,255.0,338,438,data\raw\chest-ctscan-images\Data\train\normal\18 (2) - Copy.png
+143.44662475585938,79.1966323852539,0.0,255.0,37.0,171.0,255.0,338,438,data\raw\chest-ctscan-images\Data\train\normal\18 (2).png
+144.6593780517578,78.60447692871094,0.0,255.0,41.0,176.0,255.0,338,438,data\raw\chest-ctscan-images\Data\train\normal\18 - Copy (2) - Copy.png
+144.6593780517578,78.60447692871094,0.0,255.0,41.0,176.0,255.0,338,438,data\raw\chest-ctscan-images\Data\train\normal\18 - Copy (2).png
+144.7491455078125,78.53339385986328,23.0,255.0,41.0,176.0,255.0,338,438,data\raw\chest-ctscan-images\Data\train\normal\18 - Copy (3).png
+144.75357055664062,78.51703643798828,23.0,255.0,41.0,176.0,255.0,338,438,data\raw\chest-ctscan-images\Data\train\normal\18 - Copy - Copy.png
+144.75357055664062,78.51703643798828,23.0,255.0,41.0,176.0,255.0,338,438,data\raw\chest-ctscan-images\Data\train\normal\18 - Copy.png
+144.7491455078125,78.53339385986328,23.0,255.0,41.0,176.0,255.0,338,438,data\raw\chest-ctscan-images\Data\train\normal\18.png
+182.47259521484375,76.66783905029297,0.0,255.0,40.0,224.0,255.0,419,538,data\raw\chest-ctscan-images\Data\train\normal\19 (2) - Copy.png
+182.47259521484375,76.66783905029297,0.0,255.0,40.0,224.0,255.0,419,538,data\raw\chest-ctscan-images\Data\train\normal\19 (2).png
+179.18482971191406,77.67691802978516,19.0,255.0,41.0,222.0,255.0,356,478,data\raw\chest-ctscan-images\Data\train\normal\19 - Copy (2) - Copy.png
+179.18482971191406,77.67691802978516,19.0,255.0,41.0,222.0,255.0,356,478,data\raw\chest-ctscan-images\Data\train\normal\19 - Copy (2).png
+182.60020446777344,76.55705261230469,19.0,255.0,40.0,224.0,255.0,419,538,data\raw\chest-ctscan-images\Data\train\normal\19 - Copy (3).png
+182.42613220214844,76.60914611816406,19.0,255.0,40.0,224.0,255.0,419,538,data\raw\chest-ctscan-images\Data\train\normal\19 - Copy - Copy.png
+182.42613220214844,76.60914611816406,19.0,255.0,40.0,224.0,255.0,419,538,data\raw\chest-ctscan-images\Data\train\normal\19 - Copy.png
+182.60020446777344,76.55705261230469,19.0,255.0,40.0,224.0,255.0,419,538,data\raw\chest-ctscan-images\Data\train\normal\19.png
+58.93512725830078,67.18049621582031,0.0,255.0,0.0,38.0,255.0,479,619,data\raw\chest-ctscan-images\Data\train\normal\2 (2) - Copy.png
+58.93512725830078,67.18049621582031,0.0,255.0,0.0,38.0,255.0,479,619,data\raw\chest-ctscan-images\Data\train\normal\2 (2).png
+45.38617706298828,64.12969970703125,0.0,255.0,0.0,2.0,255.0,626,630,data\raw\chest-ctscan-images\Data\train\normal\2 - Copy (2) - Copy.png
+45.38617706298828,64.12969970703125,0.0,255.0,0.0,2.0,255.0,626,630,data\raw\chest-ctscan-images\Data\train\normal\2 - Copy (2).png
+45.50088882446289,64.16694641113281,0.0,255.0,0.0,2.0,255.0,626,630,data\raw\chest-ctscan-images\Data\train\normal\2 - Copy (3).png
+45.38617706298828,64.12969970703125,0.0,255.0,0.0,2.0,255.0,626,630,data\raw\chest-ctscan-images\Data\train\normal\2 - Copy - Copy.png
+45.38617706298828,64.12969970703125,0.0,255.0,0.0,2.0,255.0,626,630,data\raw\chest-ctscan-images\Data\train\normal\2 - Copy.png
+45.50088882446289,64.16694641113281,0.0,255.0,0.0,2.0,255.0,626,630,data\raw\chest-ctscan-images\Data\train\normal\2.png
+140.27410888671875,75.86646270751953,0.0,255.0,0.0,138.0,255.0,270,393,data\raw\chest-ctscan-images\Data\train\normal\20 (2) - Copy.png
+140.27410888671875,75.86646270751953,0.0,255.0,0.0,138.0,255.0,270,393,data\raw\chest-ctscan-images\Data\train\normal\20 (2).png
+139.53506469726562,76.33824920654297,0.0,255.0,0.0,133.0,255.0,270,393,data\raw\chest-ctscan-images\Data\train\normal\20 - Copy (2) - Copy.png
+139.53506469726562,76.33824920654297,0.0,255.0,0.0,133.0,255.0,270,393,data\raw\chest-ctscan-images\Data\train\normal\20 - Copy (2).png
+140.27410888671875,75.86646270751953,0.0,255.0,0.0,138.0,255.0,270,393,data\raw\chest-ctscan-images\Data\train\normal\20 - Copy (3).png
+139.65386962890625,76.26346588134766,0.0,255.0,0.0,134.0,255.0,270,393,data\raw\chest-ctscan-images\Data\train\normal\20 - Copy - Copy.png
+139.65386962890625,76.26346588134766,0.0,255.0,0.0,134.0,255.0,270,393,data\raw\chest-ctscan-images\Data\train\normal\20 - Copy.png
+140.27410888671875,75.86646270751953,0.0,255.0,0.0,138.0,255.0,270,393,data\raw\chest-ctscan-images\Data\train\normal\20.png
+73.11344909667969,84.45813751220703,0.0,255.0,0.0,2.0,255.0,491,629,data\raw\chest-ctscan-images\Data\train\normal\21 - Copy (2) - Copy.png
+73.11344909667969,84.45813751220703,0.0,255.0,0.0,2.0,255.0,491,629,data\raw\chest-ctscan-images\Data\train\normal\21 - Copy (2).png
+73.11344909667969,84.45813751220703,0.0,255.0,0.0,2.0,255.0,491,629,data\raw\chest-ctscan-images\Data\train\normal\21 - Copy - Copy.png
+73.11344909667969,84.45813751220703,0.0,255.0,0.0,2.0,255.0,491,629,data\raw\chest-ctscan-images\Data\train\normal\21 - Copy.png
+107.71794128417969,85.00401306152344,0.0,255.0,0.0,78.0,254.0,344,443,data\raw\chest-ctscan-images\Data\train\normal\3 (2) - Copy.png
+107.71794128417969,85.00401306152344,0.0,255.0,0.0,78.0,254.0,344,443,data\raw\chest-ctscan-images\Data\train\normal\3 (2).png
+108.49822998046875,85.32398223876953,0.0,255.0,0.0,79.0,255.0,344,443,data\raw\chest-ctscan-images\Data\train\normal\3 - Copy (2) - Copy.png
+108.49822998046875,85.32398223876953,0.0,255.0,0.0,79.0,255.0,344,443,data\raw\chest-ctscan-images\Data\train\normal\3 - Copy (2).png
+107.71794128417969,85.00401306152344,0.0,255.0,0.0,78.0,254.0,344,443,data\raw\chest-ctscan-images\Data\train\normal\3 - Copy (3).png
+108.49822998046875,85.32398223876953,0.0,255.0,0.0,79.0,255.0,344,443,data\raw\chest-ctscan-images\Data\train\normal\3 - Copy - Copy.png
+108.49822998046875,85.32398223876953,0.0,255.0,0.0,79.0,255.0,344,443,data\raw\chest-ctscan-images\Data\train\normal\3 - Copy.png
+107.71794128417969,85.00401306152344,0.0,255.0,0.0,78.0,254.0,344,443,data\raw\chest-ctscan-images\Data\train\normal\3.png
+74.09474182128906,84.39179992675781,0.0,255.0,0.0,4.0,255.0,481,617,data\raw\chest-ctscan-images\Data\train\normal\4 (2) - Copy.png
+74.09474182128906,84.39179992675781,0.0,255.0,0.0,4.0,255.0,481,617,data\raw\chest-ctscan-images\Data\train\normal\4 (2).png
+72.43771362304688,84.47500610351562,0.0,255.0,0.0,2.0,255.0,495,615,data\raw\chest-ctscan-images\Data\train\normal\4 - Copy (2) - Copy.png
+72.43771362304688,84.47500610351562,0.0,255.0,0.0,2.0,255.0,495,615,data\raw\chest-ctscan-images\Data\train\normal\4 - Copy (2).png
+74.09474182128906,84.39179992675781,0.0,255.0,0.0,4.0,255.0,481,617,data\raw\chest-ctscan-images\Data\train\normal\4 - Copy (3).png
+72.43771362304688,84.47500610351562,0.0,255.0,0.0,2.0,255.0,495,615,data\raw\chest-ctscan-images\Data\train\normal\4 - Copy - Copy.png
+72.43771362304688,84.47500610351562,0.0,255.0,0.0,2.0,255.0,495,615,data\raw\chest-ctscan-images\Data\train\normal\4 - Copy.png
+74.09474182128906,84.39179992675781,0.0,255.0,0.0,4.0,255.0,481,617,data\raw\chest-ctscan-images\Data\train\normal\4.png
+113.53829193115234,76.57112884521484,31.0,255.0,40.0,69.0,255.0,506,850,data\raw\chest-ctscan-images\Data\train\normal\5 (2) - Copy.png
+113.53829193115234,76.57112884521484,31.0,255.0,40.0,69.0,255.0,506,850,data\raw\chest-ctscan-images\Data\train\normal\5 (2).png
+113.53829193115234,76.57112884521484,31.0,255.0,40.0,69.0,255.0,506,850,data\raw\chest-ctscan-images\Data\train\normal\5 - Copy (2) - Copy.png
+113.53829193115234,76.57112884521484,31.0,255.0,40.0,69.0,255.0,506,850,data\raw\chest-ctscan-images\Data\train\normal\5 - Copy (2).png
+113.53829193115234,76.57112884521484,31.0,255.0,40.0,69.0,255.0,506,850,data\raw\chest-ctscan-images\Data\train\normal\5 - Copy (3).png
+113.53829193115234,76.57112884521484,31.0,255.0,40.0,69.0,255.0,506,850,data\raw\chest-ctscan-images\Data\train\normal\5 - Copy - Copy.png
+113.53829193115234,76.57112884521484,31.0,255.0,40.0,69.0,255.0,506,850,data\raw\chest-ctscan-images\Data\train\normal\5 - Copy.png
+113.53829193115234,76.57112884521484,31.0,255.0,40.0,69.0,255.0,506,850,data\raw\chest-ctscan-images\Data\train\normal\5.png
+53.874229431152344,79.59284210205078,0.0,255.0,0.0,10.0,245.0,552,800,data\raw\chest-ctscan-images\Data\train\normal\6 (2) - Copy.png
+53.874229431152344,79.59284210205078,0.0,255.0,0.0,10.0,245.0,552,800,data\raw\chest-ctscan-images\Data\train\normal\6 (2).png
+84.53522491455078,86.26446533203125,0.0,255.0,0.0,25.0,247.0,476,581,data\raw\chest-ctscan-images\Data\train\normal\6 - Copy (2) - Copy.png
+84.53522491455078,86.26446533203125,0.0,255.0,0.0,25.0,247.0,476,581,data\raw\chest-ctscan-images\Data\train\normal\6 - Copy (2).png
+53.874229431152344,79.59284210205078,0.0,255.0,0.0,10.0,245.0,552,800,data\raw\chest-ctscan-images\Data\train\normal\6 - Copy (3).png
+84.53522491455078,86.26446533203125,0.0,255.0,0.0,25.0,247.0,476,581,data\raw\chest-ctscan-images\Data\train\normal\6 - Copy - Copy.png
+84.53522491455078,86.26446533203125,0.0,255.0,0.0,25.0,247.0,476,581,data\raw\chest-ctscan-images\Data\train\normal\6 - Copy.png
+53.874229431152344,79.59284210205078,0.0,255.0,0.0,10.0,245.0,552,800,data\raw\chest-ctscan-images\Data\train\normal\6.png
+99.7104721069336,92.19469451904297,0.0,255.0,0.0,69.0,254.0,627,940,data\raw\chest-ctscan-images\Data\train\normal\7 (2) - Copy.png
+99.7104721069336,92.19469451904297,0.0,255.0,0.0,69.0,254.0,627,940,data\raw\chest-ctscan-images\Data\train\normal\7 (2).png
+135.1961669921875,83.82012176513672,0.0,255.0,0.0,103.0,255.0,555,731,data\raw\chest-ctscan-images\Data\train\normal\7 - Copy (2) - Copy.png
+135.1961669921875,83.82012176513672,0.0,255.0,0.0,103.0,255.0,555,731,data\raw\chest-ctscan-images\Data\train\normal\7 - Copy (2).png
+99.7104721069336,92.19469451904297,0.0,255.0,0.0,69.0,254.0,627,940,data\raw\chest-ctscan-images\Data\train\normal\7 - Copy (3).png
+135.1961669921875,83.82012176513672,0.0,255.0,0.0,103.0,255.0,555,731,data\raw\chest-ctscan-images\Data\train\normal\7 - Copy - Copy.png
+135.1961669921875,83.82012176513672,0.0,255.0,0.0,103.0,255.0,555,731,data\raw\chest-ctscan-images\Data\train\normal\7 - Copy.png
+99.7104721069336,92.19469451904297,0.0,255.0,0.0,69.0,254.0,627,940,data\raw\chest-ctscan-images\Data\train\normal\7.png
+115.36299896240234,89.21619415283203,0.0,255.0,3.0,74.0,255.0,577,800,data\raw\chest-ctscan-images\Data\train\normal\8 (2) - Copy.png
+115.36299896240234,89.21619415283203,0.0,255.0,3.0,74.0,255.0,577,800,data\raw\chest-ctscan-images\Data\train\normal\8 (2).png
+116.3238296508789,89.39341735839844,0.0,255.0,4.0,78.0,255.0,577,800,data\raw\chest-ctscan-images\Data\train\normal\8 - Copy (2) - Copy.png
+116.3238296508789,89.39341735839844,0.0,255.0,4.0,78.0,255.0,577,800,data\raw\chest-ctscan-images\Data\train\normal\8 - Copy (2).png
+115.69242858886719,89.16304779052734,0.0,255.0,4.0,75.0,255.0,577,800,data\raw\chest-ctscan-images\Data\train\normal\8 - Copy (3).png
+116.3238296508789,89.39341735839844,0.0,255.0,4.0,78.0,255.0,577,800,data\raw\chest-ctscan-images\Data\train\normal\8 - Copy - Copy.png
+116.3238296508789,89.39341735839844,0.0,255.0,4.0,78.0,255.0,577,800,data\raw\chest-ctscan-images\Data\train\normal\8 - Copy.png
+115.69242858886719,89.16304779052734,0.0,255.0,4.0,75.0,255.0,577,800,data\raw\chest-ctscan-images\Data\train\normal\8.png
+115.11821746826172,89.97552490234375,0.0,255.0,0.0,88.0,255.0,225,224,data\raw\chest-ctscan-images\Data\train\normal\n6 (2) - Copy.jpg
+115.11821746826172,89.97552490234375,0.0,255.0,0.0,88.0,255.0,225,224,data\raw\chest-ctscan-images\Data\train\normal\n6 (2).jpg
+115.11821746826172,89.97552490234375,0.0,255.0,0.0,88.0,255.0,225,224,data\raw\chest-ctscan-images\Data\train\normal\n6 - Copy.jpg
+115.11821746826172,89.97552490234375,0.0,255.0,0.0,88.0,255.0,225,224,data\raw\chest-ctscan-images\Data\train\normal\n6.jpg
+160.50509643554688,87.9207534790039,0.0,255.0,0.0,206.0,255.0,475,600,data\raw\chest-ctscan-images\Data\train\normal\n7 (2) - Copy.png
+160.50509643554688,87.9207534790039,0.0,255.0,0.0,206.0,255.0,475,600,data\raw\chest-ctscan-images\Data\train\normal\n7 (2).png
+160.50509643554688,87.9207534790039,0.0,255.0,0.0,206.0,255.0,475,600,data\raw\chest-ctscan-images\Data\train\normal\n7 - Copy.png
+160.50509643554688,87.9207534790039,0.0,255.0,0.0,206.0,255.0,475,600,data\raw\chest-ctscan-images\Data\train\normal\n7.png
+53.856746673583984,79.59677124023438,0.0,255.0,0.0,10.0,245.0,552,800,data\raw\chest-ctscan-images\Data\train\normal\n8 (2) - Copy.jpg
+53.856746673583984,79.59677124023438,0.0,255.0,0.0,10.0,245.0,552,800,data\raw\chest-ctscan-images\Data\train\normal\n8 (2).jpg
+53.856746673583984,79.59677124023438,0.0,255.0,0.0,10.0,245.0,552,800,data\raw\chest-ctscan-images\Data\train\normal\n8 - Copy.jpg
+53.856746673583984,79.59677124023438,0.0,255.0,0.0,10.0,245.0,552,800,data\raw\chest-ctscan-images\Data\train\normal\n8.jpg
+152.21287536621094,78.44561767578125,0.0,255.0,26.0,152.0,255.0,358,400,data\raw\chest-ctscan-images\Data\train\normal\n9 (2) - Copy.jpg
+152.21287536621094,78.44561767578125,0.0,255.0,26.0,152.0,255.0,358,400,data\raw\chest-ctscan-images\Data\train\normal\n9 (2).jpg
+152.21287536621094,78.44561767578125,0.0,255.0,26.0,152.0,255.0,358,400,data\raw\chest-ctscan-images\Data\train\normal\n9 - Copy.jpg
+152.21287536621094,78.44561767578125,0.0,255.0,26.0,152.0,255.0,358,400,data\raw\chest-ctscan-images\Data\train\normal\n9.jpg
+82.65017700195312,59.866973876953125,0.0,255.0,0.0,110.0,182.0,252,342,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000002 (4).png
+78.15585327148438,49.723445892333984,0.0,255.0,0.0,102.0,160.0,273,400,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000002 (6).png
+64.05756378173828,44.564544677734375,0.0,255.0,0.0,88.0,141.0,231,380,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000003.png
+66.38935089111328,49.2017936706543,0.0,255.0,0.0,95.0,149.0,222,376,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000004 (4).png
+38.358642578125,27.994342803955078,0.0,255.0,0.0,54.0,98.0,311,413,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000004 (5).png
+36.63176727294922,28.4670467376709,0.0,255.0,0.0,50.0,97.0,328,409,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000004 (7).png
+70.9245376586914,59.27198791503906,0.0,255.0,0.0,54.0,176.0,270,363,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000006 (4).png
+80.19066619873047,47.024635314941406,0.0,255.0,0.0,101.0,157.0,209,396,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000006.png
+74.47050476074219,62.080169677734375,0.0,255.0,0.0,49.0,182.0,272,337,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000007 (4).png
+67.9461669921875,47.93601608276367,0.0,255.0,0.0,94.0,153.0,229,381,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000007.png
+74.84306335449219,56.26631546020508,0.0,255.0,0.0,106.0,168.0,280,437,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000008 (3).png
+43.681976318359375,27.287830352783203,0.0,255.0,0.0,56.0,89.0,274,449,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000009 (2).png
+72.49485778808594,43.33723449707031,0.0,255.0,0.0,93.0,143.0,242,416,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000010 (6).png
+79.4917984008789,48.977420806884766,0.0,255.0,0.0,105.0,160.0,255,413,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000013 (6).png
+43.15140151977539,27.205081939697266,0.0,255.0,0.0,55.0,101.0,261,430,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000015 (5).png
+36.89878845214844,29.3315486907959,0.0,255.0,0.0,54.0,98.0,302,438,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000015 (7).png
+75.67738342285156,54.1176643371582,0.0,255.0,0.0,105.0,160.0,296,401,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000016 (3).png
+81.90541076660156,58.29741287231445,0.0,255.0,0.0,113.0,167.0,286,327,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000017 (4).png
+77.89338684082031,51.04737854003906,0.0,255.0,0.0,105.0,163.0,262,413,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000018 (6).png
+38.785160064697266,27.782264709472656,0.0,255.0,0.0,54.0,100.0,309,402,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000024 (5).png
+33.26025390625,29.016000747680664,0.0,255.0,0.0,24.0,97.0,344,425,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000024 (7).png
+69.61560821533203,47.6862678527832,0.0,255.0,0.0,93.0,148.0,302,456,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000027 (2).png
+81.60074615478516,61.646915435791016,0.0,255.0,0.0,117.0,189.0,244,351,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000028 (4).png
+39.89604568481445,29.019086837768555,0.0,255.0,0.0,55.0,101.0,287,441,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000028 (5).png
+43.10238265991211,27.853994369506836,0.0,255.0,0.0,56.0,102.0,271,433,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000028 (7).png
+72.64144134521484,60.546443939208984,0.0,255.0,0.0,59.0,175.0,272,347,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000029 (4).png
+86.4600601196289,51.894126892089844,0.0,255.0,0.0,109.0,171.0,297,420,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000030 (2).png
+37.483089447021484,28.14963150024414,0.0,255.0,0.0,54.0,98.0,317,401,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000030 (5).png
+35.22321701049805,28.645282745361328,0.0,255.0,0.0,38.0,97.0,313,435,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000030 (7).png
+83.78833770751953,55.0736083984375,0.0,255.0,0.0,112.0,165.0,268,343,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000032.png
+69.03852844238281,50.03919219970703,0.0,255.0,0.0,98.0,155.0,236,381,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000033.png
+72.48039245605469,43.12295913696289,0.0,255.0,0.0,91.0,155.0,300,404,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000035 (5).png
+65.41317749023438,45.769718170166016,0.0,255.0,0.0,90.0,143.0,228,376,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000035.png
+62.58207702636719,51.268898010253906,0.0,255.0,0.0,75.0,152.0,240,371,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000036 (4).png
+87.20999908447266,52.0855598449707,0.0,255.0,0.0,108.0,172.0,288,426,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000037 (2).png
+70.8983383178711,50.68281173706055,0.0,255.0,0.0,97.0,150.0,329,434,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000038 (2).png
+38.32710266113281,28.764516830444336,0.0,255.0,0.0,54.0,97.0,304,423,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000038 (5).png
+37.75360107421875,28.88030433654785,0.0,255.0,0.0,54.0,96.0,299,438,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000038 (7).png
+73.89712524414062,59.25920104980469,0.0,255.0,0.0,58.0,173.0,256,352,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000041 (4).png
+73.21057891845703,54.84242248535156,0.0,255.0,0.0,103.0,153.0,309,401,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000043 (3).png
+67.90479278564453,50.39695739746094,0.0,255.0,0.0,98.0,153.0,246,370,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000043.png
+66.4298324584961,44.80517578125,0.0,255.0,0.0,90.0,137.0,304,442,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000044 (2).png
+75.22109985351562,61.18838119506836,0.0,255.0,0.0,60.0,179.0,272,345,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000046 (4).png
+39.6490364074707,28.653478622436523,0.0,255.0,0.0,55.0,99.0,292,436,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000046 (5).png
+77.44674682617188,46.466552734375,0.0,255.0,0.0,97.0,156.0,241,419,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000046 (6).png
+39.780879974365234,28.605894088745117,0.0,255.0,0.0,55.0,99.0,294,432,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000046 (7).png
+38.46290969848633,28.031293869018555,0.0,255.0,0.0,54.0,99.0,307,414,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000048 (5).png
+36.852542877197266,28.489620208740234,0.0,255.0,0.0,47.0,98.0,329,405,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000048 (7).png
+73.68891143798828,46.0717658996582,0.0,255.0,0.0,95.0,153.0,214,398,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000048.png
+80.32855987548828,57.349754333496094,0.0,255.0,0.0,110.0,170.0,303,374,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000049 (3).png
+82.04560089111328,53.5079231262207,0.0,255.0,0.0,106.0,171.0,302,432,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000050 (2).png
+63.13823318481445,40.42768478393555,0.0,255.0,0.0,82.0,130.0,258,408,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000050 (6).png
+80.95991516113281,49.127891540527344,0.0,255.0,0.0,103.0,148.0,300,385,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000051 (3).png
+74.21044921875,62.43793487548828,0.0,255.0,0.0,58.0,184.0,248,377,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000052 (4).png
+66.5135726928711,50.94351577758789,0.0,255.0,0.0,99.0,155.0,294,421,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000053 (6).png
+59.95890808105469,50.88672637939453,0.0,255.0,0.0,46.0,144.0,288,351,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000053.png
+86.89434814453125,44.67638397216797,0.0,255.0,0.0,105.0,157.0,221,424,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000054 (3).png
+57.68519973754883,48.36326599121094,0.0,255.0,0.0,39.0,147.0,240,404,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000054.png
+46.47407150268555,26.98491859436035,0.0,255.0,0.0,57.0,93.0,252,466,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000055 (2).png
+68.44664764404297,50.88397979736328,0.0,255.0,0.0,98.0,148.0,291,429,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000055 (3).png
+67.80188751220703,52.53904724121094,0.0,255.0,0.0,94.0,176.0,318,416,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000056 (5).png
+67.41822814941406,52.53641891479492,0.0,255.0,0.0,89.0,175.0,320,420,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000056 (7).png
+71.67134094238281,49.924747467041016,0.0,255.0,0.0,97.0,151.7100067138672,270,429,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000057 (3).png
+68.71868133544922,52.352108001708984,0.0,255.0,0.0,98.0,155.0,218,390,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000057 (4).png
+38.294525146484375,28.776527404785156,0.0,255.0,0.0,54.0,99.0,299,429,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000057 (5).png
+73.4215316772461,46.855491638183594,0.0,255.0,0.0,97.0,149.0,254,401,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000057 (6).png
+41.02290344238281,28.02172088623047,0.0,255.0,0.0,55.0,100.0,284,416,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000057 (7).png
+74.93709564208984,56.36552047729492,0.0,255.0,0.0,107.0,165.0,293,422,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000058 (3).png
+34.78074645996094,29.20293426513672,0.0,255.0,0.0,34.0,98.0,328,422,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000058 (5).png
+38.31751251220703,28.480112075805664,0.0,255.0,0.0,54.0,99.0,302,413,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000058 (7).png
+69.44239044189453,53.3305778503418,0.0,255.0,0.0,86.0,158.0,263,376,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000058.png
+75.473876953125,52.370914459228516,0.0,255.0,0.0,101.0,161.0,330,426,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000060 (2).png
+41.45806884765625,27.633821487426758,0.0,255.0,0.0,55.0,102.0,284,393,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000062 (5).png
+38.40695571899414,28.45107650756836,0.0,255.0,0.0,54.0,100.0,310,403,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000062 (7).png
+71.71405029296875,56.00426483154297,0.0,255.0,0.0,101.0,159.0,295,430,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000063 (3).png
+75.347412109375,51.0978889465332,0.0,255.0,0.0,104.0,159.0,262,414,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000063 (6).png
+93.66943359375,50.565574645996094,0.0,255.0,0.0,116.0,159.0,280,315,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000063.png
+65.39738464355469,52.02394104003906,0.0,255.0,0.0,97.0,155.0,226,397,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000064 (4).png
+39.85441970825195,27.07242774963379,0.0,255.0,0.0,55.0,98.0,291,396,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000065 (5).png
+38.07600784301758,27.600685119628906,0.0,255.0,0.0,54.0,97.0,308,400,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000065 (7).png
+76.69546508789062,49.01615524291992,0.0,255.0,0.0,98.0,159.0,293,425,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000066 (2).png
+72.95480346679688,40.43391418457031,0.0,255.0,0.0,90.0,138.0,194,367,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000066.png
+75.68273162841797,41.50846481323242,0.0,255.0,0.0,91.0,147.0,257,446,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000067 (2).png
+65.13166809082031,52.810691833496094,0.0,255.0,0.0,95.0,149.0,311,404,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000067 (3).png
+37.377105712890625,28.07167625427246,0.0,255.0,0.0,53.0,99.0,310,413,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000067 (5).png
+34.06504440307617,28.754743576049805,0.0,255.0,0.0,26.0,97.0,329,428,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000067 (7).png
+88.52733612060547,62.251976013183594,0.0,255.0,0.0,123.0,191.0,217,357,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000068 (4).png
+88.68225860595703,50.68010330200195,0.0,255.0,0.0,108.0,169.0,314,400,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000069 (2).png
+69.59185028076172,44.43524932861328,0.0,255.0,0.0,91.0,141.0,287,448,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000070 (2).png
+65.28092193603516,52.0322151184082,0.0,255.0,0.0,67.0,157.0,248,389,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000070.png
+81.41092681884766,54.23109436035156,0.0,255.0,0.0,107.0,166.0,284,398,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000071 (3).png
+68.86909484863281,48.05076599121094,0.0,255.0,0.0,96.0,151.0,265,420,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000073 (6).png
+47.37385940551758,33.52088928222656,0.0,255.0,0.0,66.0,117.0,298,410,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000074 (5).png
+64.91927337646484,44.32626724243164,0.0,255.0,0.0,87.0,140.0,255,426,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000074 (6).png
+44.63453674316406,34.25839614868164,0.0,255.0,0.0,65.0,116.0,307,425,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000074 (7).png
+78.13525390625,45.50143051147461,0.0,255.0,0.0,98.0,154.0,205,388,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000075.png
+83.8419418334961,46.72871017456055,0.0,255.0,0.0,102.0,154.0,308,416,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000077 (2).png
+77.93971252441406,61.654945373535156,0.0,255.0,0.0,63.0,185.0,255,349,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000077 (4).png
+80.4576644897461,51.40031433105469,0.0,255.0,0.0,104.0,166.0,336,397,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000077 (5).png
+39.144081115722656,27.4565372467041,0.0,255.0,0.0,54.0,99.0,302,388,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000078 (5).png
+37.658050537109375,27.875219345092773,0.0,255.0,0.0,47.0,98.0,283,417,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000078 (7).png
+70.94831848144531,43.869503021240234,0.0,255.0,0.0,91.0,142.0,212,369,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000078.png
+79.34415435791016,42.741546630859375,0.0,255.0,0.0,96.0,163.0,269,378,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000079 (5).png
+86.7867431640625,38.2045783996582,0.0,255.0,4.0,99.0,164.0,225,409,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000079 (7).png
+72.32312774658203,51.38542938232422,0.0,255.0,0.0,101.0,152.0,239,373,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000079.png
+68.70045471191406,56.893341064453125,0.0,255.0,0.0,87.0,165.0,309,428,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000081 (3).png
+55.16086959838867,48.36211013793945,0.0,255.0,0.0,48.0,142.0,316,429,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000081 (6).png
+71.53827667236328,43.20891571044922,0.0,255.0,0.0,92.0,143.0,210,386,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000081.png
+79.1413803100586,53.861209869384766,0.0,255.0,0.0,106.0,162.0,284,381,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000082 (3).png
+64.49485778808594,49.951839447021484,0.0,255.0,0.0,94.0,151.0,229,379,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000082 (4).png
+74.06451416015625,43.89892578125,0.0,255.0,0.0,93.0,145.0,274,446,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000083 (2).png
+85.96263885498047,39.65565490722656,0.0,255.0,0.0,99.0,169.0,238,392,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000083 (5).png
+82.96517944335938,45.28765106201172,0.0,255.0,0.0,101.0,154.0,260,352,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000083 (6).png
+70.7739486694336,47.352325439453125,0.0,255.0,0.0,94.0,164.0,276,442,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000083 (7).png
+82.8917465209961,61.26594924926758,0.0,255.0,0.0,115.0,174.0,308,416,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000084 (3).png
+37.98531723022461,28.403791427612305,0.0,255.0,0.0,54.0,96.0,295,429,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000084 (5).png
+37.10654830932617,28.615707397460938,0.0,255.0,0.0,54.0,95.0,311,418,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000084 (7).png
+70.06665802001953,54.06568908691406,0.0,255.0,0.0,77.0,168.0,261,375,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000085.png
+76.58221435546875,57.790321350097656,0.0,255.0,0.0,108.0,173.0,263,354,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000088.png
+78.25926971435547,61.21290588378906,0.0,255.0,0.0,100.0,184.0,249,364,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000089 (4).png
+94.73422241210938,51.52450942993164,0.0,255.0,0.0,116.0,179.0,248,386,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000090 (6).png
+72.22801208496094,48.0570182800293,0.0,255.0,0.0,96.0,165.0,275,442,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000091 (5).png
+76.56786346435547,46.64521026611328,0.0,255.0,0.0,97.0,167.0,254,437,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000091 (7).png
+73.63994598388672,56.3219108581543,0.0,255.0,0.0,103.0,167.0,255,356,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000093.png
+81.51223754882812,54.89965057373047,0.0,255.0,0.0,108.0,164.0,295,389,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000094 (3).png
+74.07440948486328,54.76264572143555,0.0,255.0,0.0,105.0,173.0,250,362,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000094.png
+72.48338317871094,44.48930358886719,0.0,255.0,0.0,92.0,147.0,279,439,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000096 (2).png
+72.58272552490234,56.55412292480469,0.0,255.0,0.0,86.0,168.0,259,368,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000096.png
+74.00308990478516,46.34073257446289,0.0,255.0,0.0,95.0,153.0,269,456,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000099 (2).png
+48.835811614990234,30.46308708190918,0.0,255.0,0.0,63.0,97.0,248,438,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000099 (3).png
+72.8266830444336,59.37828063964844,0.0,255.0,0.0,67.0,178.0,268,341,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000100 (4).png
+72.61116027832031,54.51681900024414,0.0,255.0,0.0,104.0,158.0,288,428,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000101 (3).png
+73.1729736328125,52.57722854614258,0.0,255.0,0.0,103.0,156.0,260,339,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000103.png
+105.19807434082031,46.176361083984375,0.0,255.0,0.0,120.0,182.0,284,388,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000104 (2).png
+75.99208068847656,51.96319580078125,0.0,255.0,0.0,104.0,164.0,226,371,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000104.png
+38.8640022277832,28.80751609802246,0.0,255.0,0.0,54.0,99.0,287,445,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000105 (5).png
+40.33224105834961,28.395732879638672,0.0,255.0,0.0,55.0,100.0,288,423,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000105 (7).png
+79.26470947265625,57.43937301635742,0.0,255.0,0.0,109.0,170.0,282,420,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000106 (3).png
+68.1402359008789,48.11442947387695,0.0,255.0,0.0,93.0,145.0,237,306,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000106 (4).png
+42.05562210083008,27.2393741607666,0.0,255.0,0.0,55.0,99.0,279,407,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000106 (5).png
+91.06222534179688,53.46575927734375,0.0,255.0,0.0,117.0,177.0,240,404,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000106 (6).png
+38.01536178588867,28.5329647064209,0.0,255.0,0.0,54.0,97.0,301,425,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000106 (7).png
+78.63717651367188,49.27736282348633,0.0,255.0,0.0,101.0,159.0,297,427,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000120 (2).png
+42.81862258911133,27.822362899780273,0.0,255.0,0.0,55.0,102.0,269,435,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000120 (4).png
+79.86753845214844,63.516258239746094,0.0,255.0,0.0,65.0,192.0,252,355,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000120 (6).png
+72.7944107055664,47.892356872558594,0.0,255.0,0.0,95.0,152.0,313,426,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000121 (2).png
+60.82164001464844,44.71862030029297,0.0,255.0,0.0,87.0,136.0,237,376,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000121.png
+75.03982543945312,48.05952835083008,0.0,255.0,0.0,98.0,148.0,243,444,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000122 (3).png
+71.50983428955078,53.66523361206055,0.0,255.0,0.0,98.0,164.0,274,350,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\000122.png
+124.00908660888672,64.90813446044922,0.0,255.0,59.0,86.0,255.0,174,289,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\sq1.png
+87.93980407714844,87.5562973022461,0.0,255.0,0.0,49.0,255.0,210,240,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\sq2.png
+79.74005889892578,78.67845153808594,0.0,255.0,0.0,68.0,255.0,190,265,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\sq3.png
+79.74005889892578,78.67845153808594,0.0,255.0,0.0,68.0,255.0,190,265,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\sq4.png
+120.7494125366211,77.74868774414062,0.0,255.0,19.0,163.0,252.0,179,282,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\sq5.png
+120.7494125366211,77.74868774414062,0.0,255.0,19.0,163.0,252.0,179,282,data\raw\chest-ctscan-images\Data\train\squamous.cell.carcinoma_left.hilum_T1_N2_M0_IIIa\sq6.png
