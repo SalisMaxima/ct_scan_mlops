@@ -94,8 +94,8 @@ tfm = transforms.Compose(
 # ----------------------------
 PROC = psutil.Process()
 
-logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 system_cpu_percent = Gauge("system_cpu_percent", "System CPU utilization percent")
 system_memory_percent = Gauge("system_memory_percent", "System memory utilization percent")
