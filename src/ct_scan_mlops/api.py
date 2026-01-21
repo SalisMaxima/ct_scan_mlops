@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import asyncio
 import io
+import logging
 import os
 from contextlib import asynccontextmanager, suppress
 from pathlib import Path
@@ -93,6 +94,9 @@ tfm = transforms.Compose(
 # ----------------------------
 PROC = psutil.Process()
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 system_cpu_percent = Gauge("system_cpu_percent", "System CPU utilization percent")
 system_memory_percent = Gauge("system_memory_percent", "System memory utilization percent")
 process_rss_bytes = Gauge("process_rss_bytes", "Process resident set size in bytes")
@@ -118,9 +122,23 @@ async def lifespan(_app: FastAPI):
     """Load model on startup, cleanup on shutdown."""
     global model
 
+    logger.info("Startup config_path=%s model_path_env=%s", CONFIG_PATH, MODEL_PATH_ENV)
+    logger.info("Startup cwd=%s", Path.cwd())
+    logger.info("Config exists=%s", CONFIG_PATH.exists())
+    logger.info("Mount /models exists=%s is_dir=%s", Path("/models").exists(), Path("/models").is_dir())
+    logger.info("Mount /gcs exists=%s is_dir=%s", Path("/gcs").exists(), Path("/gcs").is_dir())
+    models_path = Path("/models")
+    try:
+        models_entries = [p.name for p in models_path.glob("*")] if models_path.is_dir() else []
+    except OSError as exc:
+        logger.warning("Unable to list /models entries: %s", exc)
+        models_entries = []
+    logger.info("/models entries=%s", models_entries)
+    model_path = resolve_model_path()
+    logger.info("Resolved model_path=%s exists=%s", model_path, model_path.exists())
+
     if not CONFIG_PATH.exists():
         raise RuntimeError(f"Missing config: {CONFIG_PATH}. Set CONFIG_PATH or add the default file.")
-    model_path = resolve_model_path()
     if not model_path.exists():
         raise RuntimeError(f"Missing model weights: {model_path}. Set MODEL_PATH or include weights in the image.")
 
