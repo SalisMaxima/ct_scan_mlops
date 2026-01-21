@@ -62,7 +62,7 @@ jobs:
             REMOTE_MD5="$(gsutil stat "$GCS_URI" | awk '/Hash \(md5\):/ {print $3}')"
           fi
 
-          if [ -n "${REMOTE_MD5:-}" ] && [ "$REMOTE_MD5" = "$LOCAL_MD5" ]; then
+          if [ -n "$REMOTE_MD5" ] && [ "$REMOTE_MD5" = "$LOCAL_MD5" ]; then
             echo "Matching model already present in GCS. Skipping upload."
           else
             echo "Uploading model to GCS..."

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import io
 import logging
+import os
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -127,7 +128,6 @@ class TestStartupLogging:
 
     def test_startup_logs_config_check(self, caplog, tmp_path):
         """Test that startup logs config file check."""
-        import logging
         from contextlib import asynccontextmanager
 
         from ct_scan_mlops import api
@@ -171,8 +171,6 @@ class TestStartupLogging:
 
     def test_startup_logs_missing_config_debug_info(self, caplog, tmp_path):
         """Test that startup logs debug info when config is missing."""
-        import os
-
         from ct_scan_mlops import api
 
         # Set DEBUG environment variable
@@ -202,8 +200,6 @@ class TestStartupLogging:
 
     def test_startup_logs_missing_model_debug_info(self, caplog, tmp_path):
         """Test that startup logs debug info when model is missing."""
-        import os
-
         from ct_scan_mlops import api
 
         # Set DEBUG environment variable
