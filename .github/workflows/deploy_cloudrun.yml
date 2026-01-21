@@ -60,6 +60,9 @@ jobs:
           if gsutil -q stat "$GCS_URI"; then
             echo "Model already exists in GCS, checking checksum..."
             REMOTE_MD5="$(gsutil stat "$GCS_URI" | awk '/Hash \(md5\):/ {print $3}')"
+            if [ -z "$REMOTE_MD5" ]; then
+              echo "WARNING: Failed to extract remote MD5. Will re-upload." >&2
+            fi
           fi
 
           if [ -n "$REMOTE_MD5" ] && [ "$REMOTE_MD5" = "$LOCAL_MD5" ]; then
@@ -70,6 +73,10 @@ jobs:
 
             echo "Verifying uploaded model checksum..."
             UPLOADED_MD5="$(gsutil stat "$GCS_URI" | awk '/Hash \(md5\):/ {print $3}')"
+            if [ -z "$UPLOADED_MD5" ]; then
+              echo "ERROR: Failed to extract uploaded MD5 for verification." >&2
+              exit 1
+            fi
             if [ "$UPLOADED_MD5" != "$LOCAL_MD5" ]; then
               echo "ERROR: Uploaded model checksum ($UPLOADED_MD5) does not match local checksum ($LOCAL_MD5)." >&2
               exit 1
