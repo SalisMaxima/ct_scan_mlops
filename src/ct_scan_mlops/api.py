@@ -12,7 +12,7 @@ import psutil
 import torch
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from hydra import compose, initialize_config_dir
-from omegaconf import OmegaConf
+from omegaconf import DictConfig, OmegaConf
 from PIL import Image
 from prometheus_client import Gauge
 from prometheus_fastapi_instrumentator import Instrumentator
@@ -44,15 +44,31 @@ def resolve_model_path() -> Path:
     return DEFAULT_PT_PATH
 
 
-def load_config(cfg_path: Path):
-    """Load a Hydra config, composing if needed."""
-    cfg = OmegaConf.load(cfg_path)
+def load_config(cfg_path: Path) -> DictConfig:
+    """Load a Hydra config, composing if needed.
+
+    Raises:
+        RuntimeError: If the config cannot be loaded or composed.
+    """
+    try:
+        cfg = OmegaConf.load(cfg_path)
+    except Exception as exc:  # pragma: no cover - defensive, depends on filesystem / Hydra
+        msg = f"Failed to load config from '{cfg_path}': {exc}"
+        raise RuntimeError(msg) from exc
+
     if "model" in cfg:
         return cfg
 
     if "defaults" in cfg:
-        with initialize_config_dir(version_base=None, config_dir=str(cfg_path.parent)):
-            return compose(config_name=cfg_path.stem)
+        try:
+            with initialize_config_dir(
+                version_base=None,
+                config_dir=str(cfg_path.parent),
+            ):
+                return compose(config_name=cfg_path.stem)
+        except Exception as exc:  # pragma: no cover - defensive, depends on Hydra internals
+            msg = f"Failed to compose Hydra config from '{cfg_path}': {exc}"
+            raise RuntimeError(msg) from exc
 
     return cfg
 
