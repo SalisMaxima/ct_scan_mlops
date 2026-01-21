@@ -8,6 +8,7 @@ import uuid
 from contextlib import asynccontextmanager, suppress
 from pathlib import Path
 from typing import Annotated
+
 import psutil
 import torch
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
@@ -33,6 +34,7 @@ CONFIG_PATH = Path(os.environ.get("CONFIG_PATH", str(DEFAULT_CONFIG_PATH)))
 MODEL_PATH = Path(os.environ.get("MODEL_PATH", str(DEFAULT_MODEL_PATH)))
 FEEDBACK_DIR = Path(os.environ.get("FEEDBACK_DIR", "feedback"))
 MODEL_PATH_ENV = os.environ.get("MODEL_PATH")
+
 
 def resolve_model_path() -> Path:
     """Resolve model path with .ckpt preferred, .pt as fallback.
@@ -73,6 +75,7 @@ def load_config(cfg_path: Path) -> DictConfig:
             raise RuntimeError(msg) from exc
 
     return cfg
+
 
 CLASS_NAMES = [
     "adenocarcinoma",
