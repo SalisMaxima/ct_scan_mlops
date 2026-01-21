@@ -14,6 +14,17 @@ import torch
 from ct_scan_mlops.model import CustomCNN
 from ct_scan_mlops.promote_model import convert_ckpt_to_pt
 
+# Test model configuration - small model for fast tests
+TEST_MODEL_CONFIG = {
+    "num_classes": 4,
+    "in_channels": 3,
+    "hidden_dims": [8, 16],
+    "fc_hidden": 32,
+    "dropout": 0.1,
+    "batch_norm": True,
+    "image_size": 64,
+}
+
 
 @pytest.fixture
 def temp_model_dir(tmp_path: Path) -> Path:
@@ -24,15 +35,7 @@ def temp_model_dir(tmp_path: Path) -> Path:
 @pytest.fixture
 def sample_model() -> CustomCNN:
     """Create a sample model for testing."""
-    return CustomCNN(
-        num_classes=4,
-        in_channels=3,
-        hidden_dims=[8, 16],
-        fc_hidden=32,
-        dropout=0.1,
-        batch_norm=True,
-        image_size=64,
-    )
+    return CustomCNN(**TEST_MODEL_CONFIG)
 
 
 @pytest.fixture
@@ -139,18 +142,18 @@ class TestConvertCkptToPt:
         original_state = original_ckpt["state_dict"]
         original_state_clean = {k.replace("model.", "", 1): v for k, v in original_state.items()}
 
-        model_original = CustomCNN(num_classes=4, in_channels=3, hidden_dims=[8, 16], fc_hidden=32, image_size=64)
+        model_original = CustomCNN(**TEST_MODEL_CONFIG)
         model_original.load_state_dict(original_state_clean)
 
         # Load converted weights
         converted_state = torch.load(pt_path, map_location="cpu", weights_only=True)
-        model_converted = CustomCNN(num_classes=4, in_channels=3, hidden_dims=[8, 16], fc_hidden=32, image_size=64)
+        model_converted = CustomCNN(**TEST_MODEL_CONFIG)
         model_converted.load_state_dict(converted_state)
 
         # Both should produce identical outputs
         model_original.eval()
         model_converted.eval()
-        test_input = torch.randn(1, 3, 64, 64)
+        test_input = torch.randn(1, 3, TEST_MODEL_CONFIG["image_size"], TEST_MODEL_CONFIG["image_size"])
 
         with torch.no_grad():
             out_original = model_original(test_input)

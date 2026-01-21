@@ -66,8 +66,9 @@ def convert_ckpt_to_pt(ckpt_path: Path, pt_path: Path) -> None:
     pt_path.parent.mkdir(parents=True, exist_ok=True)
     torch.save(clean_state_dict, pt_path)
 
-    ckpt_size_mb = ckpt_path.stat().st_size / (1024 * 1024)
-    pt_size_mb = pt_path.stat().st_size / (1024 * 1024)
+    bytes_per_mb = 1024 * 1024
+    ckpt_size_mb = ckpt_path.stat().st_size / bytes_per_mb
+    pt_size_mb = pt_path.stat().st_size / bytes_per_mb
     logger.success(f"Converted {ckpt_path.name} ({ckpt_size_mb:.1f}MB) -> {pt_path.name} ({pt_size_mb:.1f}MB)")
 
 
