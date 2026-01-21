@@ -40,10 +40,20 @@ def convert_ckpt_to_pt(ckpt_path: Path, pt_path: Path) -> None:
 
     logger.info(f"Loading checkpoint from {ckpt_path}")
 
-    # Load with weights_only=False because .ckpt files may contain
-    # non-tensor objects (optimizer states, etc). This is safe because
-    # we trust our own training pipeline artifacts.
-    checkpoint = torch.load(ckpt_path, map_location="cpu", weights_only=False)
+    # Try secure loading first with weights_only=True
+    try:
+        checkpoint = torch.load(ckpt_path, map_location="cpu", weights_only=True)
+        logger.info("Loaded checkpoint with secure mode (weights_only=True)")
+    except Exception as e:
+        logger.error(
+            f"Failed to load checkpoint with weights_only=True: {e}. "
+            "The checkpoint may contain non-tensor objects that cannot be loaded securely. "
+            "Ensure the checkpoint was created by our training pipeline."
+        )
+        raise RuntimeError(
+            f"Cannot load checkpoint from {ckpt_path} with secure loading. "
+            "If this is a valid Lightning checkpoint, it may need manual conversion."
+        ) from e
 
     # Extract state_dict from the checkpoint
     if isinstance(checkpoint, dict) and "state_dict" in checkpoint:

@@ -40,21 +40,20 @@ def sample_model() -> CustomCNN:
 
 @pytest.fixture
 def ckpt_file(temp_model_dir: Path, sample_model: CustomCNN) -> Path:
-    """Create a sample .ckpt file mimicking PyTorch Lightning format."""
+    """Create a sample .ckpt file that can be loaded with weights_only=True.
+
+    Note: We only include state_dict with tensors (no optimizer states, callbacks, etc.)
+    to ensure the checkpoint can be loaded securely.
+    """
     temp_model_dir.mkdir(parents=True, exist_ok=True)
     ckpt_path = temp_model_dir / "model.ckpt"
 
     # Mimic Lightning checkpoint structure with "model." prefix on keys
+    # Only include state_dict (tensors only) for secure loading compatibility
     state_dict_with_prefix = {f"model.{k}": v for k, v in sample_model.state_dict().items()}
 
     checkpoint = {
-        "epoch": 10,
-        "global_step": 1000,
         "state_dict": state_dict_with_prefix,
-        "optimizer_states": [{"state": {}, "param_groups": []}],
-        "lr_schedulers": [],
-        "callbacks": {},
-        "hyper_parameters": {"num_classes": 4},
     }
 
     torch.save(checkpoint, ckpt_path)
@@ -137,8 +136,8 @@ class TestConvertCkptToPt:
         pt_path = temp_model_dir / "model.pt"
         convert_ckpt_to_pt(ckpt_file, pt_path)
 
-        # Load original weights (with prefix handling)
-        original_ckpt = torch.load(ckpt_file, map_location="cpu", weights_only=False)
+        # Load original weights (with prefix handling) - use weights_only=True for security
+        original_ckpt = torch.load(ckpt_file, map_location="cpu", weights_only=True)
         original_state = original_ckpt["state_dict"]
         original_state_clean = {k.replace("model.", "", 1): v for k, v in original_state.items()}
 

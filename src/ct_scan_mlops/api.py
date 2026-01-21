@@ -150,16 +150,22 @@ async def lifespan(_app: FastAPI):
     cfg = load_config(CONFIG_PATH)
     model = build_model(cfg)
 
-    # Load model weights with appropriate security settings based on file type
-    if model_path.suffix == ".pt":
-        # Secure loading for production .pt files (pure state dicts)
-        logger.info("Loading inference-ready .pt weights (secure mode, weights_only=True)")
+    # Load model weights securely with weights_only=True
+    try:
+        if model_path.suffix == ".pt":
+            logger.info("Loading inference-ready .pt weights (secure mode)")
+        else:
+            logger.info("Loading .ckpt checkpoint with secure loading (weights_only=True)")
         state = torch.load(model_path, map_location="cpu", weights_only=True)
-    else:
-        # Fallback for .ckpt files (development/legacy) - requires weights_only=False
-        # This is safe when loading our own training artifacts
-        logger.warning("Loading .ckpt checkpoint (development mode, less secure/slower)")
-        state = torch.load(model_path, map_location="cpu", weights_only=False)
+    except Exception as e:
+        logger.error(
+            "Failed to load model weights with weights_only=True: %s. "
+            "Please convert checkpoint to .pt format using promote_model.convert_ckpt_to_pt()",
+            e,
+        )
+        raise RuntimeError(
+            f"Cannot load model from {model_path}. Use convert_ckpt_to_pt() to create a .pt file."
+        ) from e
 
     # Handle PyTorch Lightning checkpoint structure
     if isinstance(state, dict) and "state_dict" in state:
