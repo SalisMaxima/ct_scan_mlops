@@ -40,6 +40,33 @@ def _predict(api_base_url: str, uploaded_file: st.runtime.uploaded_file_manager.
         return response.json()
 
 
+def _send_feedback(
+    api_base_url: str,
+    uploaded_file: st.runtime.uploaded_file_manager.UploadedFile,
+    predicted_class: str,
+    is_correct: bool,
+    correct_class: str | None,
+) -> dict:
+    files = {
+        "file": (
+            uploaded_file.name,
+            uploaded_file.getvalue(),
+            uploaded_file.type or "application/octet-stream",
+        )
+    }
+    data = {
+        "predicted_class": predicted_class,
+        "is_correct": str(is_correct).lower(),
+    }
+    if not is_correct and correct_class is not None:
+        data["correct_class"] = correct_class
+
+    with httpx.Client(timeout=30) as client:
+        response = client.post(f"{api_base_url.rstrip('/')}/feedback", files=files, data=data)
+        response.raise_for_status()
+        return response.json()
+
+
 st.markdown(
     """
 <div style="padding: 12px 0 8px 0;">
@@ -96,12 +123,59 @@ with left:
                     result = _predict(api_base_url, uploaded_file)
                     pred_class = result.get("pred_class", "Unknown")
                     pred_index = result.get("pred_index", "-")
+                    st.session_state["last_prediction"] = {
+                        "pred_class": pred_class,
+                        "pred_index": pred_index,
+                    }
                     st.success("Prediction complete")
                     st.metric("Predicted class", pred_class)
                     st.caption(f"Class index: {pred_index}")
                 except httpx.HTTPStatusError as exc:
                     detail = exc.response.text
                     st.error(f"Prediction failed: {detail}")
+                except httpx.HTTPError as exc:
+                    st.error(f"Request error: {exc}")
+
+    if "last_prediction" in st.session_state and uploaded_file is not None:
+        st.divider()
+        st.subheader("Feedback")
+        st.caption("Help us validate predictions by confirming the correct class.")
+
+        feedback_choice = st.radio(
+            "Is the prediction correct?",
+            options=["👍 Correct", "👎 Incorrect"],
+            horizontal=True,
+        )
+        is_correct = feedback_choice == "👍 Correct"
+
+        correct_class = None
+        if not is_correct:
+            correct_class = st.selectbox(
+                "Select the correct class",
+                options=[
+                    "adenocarcinoma",
+                    "large_cell_carcinoma",
+                    "normal",
+                    "squamous_cell_carcinoma",
+                ],
+            )
+
+        if st.button("Submit feedback", use_container_width=True):
+            pred_class = st.session_state["last_prediction"]["pred_class"]
+            with st.spinner("Sending feedback..."):
+                try:
+                    response = _send_feedback(
+                        api_base_url=api_base_url,
+                        uploaded_file=uploaded_file,
+                        predicted_class=pred_class,
+                        is_correct=is_correct,
+                        correct_class=correct_class,
+                    )
+                    st.success("Thanks for your feedback!")
+                    st.caption(f"Saved to: {response.get('saved_to', 'unknown')}")
+                except httpx.HTTPStatusError as exc:
+                    detail = exc.response.text
+                    st.error(f"Feedback failed: {detail}")
                 except httpx.HTTPError as exc:
                     st.error(f"Request error: {exc}")
 
