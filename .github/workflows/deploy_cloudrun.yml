@@ -52,4 +52,4 @@ jobs:
             --allow-unauthenticated \
             --add-volume name=models,type=cloud-storage,bucket=${{ vars.GCS_BUCKET }} \
             --add-volume-mount volume=models,mount-path=/models \
-            --set-env-vars "CONFIG_PATH=/models/config.yaml,MODEL_PATH=/models/best_model.ckpt"
+            --set-env-vars "CONFIG_PATH=/models/models/config.yaml,MODEL_PATH=/models/models/best_model.ckpt"
