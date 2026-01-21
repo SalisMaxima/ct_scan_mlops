@@ -39,4 +39,6 @@ jobs:
             --region "${{ vars.GAR_LOCATION }}" \
             --platform managed \
             --allow-unauthenticated \
-            --set-env-vars "CONFIG_PATH=/app/configs/config.yaml,MODEL_PATH=/app/models/model.pt"
+            --add-volume name=models,type=cloud-storage,bucket=${{ vars.GCS_BUCKET }} \
+            --add-volume-mount volume=models,mount-path=/models \
+            --set-env-vars "CONFIG_PATH=/app/configs/config.yaml,MODEL_PATH=/models/model.pt"
