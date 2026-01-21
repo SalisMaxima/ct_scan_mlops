@@ -64,7 +64,7 @@ async def _metrics_loop(stop_event: asyncio.Event, interval_s: float = 5.0) -> N
 
         try:
             await asyncio.wait_for(stop_event.wait(), timeout=interval_s)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             pass
 
 
