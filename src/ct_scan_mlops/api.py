@@ -12,7 +12,7 @@ import psutil
 import torch
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from hydra import compose, initialize_config_dir
-from omegaconf import OmegaConf
+from omegaconf import DictConfig, OmegaConf
 from PIL import Image
 from prometheus_client import Gauge
 from prometheus_fastapi_instrumentator import Instrumentator
@@ -44,7 +44,7 @@ def resolve_model_path() -> Path:
     return DEFAULT_PT_PATH
 
 
-def load_config(cfg_path: Path):
+def load_config(cfg_path: Path) -> DictConfig:
     """Load a Hydra config, composing if needed.
 
     Raises:
