@@ -145,7 +145,6 @@ async def lifespan(_app: FastAPI):
     cfg = load_config(CONFIG_PATH)
     model = build_model(cfg)
 
-   
     state = torch.load(model_path, map_location="cpu", weights_only=False)  # nosec
     if isinstance(state, dict) and "state_dict" in state:
         state = state["state_dict"]
