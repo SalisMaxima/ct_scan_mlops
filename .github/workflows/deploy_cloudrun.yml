@@ -25,13 +25,18 @@ jobs:
         run: |
           gcloud auth configure-docker ${{ vars.GAR_LOCATION }}-docker.pkg.dev --quiet
 
+      # Download model from W&B and upload to GCS
+      # WANDB_MODEL_ARTIFACT should be set in GitHub variables with format: entity/project/artifact:version
       - name: Download model from W&B and upload to GCS
         env:
           WANDB_API_KEY: ${{ secrets.WANDB_API_KEY }}
         run: |
-          pip install wandb
-          wandb artifact get ${{ vars.WANDB_MODEL_ARTIFACT }} --root models/
-          gsutil cp models/model.pt gs://dtu-mlops-data-482907_cloudbuild/models/model.pt
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          export PATH="$HOME/.local/bin:$PATH"
+          rm -rf models/
+          mkdir -p models
+          uv tool run wandb artifact get ${{ vars.WANDB_MODEL_ARTIFACT }} --root models/
+          gsutil cp models/model.pt gs://${{ vars.GCS_BUCKET }}/models/model.pt
 
       - name: Build & push image (GitHub runner)
         run: |
@@ -48,5 +53,5 @@ jobs:
             --platform managed \
             --allow-unauthenticated \
             --set-env-vars "CONFIG_PATH=/app/configs/config.yaml,MODEL_PATH=/gcs/models/model.pt" \
-            --add-volume name=models,type=cloud-storage,bucket=dtu-mlops-data-482907_cloudbuild \
+            --add-volume name=models,type=cloud-storage,bucket=${{ vars.GCS_BUCKET }} \
             --add-volume-mount volume=models,mount-path=/gcs

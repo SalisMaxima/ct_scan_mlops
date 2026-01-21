@@ -30,9 +30,6 @@ jobs:
       uses: pre-commit/action@v3.0.1
       continue-on-error: true
 
-    - name: Discard workflow file changes
-      run: git checkout -- .github/workflows/ || true
-
     - name: Auto-commit fixes
       uses: stefanzweifel/git-auto-commit-action@v7
       with:
