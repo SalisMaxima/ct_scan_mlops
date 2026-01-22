@@ -14,7 +14,12 @@ def iter_images(root: Path) -> list[Path]:
     return [p for p in root.rglob("*") if p.is_file() and p.suffix.lower() in IMG_EXTS]
 
 
-def add_gaussian_noise_uint8(img: Image.Image, mean: float, std: float) -> Image.Image:
+def add_gaussian_noise_uint8(
+    img: Image.Image,
+    mean: float,
+    std: float,
+    rng: np.random.Generator,
+) -> Image.Image:
     """
     Add Gaussian noise to an image.
 
@@ -23,7 +28,7 @@ def add_gaussian_noise_uint8(img: Image.Image, mean: float, std: float) -> Image
     - std controls noise spread
     """
     arr = np.asarray(img, dtype=np.float32)
-    noise = np.random.normal(loc=mean, scale=std, size=arr.shape).astype(np.float32)
+    noise = rng.normal(loc=mean, scale=std, size=arr.shape).astype(np.float32)
     out = arr + noise
     out = np.clip(out, 0, 255).astype(np.uint8)
     return Image.fromarray(out)
@@ -52,9 +57,9 @@ def main() -> None:
     if args.std < 0:
         raise SystemExit("--std must be >= 0.")
 
+    rng = np.random.default_rng(args.seed if args.seed != 0 else None)
     if args.seed != 0:
         random.seed(args.seed)
-        np.random.seed(args.seed)
 
     imgs = iter_images(args.src)
     if not imgs:
@@ -71,7 +76,7 @@ def main() -> None:
 
         if p in corrupt_set:
             img = Image.open(p)
-            noisy = add_gaussian_noise_uint8(img, mean=args.mean, std=args.std)
+            noisy = add_gaussian_noise_uint8(img, mean=args.mean, std=args.std, rng=rng)
             noisy.save(out_path)
         else:
             if args.mode == "copy":
