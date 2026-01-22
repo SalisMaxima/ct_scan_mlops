@@ -7,6 +7,7 @@ checkpoints to production-ready state dict files.
 from __future__ import annotations
 
 from pathlib import Path
+from typing import TypedDict
 
 import pytest
 import torch
@@ -14,8 +15,19 @@ import torch
 from ct_scan_mlops.model import CustomCNN
 from ct_scan_mlops.promote_model import convert_ckpt_to_pt
 
+
+class ModelConfig(TypedDict):
+    num_classes: int
+    in_channels: int
+    hidden_dims: list[int]
+    fc_hidden: int
+    dropout: float
+    batch_norm: bool
+    image_size: int
+
+
 # Test model configuration - small model for fast tests
-TEST_MODEL_CONFIG = {
+TEST_MODEL_CONFIG: ModelConfig = {
     "num_classes": 4,
     "in_channels": 3,
     "hidden_dims": [8, 16],
