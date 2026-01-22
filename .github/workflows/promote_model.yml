@@ -10,20 +10,22 @@ on:
       wandb_artifact:
         description: "W&B artifact path (e.g., entity/project/model:alias)"
         required: true
+        default: "mathiashl-danmarks-tekniske-universitet-dtu-org/wandb-registry-MLOps_project/ct_scan_models:v0"
         type: string
       artifact_file:
         description: "Checkpoint file inside the artifact (e.g., model.ckpt)"
         required: true
-        default: "model.ckpt"
+        default: "best_model.ckpt"
         type: string
       gcs_bucket:
         description: "Destination GCS bucket name (no gs:// prefix)"
         required: true
+        default: "dtu-mlops-data-482907_cloudbuild"
         type: string
       gcs_object_path:
         description: "Destination object path in bucket (e.g., models/model.pt)"
         required: true
-        default: "models/model.pt"
+        default: "models/best_model.pt"
         type: string
       redeploy_cloud_run:
         description: "Trigger Cloud Run redeployment to pick up new model"
