@@ -1,4 +1,3 @@
-# src/ct_scan_mlops/drift_api.py
 from __future__ import annotations
 
 import os

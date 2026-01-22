@@ -26,8 +26,6 @@ from ct_scan_mlops.model import build_model
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# --- Deployment-friendly paths (no dependence on outputs/<date>/<time>) ---
-# You can override these in Cloud Run via env vars: CONFIG_PATH, MODEL_PATH
 DEFAULT_CONFIG_PATH = Path("configs") / "config.yaml"  # change if your file name differs
 DEFAULT_CKPT_PATH = Path("models") / "best_model.ckpt"
 DEFAULT_PT_PATH = Path("models") / "model.pt"
