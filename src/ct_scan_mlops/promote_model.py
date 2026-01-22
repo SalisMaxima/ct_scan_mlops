@@ -2,6 +2,9 @@
 
 Following DTU MLOps course CML patterns:
 https://skaftenicki.github.io/dtu_mlops/s5_continuous_integration/cml/
+
+This module also provides utilities to convert PyTorch Lightning checkpoints
+(.ckpt) to production-ready state dictionaries (.pt) for secure, fast loading.
 """
 
 from __future__ import annotations
@@ -10,13 +13,83 @@ import argparse
 import sys
 from pathlib import Path
 
+import torch
 import wandb
 from loguru import logger
 from omegaconf import OmegaConf
 
 
+def convert_ckpt_to_pt(ckpt_path: Path, pt_path: Path) -> None:
+    """Convert a PyTorch Lightning checkpoint to a clean state_dict file.
+
+    This strips optimizer states, scheduler states, and other training metadata
+    from the checkpoint, keeping only the model weights. The resulting .pt file
+    is smaller, loads faster, and can be loaded securely with weights_only=True.
+
+    Args:
+        ckpt_path: Path to the input .ckpt file (PyTorch Lightning checkpoint).
+        pt_path: Path where the output .pt file will be saved.
+
+    Raises:
+        FileNotFoundError: If the checkpoint file doesn't exist.
+        RuntimeError: If the checkpoint cannot be loaded or converted.
+    """
+    if not ckpt_path.exists():
+        msg = f"Checkpoint file not found: {ckpt_path}"
+        raise FileNotFoundError(msg)
+
+    logger.info(f"Loading checkpoint from {ckpt_path}")
+
+    try:
+        # We trust our own training artifacts, so we load with weights_only=False.
+        # We add '# nosec' to ignore Bandit security warnings (B301/B614) about unsafe deserialization.
+        checkpoint = torch.load(ckpt_path, map_location="cpu", weights_only=False)  # nosec
+        logger.info("Loaded checkpoint (trusted mode)")
+    except Exception as e:
+        logger.error(f"Failed to load checkpoint: {e}")
+        raise RuntimeError(f"Cannot load checkpoint from {ckpt_path}") from e
+
+    # Extract state_dict from the checkpoint
+    if isinstance(checkpoint, dict) and "state_dict" in checkpoint:
+        state_dict = checkpoint["state_dict"]
+    elif isinstance(checkpoint, dict):
+        # Fallback: assume the dict itself is the state_dict
+        state_dict = checkpoint
+    else:
+        msg = f"Unexpected checkpoint format: {type(checkpoint)}"
+        raise RuntimeError(msg)
+
+    # Remove "model." prefix added by LightningModule wrapper
+    # (Lightning wraps the model as self.model, so keys become "model.layer.weight")
+    clean_state_dict = {}
+    for key, value in state_dict.items():
+        new_key = key.replace("model.", "", 1) if key.startswith("model.") else key
+        clean_state_dict[new_key] = value
+
+    # Save clean state_dict (can be loaded with weights_only=True)
+    pt_path.parent.mkdir(parents=True, exist_ok=True)
+    torch.save(clean_state_dict, pt_path)
+
+    bytes_per_mb = 1024 * 1024
+    ckpt_size_mb = ckpt_path.stat().st_size / bytes_per_mb
+    pt_size_mb = pt_path.stat().st_size / bytes_per_mb
+    logger.success(f"Converted {ckpt_path.name} ({ckpt_size_mb:.1f}MB) -> {pt_path.name} ({pt_size_mb:.1f}MB)")
+
+
 def promote_to_production(model_path: str, project: str) -> None:
     """Promote a model artifact to production alias in W&B.
+
+    **Behavioral Change from Previous Implementation:**
+    This function now dynamically determines the target registry path from the
+    artifact's entity and project, rather than using a hardcoded "wandb-registry-model"
+    prefix. This means models are promoted within their original entity/project context,
+    not to a central "model-registry" collection.
+
+    - Previous: `target_path = "wandb-registry-model/{artifact_name}"`
+    - Current: `target_path = "{artifact.entity}/{artifact.project}/{collection_name}"`
+
+    This change respects the registry/project path provided in the workflow input,
+    allowing for more flexible deployment patterns (e.g., team-specific registries).
 
     Args:
         model_path: W&B artifact path (e.g., entity/project/model:staging)
@@ -32,13 +105,21 @@ def promote_to_production(model_path: str, project: str) -> None:
         artifact = run.use_artifact(model_path, type="model")
         logger.info(f"Found artifact: {artifact.name} (version: {artifact.version})")
 
-        # Get the artifact's collection (registered model)
-        # The artifact path format is: entity/project/artifact_name:alias_or_version
-        artifact_name = artifact.name.split(":")[0]  # Remove version/alias
+        # Determine the target path dynamically from the loaded artifact.
+        # This respects the registry/project path provided in the workflow input.
+        # artifact.name typically looks like "artifact_name:version", so we strip the version.
+        collection_name = artifact.name.split(":")[0]
 
-        # Link to model registry with production alias
-        # This adds the 'production' alias to the artifact
-        run.link_artifact(artifact, target_path=f"model-registry/{artifact_name}", aliases=["production"])
+        # BEHAVIORAL CHANGE: We now construct the target path using the artifact's
+        # entity and project (e.g., "team-name/project-name/model-collection").
+        # Previous implementation used a hardcoded "wandb-registry-model" prefix.
+        # This change allows models to remain in their original entity/project context
+        # rather than being promoted to a central registry, enabling team-specific
+        # or project-specific deployment patterns.
+        target_path = f"{artifact.entity}/{artifact.project}/{collection_name}"
+
+        logger.info(f"Linking to registry path: {target_path}")
+        run.link_artifact(artifact, target_path=target_path, aliases=["production"])
 
         logger.success("Model promoted to production!")
         logger.info(f"  - Artifact: {artifact.name}")

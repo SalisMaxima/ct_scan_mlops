@@ -12,8 +12,8 @@ output_dir: outputs/${experiment_name}
 # Logging
 wandb:
   project: CT_Scan_MLOps
-  entity: mathiashl-danmarks-tekniske-universitet-dtu  
-  mode: online 
+  entity: mathiashl-danmarks-tekniske-universitet-dtu
+  mode: online
   tags:
     - chest-ct
     - classification

@@ -37,8 +37,12 @@ def main() -> None:
     ap.add_argument("--std", type=float, default=10.0, help="Gaussian std in 0..255 intensity units.")
     ap.add_argument("--fraction", type=float, default=1.0, help="Fraction of images to corrupt (0..1).")
     ap.add_argument("--seed", type=int, default=0, help="Random seed (0 for nondeterministic).")
-    ap.add_argument("--mode", choices=["copy", "only_noisy"], default="copy",
-                    help="copy: copy clean images too; only_noisy: write only corrupted images.")
+    ap.add_argument(
+        "--mode",
+        choices=["copy", "only_noisy"],
+        default="copy",
+        help="copy: copy clean images too; only_noisy: write only corrupted images.",
+    )
     args = ap.parse_args()
 
     if not args.src.exists():
@@ -77,7 +81,7 @@ def main() -> None:
     print(f"Source:   {args.src}")
     print(f"Output:   {args.dst}")
     print(f"Images:   {len(imgs)}")
-    print(f"Corrupt:  {n_corrupt} ({args.fraction*100:.1f}%)")
+    print(f"Corrupt:  {n_corrupt} ({args.fraction * 100:.1f}%)")
     print(f"mean/std: {args.mean}/{args.std} (intensity units)")
 
 
