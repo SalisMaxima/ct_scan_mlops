@@ -236,7 +236,7 @@ will check the repositories and the code to verify your answers.
 > *The total code coverage of code is X%, which includes all our source code. We are far from 100% coverage of our **
 > *code and even if we were then...*
 >
-> Answer: We measure code coverage using pytest-cov as part of our testing workflow. The exact total coverage percentage depends on the latest CI run, but it can be reproduced locally by running: uv run pytest --cov=ct_scan_mlops --cov-report=term-missing giving a total of 34% code coverage. 
+> Answer: We measure code coverage using pytest-cov as part of our testing workflow. The exact total coverage percentage depends on the latest CI run, but it can be reproduced locally by running: uv run pytest --cov=ct_scan_mlops --cov-report=term-missing giving a total of 34% code coverage.
 >
 > Even if our code coverage were 100% (or close to it), we would not consider the project error-free. Coverage only tells us which lines of code were executed during tests, not whether the tests meaningfully validate correctness or cover edge cases. For example, a test can execute a function without checking that its outputs are correct, and coverage would still increase. Additionally, integration issues (e.g., data formats, deployment configuration, cloud permissions) and runtime failures can occur even when all code paths are technically “covered.” High coverage is useful as a quality signal, but it must be combined with good test assertions, realistic test cases, and testing of failure modes to build confidence in correctness.
 
