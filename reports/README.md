@@ -408,7 +408,8 @@ will check the repositories and the code to verify your answers.
 >
 > Answer:
 >
-> ![gcp_bucket](figures/bucket.png)
+> ![gcp_bucket_1](figures/bucket.png)
+> ![gcp_bucket_2](figures/bucket_2.png)
 
 --- question 19 fill here ---
 
