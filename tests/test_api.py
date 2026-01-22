@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import io
+from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
@@ -107,6 +108,62 @@ class TestPredictEndpoint:
         )
         assert response.status_code == 503
         assert "Model not loaded" in response.json()["detail"]
+
+
+class TestFeedbackEndpoint:
+    """Tests for /feedback endpoint."""
+
+    def test_feedback_saves_correct_prediction(self, client, sample_image, tmp_path):
+        api.FEEDBACK_DIR = tmp_path / "feedback"
+
+        response = client.post(
+            "/feedback",
+            files={"file": ("scan.png", sample_image, "image/png")},
+            data={
+                "predicted_class": "normal",
+                "is_correct": "true",
+            },
+        )
+
+        assert response.status_code == 200
+        payload = response.json()
+        saved_path = Path(payload["saved_to"])
+        assert payload["class"] == "normal"
+        assert saved_path.exists()
+        assert saved_path.parent.name == "normal"
+
+    def test_feedback_saves_in_correct_class(self, client, sample_image, tmp_path):
+        api.FEEDBACK_DIR = tmp_path / "feedback"
+
+        response = client.post(
+            "/feedback",
+            files={"file": ("scan.png", sample_image, "image/png")},
+            data={
+                "predicted_class": "normal",
+                "is_correct": "false",
+                "correct_class": "adenocarcinoma",
+            },
+        )
+
+        assert response.status_code == 200
+        payload = response.json()
+        saved_path = Path(payload["saved_to"])
+        assert payload["class"] == "adenocarcinoma"
+        assert saved_path.exists()
+        assert saved_path.parent.name == "adenocarcinoma"
+
+    def test_feedback_requires_correct_class_when_incorrect(self, client, sample_image):
+        response = client.post(
+            "/feedback",
+            files={"file": ("scan.png", sample_image, "image/png")},
+            data={
+                "predicted_class": "normal",
+                "is_correct": "false",
+            },
+        )
+
+        assert response.status_code == 400
+        assert "correct_class" in response.json()["detail"]
 
 
 class TestClassNames:

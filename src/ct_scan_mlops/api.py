@@ -4,6 +4,7 @@ import asyncio
 import io
 import logging
 import os
+import uuid
 from contextlib import asynccontextmanager, suppress
 from datetime import UTC, datetime
 from pathlib import Path
@@ -14,11 +15,11 @@ import numpy as np
 import pandas as pd
 import psutil
 import torch
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from hydra import compose, initialize_config_dir
 from omegaconf import DictConfig, OmegaConf
 from PIL import Image
-from prometheus_client import Gauge
+from prometheus_client import Counter, Gauge, make_asgi_app
 from prometheus_fastapi_instrumentator import Instrumentator
 from torchvision import transforms
 
@@ -31,19 +32,27 @@ DEFAULT_CKPT_PATH = Path("models") / "best_model.ckpt"
 DEFAULT_PT_PATH = Path("models") / "model.pt"
 
 CONFIG_PATH = Path(os.environ.get("CONFIG_PATH", str(DEFAULT_CONFIG_PATH)))
+
+MODEL_PATH = Path(os.environ.get("MODEL_PATH", str(DEFAULT_PT_PATH)))
+FEEDBACK_DIR = Path(os.environ.get("FEEDBACK_DIR", "feedback"))
 MODEL_PATH_ENV = os.environ.get("MODEL_PATH")
 
 
 def resolve_model_path() -> Path:
-    """Resolve model path with .ckpt preferred, .pt as fallback.
+    """Resolve model path with .pt preferred for security, .ckpt as fallback.
+
+    Production deployments should use .pt files which can be loaded securely
+    with weights_only=True. The .ckpt format is kept as fallback for development.
 
     Env var MODEL_PATH takes precedence when set.
     """
     if MODEL_PATH_ENV:
         return Path(MODEL_PATH_ENV)
-    if DEFAULT_CKPT_PATH.exists():
-        return DEFAULT_CKPT_PATH
-    return DEFAULT_PT_PATH
+    # Prefer .pt for secure loading (production)
+    if DEFAULT_PT_PATH.exists():
+        return DEFAULT_PT_PATH
+    # Fallback to .ckpt (development/legacy)
+    return DEFAULT_CKPT_PATH
 
 
 def load_config(cfg_path: Path) -> DictConfig:
@@ -181,9 +190,27 @@ async def lifespan(_app: FastAPI):
     cfg = load_config(CONFIG_PATH)
     model = build_model(cfg)
 
-    state = torch.load(model_path, map_location="cpu", weights_only=True)
+    # Load model weights securely with weights_only=True
+    try:
+        if model_path.suffix == ".pt":
+            logger.info("Loading inference-ready .pt weights (secure mode)")
+        else:
+            logger.info("Loading .ckpt checkpoint with secure loading (weights_only=True)")
+        state = torch.load(model_path, map_location="cpu", weights_only=True)
+    except Exception as e:
+        logger.error(
+            "Failed to load model weights with weights_only=True: %s. "
+            "Please convert checkpoint to .pt format using promote_model.convert_ckpt_to_pt()",
+            e,
+        )
+        raise RuntimeError(
+            f"Cannot load model from {model_path}. Use convert_ckpt_to_pt() to create a .pt file."
+        ) from e
+
+    # Handle PyTorch Lightning checkpoint structure
     if isinstance(state, dict) and "state_dict" in state:
         state = state["state_dict"]
+    # Remove "model." prefix if present (added by LightningModule wrapper)
     if isinstance(state, dict) and all(k.startswith("model.") for k in state):
         state = {k.replace("model.", "", 1): v for k, v in state.items()}
     model.load_state_dict(state)
@@ -206,7 +233,10 @@ async def lifespan(_app: FastAPI):
     model = None
 
 
+error_counter = Counter("prediction_error", "Number of prediction errors")
+
 app = FastAPI(title="CT Scan Inference API", version="0.1.0", lifespan=lifespan)
+app.mount("/metrics", make_asgi_app())
 
 # HTTP metrics + /metrics endpoint (Prometheus)
 Instrumentator().instrument(app).expose(app, endpoint="/metrics")
@@ -269,4 +299,50 @@ async def predict(file: Annotated[UploadFile, File(...)]) -> dict:
     except Exception:
         pass
 
-    return {"pred_index": pred, "pred_class": CLASS_NAMES[pred]}
+    return {
+        "pred_index": pred,
+        "pred_class": CLASS_NAMES[pred],
+    }
+
+
+@app.post("/feedback")
+async def feedback(
+    file: Annotated[UploadFile, File(...)],
+    predicted_class: Annotated[str, Form(...)],
+    is_correct: Annotated[bool, Form(...)],
+    correct_class: Annotated[str | None, Form()] = None,
+) -> dict:
+    """Save feedback image into a class-named folder."""
+    if predicted_class not in CLASS_NAMES:
+        raise HTTPException(status_code=400, detail="Invalid predicted_class")
+
+    if not is_correct:
+        error_counter.inc()
+        if correct_class is None:
+            raise HTTPException(status_code=400, detail="correct_class is required when is_correct is false")
+        if correct_class not in CLASS_NAMES:
+            raise HTTPException(status_code=400, detail="Invalid correct_class")
+        target_class = correct_class
+    else:
+        target_class = predicted_class
+
+    img_bytes = await file.read()
+    try:
+        img = Image.open(io.BytesIO(img_bytes)).convert("RGB")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid image: {e}") from e
+
+    FEEDBACK_DIR.mkdir(parents=True, exist_ok=True)
+    target_dir = FEEDBACK_DIR / target_class
+    target_dir.mkdir(parents=True, exist_ok=True)
+
+    original_name = Path(file.filename or "upload").stem
+    safe_name = "".join(ch for ch in original_name if ch.isalnum() or ch in {"-", "_"}) or "image"
+    filename = f"{safe_name}-{uuid.uuid4().hex}.png"
+    save_path = target_dir / filename
+    img.save(save_path, format="PNG")
+
+    return {
+        "saved_to": str(save_path),
+        "class": target_class,
+    }

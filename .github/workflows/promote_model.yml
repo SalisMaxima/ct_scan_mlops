@@ -1,0 +1,173 @@
+name: Promote Model to Production
+
+# Manual workflow to promote a W&B model artifact to production.
+# Downloads the model, converts .ckpt to .pt (if needed), uploads to GCS,
+# and optionally triggers a Cloud Run redeployment.
+
+on:
+  workflow_dispatch:
+    inputs:
+      wandb_artifact:
+        description: "W&B artifact path (e.g., entity/project/model:alias)"
+        required: true
+        default: "mathiashl-danmarks-tekniske-universitet-dtu-org/wandb-registry-MLOps_project/ct_scan_models:v0"
+        type: string
+      artifact_file:
+        description: "Checkpoint file inside the artifact (e.g., model.ckpt)"
+        required: true
+        default: "best_model.ckpt"
+        type: string
+      gcs_bucket:
+        description: "Destination GCS bucket name (no gs:// prefix)"
+        required: true
+        default: "dtu-mlops-data-482907_cloudbuild"
+        type: string
+      gcs_object_path:
+        description: "Destination object path in bucket (e.g., models/model.pt)"
+        required: true
+        default: "models/best_model.pt"
+        type: string
+      redeploy_cloud_run:
+        description: "Trigger Cloud Run redeployment to pick up new model"
+        required: false
+        default: false
+        type: boolean
+      cloud_run_service:
+        description: "Cloud Run service name (required if redeploy_cloud_run is true)"
+        required: false
+        default: "ct-scan-api"
+        type: string
+      cloud_run_region:
+        description: "Cloud Run region (required if redeploy_cloud_run is true)"
+        required: false
+        default: "europe-west1"
+        type: string
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Auth to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: uv sync --no-dev
+
+      - name: Download W&B artifact
+        env:
+          WANDB_API_KEY: ${{ secrets.WANDB_API_KEY }}
+        run: |
+          set -euo pipefail
+          echo "Downloading W&B artifact: ${{ inputs.wandb_artifact }}"
+          uv tool run wandb artifact get "${{ inputs.wandb_artifact }}" --root ./wandb_artifacts
+
+          # Locate the model file anywhere under the download root
+          MODEL_FILE=$(find ./wandb_artifacts -name "${{ inputs.artifact_file }}" -print -quit)
+          if [ -z "$MODEL_FILE" ]; then
+            echo "::error::Artifact file not found: ${{ inputs.artifact_file }}"
+            echo "Available files:" && find ./wandb_artifacts -type f
+            exit 1
+          fi
+
+          echo "Found model file: $MODEL_FILE"
+          echo "MODEL_FILE=$MODEL_FILE" >> $GITHUB_ENV
+
+      - name: Convert checkpoint to production weights
+        run: |
+          set -euo pipefail
+          INPUT_FILE="${{ env.MODEL_FILE }}"
+          OUTPUT_FILE="./model_production.pt"
+
+          # Determine if conversion is needed based on file extension
+          if [[ "$INPUT_FILE" == *.ckpt ]]; then
+            echo "Converting .ckpt to .pt for secure production loading..."
+            export INPUT_FILE OUTPUT_FILE
+            uv run python - << 'PYTHON'
+          from os import environ
+          from pathlib import Path
+          from ct_scan_mlops.promote_model import convert_ckpt_to_pt
+          
+          convert_ckpt_to_pt(
+              Path(environ["INPUT_FILE"]),
+              Path(environ["OUTPUT_FILE"]),
+          )
+          PYTHON
+          elif [[ "$INPUT_FILE" == *.pt ]]; then
+            echo "File is already .pt, copying as-is..."
+            cp "$INPUT_FILE" "$OUTPUT_FILE"
+          else
+            echo "::error::Unsupported file extension. Expected .ckpt or .pt"
+            exit 1
+          fi
+
+          echo "PT_FILE=$OUTPUT_FILE" >> $GITHUB_ENV
+
+      - name: Upload to GCS
+        run: |
+          set -euo pipefail
+          echo "Uploading ${{ env.PT_FILE }} to gs://${{ inputs.gcs_bucket }}/${{ inputs.gcs_object_path }}"
+          gsutil cp "${{ env.PT_FILE }}" "gs://${{ inputs.gcs_bucket }}/${{ inputs.gcs_object_path }}"
+          echo "✓ Upload complete"
+
+      - name: Trigger Cloud Run redeployment
+        if: ${{ inputs.redeploy_cloud_run }}
+        run: |
+          set -euo pipefail
+          echo "Triggering Cloud Run redeployment..."
+          # Force a new revision by redeploying with the same image
+          # This causes the service to restart and load the new model from GCS
+          gcloud run deploy "${{ inputs.cloud_run_service }}" \
+            --region="${{ inputs.cloud_run_region }}" \
+            --image="$(gcloud run services describe ${{ inputs.cloud_run_service }} --region=${{ inputs.cloud_run_region }} --format='value(spec.template.spec.containers[0].image)')"
+          echo "✓ Cloud Run service updated"
+
+      - name: Promote in W&B Registry
+        env:
+          WANDB_API_KEY: ${{ secrets.WANDB_API_KEY }}
+        run: |
+          uv run python -m ct_scan_mlops.promote_model \
+            --model-path "${{ inputs.wandb_artifact }}"
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Model Promotion Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **W&B Artifact**: \`${{ inputs.wandb_artifact }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Source File**: \`${{ inputs.artifact_file }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **GCS Destination**: \`gs://${{ inputs.gcs_bucket }}/${{ inputs.gcs_object_path }}\`" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ inputs.redeploy_cloud_run }}" = "true" ]; then
+            echo "- **Cloud Run**: Redeployed \`${{ inputs.cloud_run_service }}\` in \`${{ inputs.cloud_run_region }}\`" >> $GITHUB_STEP_SUMMARY
+          fi
+          if [ "${{ job.status }}" = "success" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "✅ **Model successfully promoted to production!**" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "❌ **Promotion failed. Check logs for details.**" >> $GITHUB_STEP_SUMMARY
+          fi

@@ -50,7 +50,10 @@ jobs:
             --region "${{ vars.GAR_LOCATION }}" \
             --platform managed \
             --allow-unauthenticated \
-            --startup-probe tcp-socket-port=8080,period=10s,failure-threshold=48 \
+            --memory 4Gi \
+            --cpu 2 \
+            --cpu-boost \
+            --startup-probe tcpSocket.port=8080,periodSeconds=10,failureThreshold=24 \
             --add-volume name=models,type=cloud-storage,bucket=${{ vars.GCS_BUCKET }} \
             --add-volume-mount volume=models,mount-path=/models \
-            --set-env-vars "CONFIG_PATH=/models/models/config.yaml,MODEL_PATH=/models/models/best_model.ckpt"
+            --set-env-vars "CONFIG_PATH=/models/models/config.yaml,MODEL_PATH=/models/models/best_model.pt"

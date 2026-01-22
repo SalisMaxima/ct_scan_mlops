@@ -89,18 +89,18 @@ will check the repositories and the code to verify your answers.
 * [x] Create a trigger workflow for automatically building your docker images (M21)
 * [x] Get your model training in GCP using either the Engine or Vertex AI (M21)
 * [x] Create a FastAPI application that can do inference using your model (M22)
-* [ ] Deploy your model in GCP using either Functions or Run as the backend (M23)
+* [x] Deploy your model in GCP using either Functions or Run as the backend (M23)
 * [x] Write API tests for your application and setup continues integration for these (M24)
 * [x] Load test your application (M24)
 * [x] Create a more specialized ML-deployment API using either ONNX or BentoML, or both (M25)
-* [ ] Create a frontend for your API (M26)
+* [x] Create a frontend for your API (M26)
 
 ### Week 3
 
-* [ ] Check how robust your model is towards data drifting (M27)
-* [ ] Setup collection of input-output data from your deployed application (M27)
-* [ ] Deploy to the cloud a drift detection API (M27)
-* [ ] Instrument your API with a couple of system metrics (M28)
+* [x] Check how robust your model is towards data drifting (M27)
+* [x] Setup collection of input-output data from your deployed application (M27)
+* [x] Deploy to the cloud a drift detection API (M27)
+* [x] Instrument your API with a couple of system metrics (M28)
 * [ ] Setup cloud monitoring of your instrumented application (M28)
 * [ ] Create one or more alert systems in GCP to alert you if your app is not behaving correctly (M28)
 * [ ] If applicable, optimize the performance of your data loading using distributed data loading (M29)
@@ -129,7 +129,7 @@ will check the repositories and the code to verify your answers.
 > **Enter the study number for each member in the group**
 >
 >
-> Answer: s243924, sXXXXXX, sXXXXXX, sXXXXXX
+> Answer: s243924, s204696, s253810, s250989
 
 --- question 2 fill here ---
 
@@ -143,7 +143,7 @@ will check the repositories and the code to verify your answers.
 > *We used the third-party framework ... in our project. We used functionality ... and functionality ... from the*
 > *package to do ... and ... in our project*.
 >
-> Answer:
+> Answer: We used uv for dependency and environment management instead of the traditional pip and requirements.txt workflow. For monitoring and observability, we integrated prometheus-fastapi-instrumentator together with psutil to instrument our FastAPI application with HTTP-level metrics and system-level metrics such as CPU usage, memory usage, and process RSS. Additionally, we used Weights & Biases (wandb) for experiment tracking. While experiment tracking is discussed conceptually in the course, W&B enabled us to log metrics, hyperparameters, and training artifacts, visualize learning curves, and compare experiments across runs and team members, significantly improving experiment management and reproducibility.
 
 --- question 3 fill here ---
 
@@ -163,12 +163,9 @@ will check the repositories and the code to verify your answers.
 > *We used ... for managing our dependencies. The list of dependencies was auto-generated using ... . To get a*
 > *complete copy of our development environment, one would have to run the following commands*
 >
-> Answer: Our repository manages all project dependencies using uv, with pyproject.toml and uv.lock as the core configuration files. The pyproject.toml file defines our intended dependencies while uv.lock pins the exact versions of every dependency and transitive dependency. This should ensure full reproducibility across machines, CI and deployment. A new team member can get an exact copy of the development environment by following these steps:
-Install Python (matching the version specified in the project, e.g. via .python-version).
-Install uv.
-Clone the repository.
-Run uv sync.
-> The uv sync command creates a local virtual environment and installs dependencies exactly as specified in uv.lock. Because uv.lock is committed to the repository, every team member and CI job installs identical package versions.
+> Answer: We managed dependencies using uv together with pyproject.toml and uv.lock, following the course’s emphasis on reproducibility and environment consistency. The pyproject.toml file specifies the intended dependencies of the project, including runtime, development, and optional groups, while uv.lock pins the exact versions of all direct and transitive dependencies. This ensures that the same environment can be reproduced across different machines, operating systems, CI pipelines, and deployment targets.
+>
+>  To obtain an exact copy of the development environment, a new team member would first install a compatible Python version (as specified in the project) and then install uv. After cloning the repository, they simply run uv sync. This command creates a local virtual environment and installs dependencies exactly as defined in uv.lock. Because the lock file is committed to version control, every team member and automated workflow installs identical package versions. This setup minimizes “works on my machine” issues and aligns well with the course material on package management, reproducibility, and reliable software development practices.
 
 --- question 4 fill here ---
 
@@ -184,7 +181,9 @@ Run uv sync.
 > *because we did not use any ... in our project. We have added an ... folder that contains ... for running our*
 > *experiments.*
 >
-> Answer:
+> Answer:The project was initialized using the provided cookiecutter template, which gave us a standardized and well-organized project structure from the start. We filled out the core folders defined by the template, including the src directory for all source code, tests for unit tests, configs for configuration files, and reports for generated figures and experiment outputs. The main application logic, including training, evaluation, and inference code, lives inside the ct_scan_mlops package under src, following best practices for Python packaging discussed in the course.
+>
+> The project was initialized using the provided cookiecutter template, which gave us a standardized and well-organized project structure from the start. We filled out the core folders defined by the template, including the src directory for all source code, tests for unit tests, configs for configuration files, and reports for generated figures and experiment outputs. The main application logic, including training, evaluation, and inference code, lives inside the ct_scan_mlops package under src, following best practices for Python packaging discussed in the course.
 
 --- question 5 fill here ---
 
@@ -199,7 +198,11 @@ Run uv sync.
 > *We used ... for linting and ... for formatting. We also used ... for typing and ... for documentation. These*
 > *concepts are important in larger projects because ... . For example, typing ...*
 >
-> Answer:
+> Answer:Yes, we implemented several rules and tools to enforce code quality, formatting, typing, and documentation. For code quality and formatting, we used ruff, which acted as both a linter and formatter. Ruff helped us enforce consistent code style, catch common bugs (such as unused imports or undefined variables), and apply best practices automatically across the codebase. We also integrated these checks into our development workflow and CI to ensure consistent quality over time.
+>
+> For typing, we made use of Python type hints throughout the code and configured mypy to perform static type checking. This helped catch type-related errors early and made function interfaces clearer for all team members. Documentation was handled through clear docstrings and inline comments, and we used tools such as mkdocs to generate project documentation where relevant.
+>
+> For typing, we made use of Python type hints throughout the code and configured mypy to perform static type checking. This helped catch type-related errors early and made function interfaces clearer for all team members. Documentation was handled through clear docstrings and inline comments, and we used tools such as mkdocs to generate project documentation where relevant.
 
 --- question 6 fill here ---
 
@@ -218,7 +221,7 @@ Run uv sync.
 > *In total we have implemented X tests. Primarily we are testing ... and ... as these the most critical parts of our*
 > *application but also ... .*
 >
-> Answer:
+> Answer: In total, we have implemented 86 tests. The tests cover critical components of the system including data preprocessing and loading, model architecture, training logic, evaluation metrics, configuration handling and the API layer. We included sanity checks ensuring that models can learn by overfittinga single batch, verified correct behaviour of Hydra configuration overrides, and tested the training and evaluation pipeline end-to-end using synthetic data. Additionally, we implemented API tests for the FastAPI endpoints, including health checks, prediction behavior, and error handling. All tests are CI-friendly and do not rely on external datasets, ensuring that they run in automated workflows.
 
 --- question 7 fill here ---
 
@@ -233,7 +236,9 @@ Run uv sync.
 > *The total code coverage of code is X%, which includes all our source code. We are far from 100% coverage of our **
 > *code and even if we were then...*
 >
-> Answer:
+> Answer: We measure code coverage using pytest-cov as part of our testing workflow. The exact total coverage percentage depends on the latest CI run, but it can be reproduced locally by running: uv run pytest --cov=ct_scan_mlops --cov-report=term-missing giving a total of 34% code coverage.
+>
+> Even if our code coverage were 100% (or close to it), we would not consider the project error-free. Coverage only tells us which lines of code were executed during tests, not whether the tests meaningfully validate correctness or cover edge cases. For example, a test can execute a function without checking that its outputs are correct, and coverage would still increase. Additionally, integration issues (e.g., data formats, deployment configuration, cloud permissions) and runtime failures can occur even when all code paths are technically “covered.” High coverage is useful as a quality signal, but it must be combined with good test assertions, realistic test cases, and testing of failure modes to build confidence in correctness.
 
 --- question 8 fill here ---
 
@@ -248,7 +253,11 @@ Run uv sync.
 > *We made use of both branches and PRs in our project. In our group, each member had an branch that they worked on in*
 > *addition to the main branch. To merge code we ...*
 >
-> Answer:
+> Answer:Our workflow made use of both branches and pull requests throughout the project. Even if our code coverage were 100% (or close to it), we would not consider the project error-free. Coverage only tells us which lines of code were executed during tests, not whether the tests meaningfully validate correctness or cover edge cases. For example, a test can execute a function without checking that its outputs are correct, and coverage would still increase. Additionally, integration issues (e.g., data formats, deployment configuration, cloud permissions) and runtime failures can occur even when all code paths are technically “covered.” High coverage is useful as a quality signal, but it must be combined with good test assertions, realistic test cases, and testing of failure modes to build confidence in correctness.
+>
+> When a feature or fix was ready, it was merged into the main branch using a pull request. Pull requests provided an opportunity for review and discussion before code was integrated, helping us catch errors early and maintain a consistent code style. They also ensured that all relevant CI checks, such as unit tests and linting, were run automatically before merging. This reduced the risk of introducing breaking changes into the main branch.
+>
+> Overall, using branches and pull requests improved collaboration, code quality, and traceability. It allowed us to keep the main branch stable while still enabling rapid and structured development, which is especially important in larger or collaborative software projects.
 
 --- question 9 fill here ---
 
@@ -263,7 +272,9 @@ Run uv sync.
 > *We did make use of DVC in the following way: ... . In the end it helped us in ... for controlling ... part of our*
 > *pipeline*
 >
-> Answer:
+> Answer: Yes, we used DVC to manage data and model artifacts in our project. Our datasets and trained model outputs were tracked using DVC, while the actual data files were stored remotely in a Google Cloud Storage bucket. This allowed us to keep the Git repository lightweight while still having full version control over large files.
+>
+> Using DVC improved the project by enabling us to associate specific versions of the data and trained models with particular Git commits. This made experiments more reproducible, as we could always retrieve the exact data and model artifacts used for a given experiment. It also simplified collaboration, since team members could pull the correct data versions without manually sharing files. Overall, DVC helped us manage data consistently across local development, cloud training, and deployment, and reduced the risk of training models on mismatched or undocumented datasets.
 
 --- question 10 fill here ---
 
