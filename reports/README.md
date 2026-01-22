@@ -221,7 +221,7 @@ will check the repositories and the code to verify your answers.
 > *In total we have implemented X tests. Primarily we are testing ... and ... as these the most critical parts of our*
 > *application but also ... .*
 >
-> Answer:
+> Answer: In total, we have implemented 86 tests. The tests cover critical components of the system including data preprocessing and loading, model architecture, training logic, evaluation metrics, configuration handling and the API layer. We included sanity checks ensuring that models can learn by overfittinga single batch, verified correct behaviour of Hydra configuration overrides, and tested the training and evaluation pipeline end-to-end using synthetic data. Additionally, we implemented API tests for the FastAPI endpoints, including health checks, prediction behavior, and error handling. All tests are CI-friendly and do not rely on external datasets, ensuring that they run in automated workflows.
 
 --- question 7 fill here ---
 
@@ -236,7 +236,9 @@ will check the repositories and the code to verify your answers.
 > *The total code coverage of code is X%, which includes all our source code. We are far from 100% coverage of our **
 > *code and even if we were then...*
 >
-> Answer:
+> Answer: We measure code coverage using pytest-cov as part of our testing workflow. The exact total coverage percentage depends on the latest CI run, but it can be reproduced locally by running: uv run pytest --cov=ct_scan_mlops --cov-report=term-missing giving a total of 34% code coverage.
+>
+> Even if our code coverage were 100% (or close to it), we would not consider the project error-free. Coverage only tells us which lines of code were executed during tests, not whether the tests meaningfully validate correctness or cover edge cases. For example, a test can execute a function without checking that its outputs are correct, and coverage would still increase. Additionally, integration issues (e.g., data formats, deployment configuration, cloud permissions) and runtime failures can occur even when all code paths are technically “covered.” High coverage is useful as a quality signal, but it must be combined with good test assertions, realistic test cases, and testing of failure modes to build confidence in correctness.
 
 --- question 8 fill here ---
 
@@ -251,7 +253,11 @@ will check the repositories and the code to verify your answers.
 > *We made use of both branches and PRs in our project. In our group, each member had an branch that they worked on in*
 > *addition to the main branch. To merge code we ...*
 >
-> Answer:
+> Answer:Our workflow made use of both branches and pull requests throughout the project. Even if our code coverage were 100% (or close to it), we would not consider the project error-free. Coverage only tells us which lines of code were executed during tests, not whether the tests meaningfully validate correctness or cover edge cases. For example, a test can execute a function without checking that its outputs are correct, and coverage would still increase. Additionally, integration issues (e.g., data formats, deployment configuration, cloud permissions) and runtime failures can occur even when all code paths are technically “covered.” High coverage is useful as a quality signal, but it must be combined with good test assertions, realistic test cases, and testing of failure modes to build confidence in correctness.
+>
+> When a feature or fix was ready, it was merged into the main branch using a pull request. Pull requests provided an opportunity for review and discussion before code was integrated, helping us catch errors early and maintain a consistent code style. They also ensured that all relevant CI checks, such as unit tests and linting, were run automatically before merging. This reduced the risk of introducing breaking changes into the main branch.
+>
+> Overall, using branches and pull requests improved collaboration, code quality, and traceability. It allowed us to keep the main branch stable while still enabling rapid and structured development, which is especially important in larger or collaborative software projects.
 
 --- question 9 fill here ---
 
@@ -266,7 +272,9 @@ will check the repositories and the code to verify your answers.
 > *We did make use of DVC in the following way: ... . In the end it helped us in ... for controlling ... part of our*
 > *pipeline*
 >
-> Answer:
+> Answer: Yes, we used DVC to manage data and model artifacts in our project. Our datasets and trained model outputs were tracked using DVC, while the actual data files were stored remotely in a Google Cloud Storage bucket. This allowed us to keep the Git repository lightweight while still having full version control over large files.
+>
+> Using DVC improved the project by enabling us to associate specific versions of the data and trained models with particular Git commits. This made experiments more reproducible, as we could always retrieve the exact data and model artifacts used for a given experiment. It also simplified collaboration, since team members could pull the correct data versions without manually sharing files. Overall, DVC helped us manage data consistently across local development, cloud training, and deployment, and reduced the risk of training models on mismatched or undocumented datasets.
 
 --- question 10 fill here ---
 
