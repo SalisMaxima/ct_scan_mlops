@@ -143,7 +143,7 @@ will check the repositories and the code to verify your answers.
 > *We used the third-party framework ... in our project. We used functionality ... and functionality ... from the*
 > *package to do ... and ... in our project*.
 >
-> Answer: We used uv for dependency and environment management instead of the traditional pip and requirements.txt workflow. For monitoring and observability, we integrated prometheus-fastapi-instrumentator together with psutil to instrument our FastAPI application with HTTP-level metrics and system-level metrics such as CPU usage, memory usage, and process RSS. We used Streamlit to build an interactive frontend for our API, allowing users to upload CT scan images and receive predictions through a web interface. Additionally, we used albumentations for advanced image augmentation during training, and timm (PyTorch Image Models) to access pretrained ResNet architectures with optimized implementations.
+> Answer: We used uv for dependency and environment management instead of the traditional pip and requirements.txt workflow. For monitoring and observability, we integrated prometheus-fastapi-instrumentator together with psutil to instrument our FastAPI application with HTTP-level metrics and system-level metrics such as CPU usage, memory usage, and process RSS. We used Streamlit to build an interactive frontend for our API, allowing users to upload CT scan images and receive predictions through a web interface.
 
 --- question 3 fill here ---
 
@@ -198,8 +198,7 @@ will check the repositories and the code to verify your answers.
 >
 > Answer: Yes, we implemented several rules and tools for code quality. For linting and formatting, we used Ruff, which enforces consistent style and catches common bugs like unused imports. We integrated Ruff into pre-commit hooks and CI for continuous enforcement. For typing, we used Python type hints with mypy for static type checking. Documentation was handled through docstrings and inline comments.
 >
-> These concepts matter in larger projects because they reduce friction when multiple developers work on the same codebase. Consistent formatting eliminates style debates in code reviews. Type hints serve as living documentation, making function interfaces explicit and catching type mismatches before runtime. Static analysis catches bugs early, before they reach production. In a team setting, these tools ensure that code from different contributors integrates smoothly, reducing debugging time and improving long-term maintainability.
-
+> These concepts matter in larger projects because they give guardrails and tools to ensure multiple developers that work on the same codebase will produce consistent formatting of code. Consistent formatting eliminates discussions about code style in code reviews. Type hints helps serve as a built in documentation, making function interfaces explicit and catching type mismatches before runtime. Static analysis tools like ruff and mypy catches bugs early, before they reach production. We found that especially ruff was very helpful in keeping our different code writing styles aligned and catching common python mistakes. It definitely saved us a lot of time.
 --- question 6 fill here ---
 
 ## Version control
@@ -234,7 +233,7 @@ will check the repositories and the code to verify your answers.
 >
 > Answer: We measure code coverage using pytest-cov as part of our testing workflow. The exact total coverage percentage depends on the latest CI run, but it can be reproduced locally by running: uv run pytest --cov=ct_scan_mlops --cov-report=term-missing giving a total of 34% code coverage.
 >
-> Even if our code coverage were 100% (or close to it), we would not consider the project error-free. Coverage only tells us which lines of code were executed during tests, not whether the tests meaningfully validate correctness or cover edge cases. For example, a test can execute a function without checking that its outputs are correct, and coverage would still increase. Additionally, integration issues (e.g., data formats, deployment configuration, cloud permissions) and runtime failures can occur even when all code paths are technically “covered.” High coverage is useful as a quality signal, but it must be combined with good test assertions, realistic test cases, and testing of failure modes to build confidence in correctness.
+> Even if our code coverage were 100% (or close to it), we would not consider the project error-free. Coverage only tells us which lines of code were executed during tests, not whether the tests meaningfully validate correctness or cover edge cases. For example, a test can execute a function without checking that its outputs are correct, and coverage would still increase. Additionally, integration issues (e.g., data formats, deployment configuration, cloud permissions) and runtime failures can occur even when all code paths are technically “covered". In general we found that most bugs were not found in unit test because the bugs were from complex integrations of multiple parts of our codebase and often also when dealing with multiple platforms such as wandb and google cloud service in the same workflow.
 
 --- question 8 fill here ---
 
@@ -249,7 +248,7 @@ will check the repositories and the code to verify your answers.
 > *We made use of both branches and PRs in our project. In our group, each member had an branch that they worked on in*
 > *addition to the main branch. To merge code we ...*
 >
-> Answer: Our workflow made use of both branches and pull requests throughout the project. Each team member worked on feature branches for new functionality or bug fixes, keeping the main branch stable. When a feature was ready, it was merged via a pull request. PRs provided opportunities for code review and discussion, helping catch errors early and maintain consistent code style. All relevant CI checks (unit tests, linting, Docker builds) ran automatically before merging, reducing the risk of breaking changes. This approach improved collaboration, code quality, and traceability, allowing rapid yet structured development across the team.
+> Answer: Our workflow used both branches and pull requests. Each team member worked on feature branches to keep the main branch stable. When a feature was ready, it was merged via a PR, which enabled review and discussion and helped catch issues early. All CI checks (unit tests, linting, Docker builds) ran before merging to reduce the risk of breaking changes. We also enabled automatic Copilot code review on PRs; its “outsider” perspective helped pointing out unintentional bugs and architecture issues. We found that this approach improved collaboration and code quality.
 
 --- question 9 fill here ---
 
