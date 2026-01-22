@@ -37,15 +37,20 @@ MODEL_PATH_ENV = os.environ.get("MODEL_PATH")
 
 
 def resolve_model_path() -> Path:
-    """Resolve model path with .ckpt preferred, .pt as fallback.
+    """Resolve model path with .pt preferred for security, .ckpt as fallback.
+
+    Production deployments should use .pt files which can be loaded securely
+    with weights_only=True. The .ckpt format is kept as fallback for development.
 
     Env var MODEL_PATH takes precedence when set.
     """
     if MODEL_PATH_ENV:
         return Path(MODEL_PATH_ENV)
-    if DEFAULT_CKPT_PATH.exists():
-        return DEFAULT_CKPT_PATH
-    return DEFAULT_PT_PATH
+    # Prefer .pt for secure loading (production)
+    if DEFAULT_PT_PATH.exists():
+        return DEFAULT_PT_PATH
+    # Fallback to .ckpt (development/legacy)
+    return DEFAULT_CKPT_PATH
 
 
 def load_config(cfg_path: Path) -> DictConfig:
@@ -148,9 +153,27 @@ async def lifespan(_app: FastAPI):
     cfg = load_config(CONFIG_PATH)
     model = build_model(cfg)
 
-    state = torch.load(model_path, map_location="cpu", weights_only=True)
+    # Load model weights securely with weights_only=True
+    try:
+        if model_path.suffix == ".pt":
+            logger.info("Loading inference-ready .pt weights (secure mode)")
+        else:
+            logger.info("Loading .ckpt checkpoint with secure loading (weights_only=True)")
+        state = torch.load(model_path, map_location="cpu", weights_only=True)
+    except Exception as e:
+        logger.error(
+            "Failed to load model weights with weights_only=True: %s. "
+            "Please convert checkpoint to .pt format using promote_model.convert_ckpt_to_pt()",
+            e,
+        )
+        raise RuntimeError(
+            f"Cannot load model from {model_path}. Use convert_ckpt_to_pt() to create a .pt file."
+        ) from e
+
+    # Handle PyTorch Lightning checkpoint structure
     if isinstance(state, dict) and "state_dict" in state:
         state = state["state_dict"]
+    # Remove "model." prefix if present (added by LightningModule wrapper)
     if isinstance(state, dict) and all(k.startswith("model.") for k in state):
         state = {k.replace("model.", "", 1): v for k, v in state.items()}
     model.load_state_dict(state)
