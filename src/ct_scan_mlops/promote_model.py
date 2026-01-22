@@ -17,6 +17,7 @@ import torch
 import wandb
 from loguru import logger
 from omegaconf import OmegaConf
+from omegaconf.dictconfig import DictConfig
 
 
 def convert_ckpt_to_pt(ckpt_path: Path, pt_path: Path) -> None:
@@ -42,7 +43,8 @@ def convert_ckpt_to_pt(ckpt_path: Path, pt_path: Path) -> None:
 
     # Try secure loading first with weights_only=True
     try:
-        checkpoint = torch.load(ckpt_path, map_location="cpu", weights_only=True)
+        with torch.serialization.safe_globals([DictConfig]):
+            checkpoint = torch.load(ckpt_path, map_location="cpu", weights_only=True)
         logger.info("Loaded checkpoint with secure mode (weights_only=True)")
     except Exception as e:
         logger.error(
