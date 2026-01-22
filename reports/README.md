@@ -494,7 +494,7 @@ will check the repositories and the code to verify your answers.
 > *For unit testing we used ... and for load testing we used ... . The results of the load testing showed that ...*
 > *before the service crashed.*
 >
-> Answer: Yes, we performed unit testing and set up load testing infrastructure. For unit testing, we use pytest with FastAPI's TestClient (`tests/test_api.py`). Tests cover the health endpoint, prediction endpoint with valid and invalid images, feedback submission with correct and incorrect predictions, and error handling when the model is not loaded. We use mock models to isolate tests from actual model files. For load testing, we implemented a Locust configuration (`tests/locustfile.py`). The ApiUser class simulates realistic user behavior with weighted tasks: health checks (weight 5) and predictions (weight 1) with random 0.5-2.0 second wait times. To run load tests: `locust -f tests/locustfile.py --host=http://localhost:8000`, which opens a web UI to configure concurrent users and monitor response times, throughput, and failure rates. While we set up the infrastructure, we did not conduct formal load testing with recorded metrics.
+> Answer: Yes. For unit testing we use pytest with FastAPI’s TestClient in [tests/test_api.py](tests/test_api.py). Tests cover `/health`, `/predict` with valid/invalid images, `/feedback`, and error handling when the model is not loaded; mock models isolate tests from real checkpoints. For load testing we use Locust in [tests/locustfile.py](tests/locustfile.py). The `ApiUser` simulates real usage by uploading a sample PNG to `/predict` (weight 2) and checking `/health` (weight 5) with 0.5–2 s think time. The `StressTestShape` is more aggressive, ramping 100→250→400→600→800 users before cool-down. The latest stress run produced 19,616 total requests (14,007 `/health`, 5,609 `/predict`) at ~190.28 RPS with 0 failures. Aggregate latency was 945 ms average, 470 ms median, p95 ≈ 3,000 ms, p99 ≈ 3,500 ms, with max 6,268 ms. It was a bit surprising that we saw zero failures, because the ramp was very aggressive and the service was under heavy load. But it still makes sense since the API kept responding by queuing work and stretching tail latency instead of dropping requests.
 
 --- question 25 fill here ---
 
@@ -546,7 +546,7 @@ will check the repositories and the code to verify your answers.
 > *We implemented a frontend for our API. We did this because we wanted to show the user ... . The frontend was*
 > *implemented using ...*
 >
-> Answer: We implemented several extra features beyond the core requirements. First, we built a Streamlit frontend (`src/ct_scan_mlops/frontend/`) that provides a user-friendly interface for uploading CT scan images and viewing predictions, with the ability to submit feedback on whether predictions were correct.
+> Answer: We implemented a deployable hosted frontend via Streamlit that connects to GCP with a user-friendly interface for uploading CT scan images. We also implemented the bandit security workflow and PI label workflow as automatic checks for pull requests in order to keep the codebase safe and well structured.
 
 --- question 28 fill here ---
 
@@ -579,7 +579,9 @@ will check the repositories and the code to verify your answers.
 > Example:
 > *The biggest challenges in the project was using ... tool to do ... . The reason for this was ...*
 >
-> Answer: [USER INPUT NEEDED: Please describe the main challenges your team faced during the project. Consider topics like: GCP setup and authentication issues, Docker debugging, CI/CD pipeline configuration, data handling with DVC, W&B integration, Cloud Run deployment challenges, team coordination, time management, etc. This should be 200-400 words. Example format: "The biggest challenge was setting up GCP authentication for GitHub Actions because... We also struggled with... To overcome this we... Another significant challenge was..."]
+> Answer: One of the biggest challenges in the project was working with Google Cloud Platform and deploying our API in a cloud environment. This was mainly due to a multitude of factors such as authentication, permissions, container images, environment variables and service configurations, with small misconfigurations ending in failures that were difficult to diagnose.
+
+A particular time-consuming aspect was deploying the FastAPI-based inference service, with tasks such as ensuring the container complies with Cloud Run requirements being particularly tricky with multiple iterations being needed. In addition, integrating model artifacts stored in Google Could Storage introduced challenges related to service account permissions and runtime configuration. To fix these issues. Debugging these issues often involved examining Cloud Run logs, adjusting Dockerfiles and refining startup logic in the API.
 
 --- question 30 fill here ---
 
