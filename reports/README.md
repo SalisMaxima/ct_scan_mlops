@@ -248,7 +248,7 @@ will check the repositories and the code to verify your answers.
 > *We made use of both branches and PRs in our project. In our group, each member had an branch that they worked on in*
 > *addition to the main branch. To merge code we ...*
 >
-> Answer: Our workflow used both branches and pull requests. Each team member worked on feature branches to keep the main branch stable. When a feature was ready, it was merged via a PR, which enabled review and discussion and helped catch issues early. All CI checks (unit tests, linting, Docker builds) ran before merging to reduce the risk of breaking changes. We also enabled automatic Copilot code review on PRs; its “outsider” perspective helped pointing out unintentional bugs and architecture issues. We found that this approach improved collaboration and code quality.
+> Answer: Our workflow used both branches and pull requests. Each team member worked on feature branches to keep the main branch stable. When a feature was ready, it was merged via a PR, which enabled review and discussion and helped catch issues early. All CI checks (unit tests, linting, Docker builds) ran before merging to reduce the risk of breaking changes. We also enabled automatic Copilot code review on PRs and its “outsider” perspective helped pointing out unintentional bugs and architecture issues. We found that having to do PRs with checks and copilot review effectively forced us to not rush code development which helped us write a more sustainable codebase.
 
 --- question 9 fill here ---
 
@@ -263,9 +263,9 @@ will check the repositories and the code to verify your answers.
 > *We did make use of DVC in the following way: ... . In the end it helped us in ... for controlling ... part of our*
 > *pipeline*
 >
-> Answer: Yes, we used DVC to manage data and model artifacts in our project. Our datasets and trained model outputs were tracked using DVC, while the actual data files were stored remotely in a Google Cloud Storage bucket. This allowed us to keep the Git repository lightweight while still having full version control over large files.
+> Answer: Our dataset was static (Kaggle), so we did not use DVC for active data versioning. Instead, we used DVC mainly as storage and distribution for the preprocessed PyTorch tensor artifacts, while the underlying files lived in a Google Cloud Storage bucket. This kept the Git repository lightweight and let teammates fetch the same tensorized dataset without manual file sharing. Because the data did not change, the main benefit was reproducibility and collaboration: artifacts are tracked and tied to commits, ensuring identical inputs across local development, cloud training, and deployment.
 >
-> Using DVC improved the project by enabling us to associate specific versions of the data and trained models with particular Git commits. This made experiments more reproducible, as we could always retrieve the exact data and model artifacts used for a given experiment. It also simplified collaboration, since team members could pull the correct data versions without manually sharing files. Overall, DVC helped us manage data consistently across local development, cloud training, and deployment, and reduced the risk of training models on mismatched or undocumented datasets.
+> A realistic case where data version control would matter is if we start ingesting CT scans from newer equipment, which can shift intensity distributions and preprocessing outputs. Another case is when class proportions change (e.g., more cancer positives in a new cohort). In both situations, versioning the data would allow us to compare model performance across datasets, reproduce results, and roll back if needed.
 
 --- question 10 fill here ---
 
@@ -527,9 +527,9 @@ will check the repositories and the code to verify your answers.
 > *Group member 1 used ..., Group member 2 used ..., in total ... credits was spend during development. The service*
 > *costing the most was ... due to ... . Working in the cloud was ...*
 >
-> Our group used a total of $26.78 in GCP credits during the project. The most expensive service was Artifact Registry, which accounted for $26.73 of the total spend. This cost was driven almost entirely by Network Internet Egress charges, resulting from frequent rebuilds and reuploads of our docker builds. Other services like Cloud Run ($0.04) and Cloud Storage ($0.02) incurred negligible costs .
-
-In general, working in the cloud was by far the biggest time consumer of all our project tasks. It was very challenging to navigate GCP, understand all its subparts, and manage the necessary permissions. Once configured, we did see the value in the automatic scaling and managed infrastructure, but all of us agreed that the UI was very confusing for GCP and that it was difficult to learn.
+> Answer: Our group used a total of $26.78 in GCP credits during the project. The most expensive service was Artifact Registry, which accounted for $26.73 of the total spend. This cost was driven almost entirely by Network Internet Egress charges, resulting from frequent rebuilds and reuploads of our docker builds. Other services like Cloud Run ($0.04) and Cloud Storage ($0.02) incurred negligible costs.
+>
+> In general, working in the cloud was by far the biggest time consumer of all our project tasks. It was very challenging to navigate GCP, understand all its subparts, and manage the necessary permissions. Once configured, we did see the value in the automatic scaling and managed infrastructure, but all of us agreed that the UI was very confusing for GCP and that it was difficult to learn.
 
 --- question 27 fill here ---
 
