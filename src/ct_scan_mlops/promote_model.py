@@ -98,8 +98,13 @@ def promote_to_production(model_path: str, project: str) -> None:
         artifact_name = artifact.name.split(":")[0]  # Remove version/alias
 
         # Link to model registry with production alias
-        # This adds the 'production' alias to the artifact
-        run.link_artifact(artifact, target_path=f"model-registry/{artifact_name}", aliases=["production"])
+        # UPDATE: Changed target_path to support new W&B Registry (Core)
+        # "wandb-registry-model" is the default registry name after migration.
+        # If your registry is named differently, update "model" below.
+        target_path = f"wandb-registry-model/{artifact_name}"
+
+        logger.info(f"Linking to registry path: {target_path}")
+        run.link_artifact(artifact, target_path=target_path, aliases=["production"])
 
         logger.success("Model promoted to production!")
         logger.info(f"  - Artifact: {artifact.name}")
