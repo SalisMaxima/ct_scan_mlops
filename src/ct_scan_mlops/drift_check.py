@@ -11,33 +11,22 @@ from pandas.errors import EmptyDataError
 
 def _load_csv(path: Path) -> pd.DataFrame:
     if not path.exists():
-        raise FileNotFoundError(
-            f"CSV not found: {path}\n"
-            f"Tip: generate it first (e.g. with an image-stats script)."
-        )
+        raise FileNotFoundError(f"CSV not found: {path}\nTip: generate it first (e.g. with an image-stats script).")
 
     if path.stat().st_size == 0:
-        raise ValueError(
-            f"CSV is empty (0 bytes): {path}\n"
-            f"Tip: you created the file but never wrote rows to it."
-        )
+        raise ValueError(f"CSV is empty (0 bytes): {path}\nTip: you created the file but never wrote rows to it.")
 
     try:
         df = pd.read_csv(path)
     except EmptyDataError as e:
         raise ValueError(
-            f"CSV has no readable columns: {path}\n"
-            f"Tip: ensure the file has a header row and at least one data row."
+            f"CSV has no readable columns: {path}\nTip: ensure the file has a header row and at least one data row."
         ) from e
 
     if df.empty:
-        raise ValueError(
-            f"CSV has headers but no rows: {path}\n"
-            f"Tip: your extraction ran but produced zero samples."
-        )
+        raise ValueError(f"CSV has headers but no rows: {path}\nTip: your extraction ran but produced zero samples.")
 
     return df
-
 
 
 def run_drift(reference_csv: Path, current_csv: Path, out_html: Path) -> None:
@@ -49,10 +38,7 @@ def run_drift(reference_csv: Path, current_csv: Path, out_html: Path) -> None:
     cur_num = cur.select_dtypes(include="number")
 
     if ref_num.shape[1] == 0:
-        raise ValueError(
-            f"No numeric columns found in reference CSV: {reference_csv}\n"
-            f"Columns: {list(ref.columns)}"
-        )
+        raise ValueError(f"No numeric columns found in reference CSV: {reference_csv}\nColumns: {list(ref.columns)}")
 
     # Align columns (in case one CSV has extra columns)
     common_cols = [c for c in ref_num.columns if c in cur_num.columns]

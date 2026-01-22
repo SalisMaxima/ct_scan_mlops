@@ -18,8 +18,7 @@ def iter_images(root: Path):
 
 def image_to_array(path: Path) -> np.ndarray:
     img = Image.open(path).convert("L")
-    arr = np.asarray(img, dtype=np.float32)
-    return arr
+    return np.asarray(img, dtype=np.float32)
 
 
 def compute_stats(arr: np.ndarray) -> dict:

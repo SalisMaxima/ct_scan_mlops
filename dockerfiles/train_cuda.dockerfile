@@ -90,5 +90,5 @@ COPY --from=builder /app/artifacts/ /app/artifacts/
 ENV PATH="/app/.venv/bin:$PATH"
 ENV PYTHONUNBUFFERED=1
 
-ENTRYPOINT ["bash", "-c", "dvc pull -v && exec uv run --frozen python -u -m ct_scan_mlops.train \"$@\"", "--"]
+ENTRYPOINT ["bash", "-c", "if [ -d .git ]; then dvc pull -v; else echo 'Skipping dvc pull (no git repo)'; fi && exec uv run --frozen python -u -m ct_scan_mlops.train \"$@\"", "--"]
 CMD []

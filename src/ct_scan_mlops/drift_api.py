@@ -7,12 +7,10 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
+from evidently.legacy.metric_preset import DataDriftPreset, DataQualityPreset
+from evidently.legacy.report import Report
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-
-from evidently.legacy.report import Report
-from evidently.legacy.metric_preset import DataDriftPreset, DataQualityPreset
-
 
 DEFAULT_DRIFT_DIR = Path("data") / "drift"
 REFERENCE_PATH = Path(os.environ.get("DRIFT_REFERENCE_PATH", str(DEFAULT_DRIFT_DIR / "reference.csv")))
@@ -77,7 +75,6 @@ def _extract_drift_summary(report_dict: dict[str, Any]) -> dict[str, Any]:
         "number_of_columns": n_cols,
         "number_of_drifted_columns": n_drifted,
     }
-
 
 
 class DriftResponse(BaseModel):
