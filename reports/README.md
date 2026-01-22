@@ -143,7 +143,7 @@ will check the repositories and the code to verify your answers.
 > *We used the third-party framework ... in our project. We used functionality ... and functionality ... from the*
 > *package to do ... and ... in our project*.
 >
-> Answer: We used uv for dependency and environment management instead of the traditional pip and requirements.txt workflow. For monitoring and observability, we integrated prometheus-fastapi-instrumentator together with psutil to instrument our FastAPI application with HTTP-level metrics and system-level metrics such as CPU usage, memory usage, and process RSS. Additionally, we used Weights & Biases (wandb) for experiment tracking. While experiment tracking is discussed conceptually in the course, W&B enabled us to log metrics, hyperparameters, and training artifacts, visualize learning curves, and compare experiments across runs and team members, significantly improving experiment management and reproducibility.
+> Answer: We used uv for dependency and environment management instead of the traditional pip and requirements.txt workflow. For monitoring and observability, we integrated prometheus-fastapi-instrumentator together with psutil to instrument our FastAPI application with HTTP-level metrics and system-level metrics such as CPU usage, memory usage, and process RSS. We used Streamlit to build an interactive frontend for our API, allowing users to upload CT scan images and receive predictions through a web interface. Additionally, we used albumentations for advanced image augmentation during training, and timm (PyTorch Image Models) to access pretrained ResNet architectures with optimized implementations.
 
 --- question 3 fill here ---
 
@@ -181,9 +181,7 @@ will check the repositories and the code to verify your answers.
 > *because we did not use any ... in our project. We have added an ... folder that contains ... for running our*
 > *experiments.*
 >
-> Answer:The project was initialized using the provided cookiecutter template, which gave us a standardized and well-organized project structure from the start. We filled out the core folders defined by the template, including the src directory for all source code, tests for unit tests, configs for configuration files, and reports for generated figures and experiment outputs. The main application logic, including training, evaluation, and inference code, lives inside the ct_scan_mlops package under src, following best practices for Python packaging discussed in the course.
->
-> The project was initialized using the provided cookiecutter template, which gave us a standardized and well-organized project structure from the start. We filled out the core folders defined by the template, including the src directory for all source code, tests for unit tests, configs for configuration files, and reports for generated figures and experiment outputs. The main application logic, including training, evaluation, and inference code, lives inside the ct_scan_mlops package under src, following best practices for Python packaging discussed in the course.
+> Answer: The project was initialized using the provided cookiecutter template, which gave us a standardized project structure. We filled out the core folders: src for source code, tests for unit tests, configs for Hydra configuration files, and reports for figures and outputs. The main application logic lives inside the ct_scan_mlops package under src. We deviated from the template by adding a dockerfiles directory containing separate Dockerfiles for training (CPU and CUDA variants) and API serving. We also added a frontend subdirectory under src for our Streamlit web application. The data folder structure was adapted to work with DVC for version control. We removed the notebooks folder as we did not use Jupyter notebooks in our workflow.
 
 --- question 5 fill here ---
 
@@ -198,11 +196,9 @@ will check the repositories and the code to verify your answers.
 > *We used ... for linting and ... for formatting. We also used ... for typing and ... for documentation. These*
 > *concepts are important in larger projects because ... . For example, typing ...*
 >
-> Answer:Yes, we implemented several rules and tools to enforce code quality, formatting, typing, and documentation. For code quality and formatting, we used ruff, which acted as both a linter and formatter. Ruff helped us enforce consistent code style, catch common bugs (such as unused imports or undefined variables), and apply best practices automatically across the codebase. We also integrated these checks into our development workflow and CI to ensure consistent quality over time.
+> Answer: Yes, we implemented several rules and tools for code quality. For linting and formatting, we used Ruff, which enforces consistent style and catches common bugs like unused imports. We integrated Ruff into pre-commit hooks and CI for continuous enforcement. For typing, we used Python type hints with mypy for static type checking. Documentation was handled through docstrings and inline comments.
 >
-> For typing, we made use of Python type hints throughout the code and configured mypy to perform static type checking. This helped catch type-related errors early and made function interfaces clearer for all team members. Documentation was handled through clear docstrings and inline comments, and we used tools such as mkdocs to generate project documentation where relevant.
->
-> For typing, we made use of Python type hints throughout the code and configured mypy to perform static type checking. This helped catch type-related errors early and made function interfaces clearer for all team members. Documentation was handled through clear docstrings and inline comments, and we used tools such as mkdocs to generate project documentation where relevant.
+> These concepts matter in larger projects because they reduce friction when multiple developers work on the same codebase. Consistent formatting eliminates style debates in code reviews. Type hints serve as living documentation, making function interfaces explicit and catching type mismatches before runtime. Static analysis catches bugs early, before they reach production. In a team setting, these tools ensure that code from different contributors integrates smoothly, reducing debugging time and improving long-term maintainability.
 
 --- question 6 fill here ---
 
@@ -370,7 +366,7 @@ will check the repositories and the code to verify your answers.
 > *Debugging method was dependent on group member. Some just used ... and others used ... . We did a single profiling*
 > *run of our main code at some point that showed ...*
 >
-> Answer: Debugging approaches varied among team members. Some used print statements and loguru logging, while others used IDE debuggers in VS Code or PyCharm with breakpoints. We extensively use loguru throughout the codebase for structured logging with automatic file rotation and compression. For profiling, we integrated PyTorch Profiler directly into our training script. When enabled in the configuration (`train.profiling.enabled: true`), the profiler runs on the first batch of the first epoch, capturing CPU time per operation, tensor shapes, and call stacks. The output includes a summary table showing the most time-consuming operations and TensorBoard trace files in `artifacts/profiling/`. This helped us identify data loading as a bottleneck, leading us to optimize our DataLoader with proper num_workers settings. The profiler is automatically disabled during hyperparameter sweeps to avoid overhead.
+> Answer: Debugging approaches varied among team members. Some used print statements and loguru logging, while others used IDE debuggers in VS Code or PyCharm with breakpoints. We extensively use loguru throughout the codebase for structured logging with automatic file rotation and compression. For profiling, we integrated PyTorch Profiler directly into our training script. When enabled in the configuration (`train.profiling.enabled: true`), the profiler runs on the first batch of the first epoch, capturing CPU time per operation, tensor shapes, and call stacks. The output includes a summary table showing the most time-consuming operations and TensorBoard trace files in `artifacts/profiling/`. Profiling revealed that batch normalization consumed 63% of CPU time, followed by dropout at 15%, while convolutions were relatively efficient at 5%. This confirmed our model architecture was compute-bound rather than I/O-bound.
 
 --- question 16 fill here ---
 
@@ -402,7 +398,7 @@ will check the repositories and the code to verify your answers.
 > *We used the compute engine to run our ... . We used instances with the following hardware: ... and we started the*
 > *using a custom container: ...*
 >
-> Answer: We used Vertex AI rather than raw Compute Engine for model training. Our `train_vertex.yml` GitHub Actions workflow creates custom training jobs with configurable parameters: model architecture (CNN or ResNet18), number of epochs, W&B logging mode, and accelerator type. For CPU training, we use n1-standard-8 instances (8 vCPU, 30GB RAM). For GPU training, we add an NVIDIA Tesla T4 accelerator. The workflow builds a Docker image from our `train_cuda.dockerfile`, pushes it to Artifact Registry, then creates a Vertex AI custom job using the gcloud CLI. The container includes DVC support and automatically pulls training data from GCS before starting. W&B API keys are injected via GCP Secret Manager for secure experiment tracking. Job progress can be monitored through the Cloud Console.
+> Answer: We used Vertex AI for model training, which provisions Compute Engine VMs under the hood. Our `train_vertex.yml` GitHub Actions workflow creates custom training jobs with configurable parameters: model architecture (CNN or ResNet18), number of epochs, W&B logging mode, and accelerator type. For CPU training, Vertex AI provisions n1-standard-8 instances (8 vCPU, 30GB RAM). For GPU training, we add an NVIDIA Tesla T4 accelerator to the VM. The workflow builds a Docker image from our `train_cuda.dockerfile`, pushes it to Artifact Registry, then creates a Vertex AI custom job using the gcloud CLI. The container includes DVC support and automatically pulls training data from GCS before starting. W&B API keys are injected via GCP Secret Manager for secure experiment tracking.
 
 --- question 18 fill here ---
 
@@ -498,7 +494,7 @@ will check the repositories and the code to verify your answers.
 > *For unit testing we used ... and for load testing we used ... . The results of the load testing showed that ...*
 > *before the service crashed.*
 >
-> Answer: Yes, we performed both unit testing and load testing. For unit testing, we use pytest with FastAPI's TestClient (`tests/test_api.py`). Tests cover the health endpoint, prediction endpoint with valid and invalid images, feedback submission with correct and incorrect predictions, and error handling when the model is not loaded. We use mock models to isolate tests from actual model files. For load testing, we implemented a Locust configuration (`tests/locustfile.py`). The ApiUser class simulates realistic user behavior with weighted tasks: health checks (weight 5) and predictions (weight 1) with random 0.5-2.0 second wait times between requests. Running `locust -f tests/locustfile.py --host=http://localhost:8000` opens a web interface to configure concurrent users and observe response times, throughput, and failure rates under load.
+> Answer: Yes, we performed unit testing and set up load testing infrastructure. For unit testing, we use pytest with FastAPI's TestClient (`tests/test_api.py`). Tests cover the health endpoint, prediction endpoint with valid and invalid images, feedback submission with correct and incorrect predictions, and error handling when the model is not loaded. We use mock models to isolate tests from actual model files. For load testing, we implemented a Locust configuration (`tests/locustfile.py`). The ApiUser class simulates realistic user behavior with weighted tasks: health checks (weight 5) and predictions (weight 1) with random 0.5-2.0 second wait times. To run load tests: `locust -f tests/locustfile.py --host=http://localhost:8000`, which opens a web UI to configure concurrent users and monitor response times, throughput, and failure rates. While we set up the infrastructure, we did not conduct formal load testing with recorded metrics.
 
 --- question 25 fill here ---
 
@@ -532,7 +528,9 @@ will check the repositories and the code to verify your answers.
 > *Group member 1 used ..., Group member 2 used ..., in total ... credits was spend during development. The service*
 > *costing the most was ... due to ... . Working in the cloud was ...*
 >
-> Answer: [USER INPUT NEEDED: Please provide credit usage information per team member and identify which service was most expensive. Format: "Group member 1 (sXXXXXX) used X credits, Group member 2 used Y credits... The most expensive service was ... because ...". Also include your thoughts on working in the cloud - was it easy to set up? What were the benefits and drawbacks?]
+> Our group used a total of $26.78 in GCP credits during the project. The most expensive service was Artifact Registry, which accounted for $26.73 of the total spend. This cost was driven almost entirely by Network Internet Egress charges, resulting from frequent rebuilds and reuploads of our docker builds. Other services like Cloud Run ($0.04) and Cloud Storage ($0.02) incurred negligible costs .
+
+In general, working in the cloud was by far the biggest time consumer of all our project tasks. It was very challenging to navigate GCP, understand all its subparts, and manage the necessary permissions. Once configured, we did see the value in the automatic scaling and managed infrastructure, but all of us agreed that the UI was very confusing for GCP and that it was difficult to learn.
 
 --- question 27 fill here ---
 
@@ -548,7 +546,7 @@ will check the repositories and the code to verify your answers.
 > *We implemented a frontend for our API. We did this because we wanted to show the user ... . The frontend was*
 > *implemented using ...*
 >
-> Answer: We implemented several extra features beyond the core requirements. First, we built a Streamlit frontend (`src/ct_scan_mlops/frontend/`) that provides a user-friendly interface for uploading CT scan images and viewing predictions, with the ability to submit feedback on whether predictions were correct. Second, we implemented a comprehensive feedback collection system that stores user corrections for potential model retraining. Third, we set up W&B hyperparameter sweeps with Bayesian optimization to systematically explore the hyperparameter space. Fourth, we added data drift detection capabilities as indicated in the project checklist. The frontend connects to our FastAPI backend and displays real-time health status, prediction results, and allows users to correct misclassifications.
+> Answer: We implemented several extra features beyond the core requirements. First, we built a Streamlit frontend (`src/ct_scan_mlops/frontend/`) that provides a user-friendly interface for uploading CT scan images and viewing predictions, with the ability to submit feedback on whether predictions were correct. Second, we implemented a comprehensive feedback collection system that stores user corrections for potential model retraining. Third, we set up W&B hyperparameter sweeps with Bayesian optimization to systematically explore the hyperparameter space. Fourth, we started implementing data drift detection on a development branch, though this feature is still work-in-progress. The frontend connects to our FastAPI backend and displays real-time health status, prediction results, and allows users to correct misclassifications.
 
 --- question 28 fill here ---
 
