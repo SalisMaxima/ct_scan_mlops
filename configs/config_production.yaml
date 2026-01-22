@@ -1,0 +1,19 @@
+# Production inference config (explicit, no Hydra defaults)
+model:
+  name: resnet18
+  num_classes: 4
+  pretrained: true
+  freeze_backbone: false
+  timm_model: resnet18
+
+data:
+  image_size: 224
+  normalize:
+    mean: [0.485, 0.456, 0.406]
+    std: [0.229, 0.224, 0.225]
+
+# Optional metadata (not used by API but kept for completeness)
+seed: 42
+experiment_name: ct_scan_classifier
+paths:
+  models_dir: models

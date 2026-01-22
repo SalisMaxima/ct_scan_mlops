@@ -15,8 +15,9 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
 
-# Copy source code
+# Copy source code and configs
 COPY src/ src/
+COPY configs/ configs/
 
 # Install the project
 RUN --mount=type=cache,target=/root/.cache/uv \
@@ -30,17 +31,24 @@ WORKDIR /app
 # Copy virtual environment and source from builder
 COPY --from=builder /app/.venv /app/.venv
 COPY --from=builder /app/src /app/src
+# Copy configs
+COPY --from=builder /app/configs/config_production.yaml /app/configs/config.yaml
+
+# Set default config and model paths (can be overridden at runtime)
+ENV CONFIG_PATH="/app/configs/config.yaml"
+ENV MODEL_PATH="/app/models/model.pt"
 
 # Set PATH to use the virtual environment
 ENV PATH="/app/.venv/bin:$PATH"
 ENV PYTHONUNBUFFERED=1
 
 # NOTE: Models are no longer baked into this image.
-# They must be mounted at runtime, e.g.:
+# Mount model weights at runtime and optionally override config/model paths:
 #   docker run --rm -p 8000:8000 \
 #     -v /host/path/to/models:/app/models \
+#     -v /host/path/to/configs:/app/configs \
 #     your-image-name
-# Ensure that /host/path/to/models contains the required model files.
+# Ensure /host/path/to/models contains model.pt (or set MODEL_PATH accordingly).
 
 EXPOSE 8000
 

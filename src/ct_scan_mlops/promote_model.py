@@ -2,6 +2,9 @@
 
 Following DTU MLOps course CML patterns:
 https://skaftenicki.github.io/dtu_mlops/s5_continuous_integration/cml/
+
+This module also provides utilities to convert PyTorch Lightning checkpoints
+(.ckpt) to production-ready state dictionaries (.pt) for secure, fast loading.
 """
 
 from __future__ import annotations
@@ -10,9 +13,73 @@ import argparse
 import sys
 from pathlib import Path
 
+import torch
 import wandb
 from loguru import logger
 from omegaconf import OmegaConf
+
+
+def convert_ckpt_to_pt(ckpt_path: Path, pt_path: Path) -> None:
+    """Convert a PyTorch Lightning checkpoint to a clean state_dict file.
+
+    This strips optimizer states, scheduler states, and other training metadata
+    from the checkpoint, keeping only the model weights. The resulting .pt file
+    is smaller, loads faster, and can be loaded securely with weights_only=True.
+
+    Args:
+        ckpt_path: Path to the input .ckpt file (PyTorch Lightning checkpoint).
+        pt_path: Path where the output .pt file will be saved.
+
+    Raises:
+        FileNotFoundError: If the checkpoint file doesn't exist.
+        RuntimeError: If the checkpoint cannot be loaded or converted.
+    """
+    if not ckpt_path.exists():
+        msg = f"Checkpoint file not found: {ckpt_path}"
+        raise FileNotFoundError(msg)
+
+    logger.info(f"Loading checkpoint from {ckpt_path}")
+
+    # Try secure loading first with weights_only=True
+    try:
+        checkpoint = torch.load(ckpt_path, map_location="cpu", weights_only=True)
+        logger.info("Loaded checkpoint with secure mode (weights_only=True)")
+    except Exception as e:
+        logger.error(
+            f"Failed to load checkpoint with weights_only=True: {e}. "
+            "The checkpoint may contain non-tensor objects that cannot be loaded securely. "
+            "Ensure the checkpoint was created by our training pipeline."
+        )
+        raise RuntimeError(
+            f"Cannot load checkpoint from {ckpt_path} with secure loading. "
+            "If this is a valid Lightning checkpoint, it may need manual conversion."
+        ) from e
+
+    # Extract state_dict from the checkpoint
+    if isinstance(checkpoint, dict) and "state_dict" in checkpoint:
+        state_dict = checkpoint["state_dict"]
+    elif isinstance(checkpoint, dict):
+        # Fallback: assume the dict itself is the state_dict
+        state_dict = checkpoint
+    else:
+        msg = f"Unexpected checkpoint format: {type(checkpoint)}"
+        raise RuntimeError(msg)
+
+    # Remove "model." prefix added by LightningModule wrapper
+    # (Lightning wraps the model as self.model, so keys become "model.layer.weight")
+    clean_state_dict = {}
+    for key, value in state_dict.items():
+        new_key = key.replace("model.", "", 1) if key.startswith("model.") else key
+        clean_state_dict[new_key] = value
+
+    # Save clean state_dict (can be loaded with weights_only=True)
+    pt_path.parent.mkdir(parents=True, exist_ok=True)
+    torch.save(clean_state_dict, pt_path)
+
+    bytes_per_mb = 1024 * 1024
+    ckpt_size_mb = ckpt_path.stat().st_size / bytes_per_mb
+    pt_size_mb = pt_path.stat().st_size / bytes_per_mb
+    logger.success(f"Converted {ckpt_path.name} ({ckpt_size_mb:.1f}MB) -> {pt_path.name} ({pt_size_mb:.1f}MB)")
 
 
 def promote_to_production(model_path: str, project: str) -> None:
