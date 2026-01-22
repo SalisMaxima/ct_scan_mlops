@@ -15,7 +15,7 @@ from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from hydra import compose, initialize_config_dir
 from omegaconf import DictConfig, OmegaConf
 from PIL import Image
-from prometheus_client import Gauge
+from prometheus_client import Gauge , Counter, make_asgi_app
 from prometheus_fastapi_instrumentator import Instrumentator
 from torchvision import transforms
 
@@ -195,8 +195,10 @@ async def lifespan(_app: FastAPI):
 
     model = None
 
+error_counter = Counter("prediction_error", "Number of prediction errors")
 
 app = FastAPI(title="CT Scan Inference API", version="0.1.0", lifespan=lifespan)
+app.mount("/metrics", make_asgi_app())
 
 # HTTP metrics + /metrics endpoint (Prometheus)
 Instrumentator().instrument(app).expose(app, endpoint="/metrics")
@@ -256,6 +258,7 @@ async def feedback(
         raise HTTPException(status_code=400, detail="Invalid predicted_class")
 
     if not is_correct:
+        error_counter.inc()
         if correct_class is None:
             raise HTTPException(status_code=400, detail="correct_class is required when is_correct is false")
         if correct_class not in CLASS_NAMES:
