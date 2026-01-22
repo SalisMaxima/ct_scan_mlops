@@ -15,7 +15,7 @@ from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from hydra import compose, initialize_config_dir
 from omegaconf import DictConfig, OmegaConf
 from PIL import Image
-from prometheus_client import Gauge , Counter, make_asgi_app
+from prometheus_client import Counter, Gauge, make_asgi_app
 from prometheus_fastapi_instrumentator import Instrumentator
 from torchvision import transforms
 
@@ -194,6 +194,7 @@ async def lifespan(_app: FastAPI):
         await task
 
     model = None
+
 
 error_counter = Counter("prediction_error", "Number of prediction errors")
 
