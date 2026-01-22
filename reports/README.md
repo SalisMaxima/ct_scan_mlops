@@ -89,7 +89,7 @@ will check the repositories and the code to verify your answers.
 * [x] Create a trigger workflow for automatically building your docker images (M21)
 * [x] Get your model training in GCP using either the Engine or Vertex AI (M21)
 * [x] Create a FastAPI application that can do inference using your model (M22)
-* [ ] Deploy your model in GCP using either Functions or Run as the backend (M23)
+* [x] Deploy your model in GCP using either Functions or Run as the backend (M23)
 * [x] Write API tests for your application and setup continues integration for these (M24)
 * [x] Load test your application (M24)
 * [x] Create a more specialized ML-deployment API using either ONNX or BentoML, or both (M25)
@@ -129,7 +129,7 @@ will check the repositories and the code to verify your answers.
 > **Enter the study number for each member in the group**
 >
 >
-> Answer: s243924, sXXXXXX, sXXXXXX, sXXXXXX
+> Answer: s243924, s204696, sXXXXXX, sXXXXXX
 
 --- question 2 fill here ---
 
