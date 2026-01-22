@@ -257,6 +257,9 @@ def health() -> dict:
 @app.post("/predict")
 async def predict(file: Annotated[UploadFile, File(...)]) -> dict:
     """Classify a CT scan image."""
+    if model is None:
+        raise HTTPException(status_code=503, detail="Model not loaded")
+
     img_bytes = await file.read()
     try:
         img = Image.open(io.BytesIO(img_bytes)).convert("RGB")
@@ -266,26 +269,21 @@ async def predict(file: Annotated[UploadFile, File(...)]) -> dict:
     arr = _img_to_np_for_stats(img)
     stats = _compute_stats(arr)
 
-    if model is None:
-        pred = 0
-        pred_conf = 1.0
-        pred_class = CLASS_NAMES[pred]
-    else:
-        x = tfm(img).unsqueeze(0).to(DEVICE)
+    x = tfm(img).unsqueeze(0).to(DEVICE)
 
-        with torch.no_grad():
-            logits = model(x)
-            probs = torch.softmax(logits, dim=1).squeeze(0)
-            pred = int(torch.argmax(probs).item())
-            pred_conf = float(probs[pred].item())
+    with torch.no_grad():
+        logits = model(x)
+        probs = torch.softmax(logits, dim=1).squeeze(0)
+        pred = int(torch.argmax(probs).item())
+        pred_conf = float(probs[pred].item())
 
-        if not (0 <= pred < len(CLASS_NAMES)):
-            raise HTTPException(
-                status_code=500,
-                detail=f"Model predicted invalid class index {pred}; expected 0-{len(CLASS_NAMES) - 1}",
-            )
+    if not (0 <= pred < len(CLASS_NAMES)):
+        raise HTTPException(
+            status_code=500,
+            detail=f"Model predicted invalid class index {pred}; expected 0-{len(CLASS_NAMES) - 1}",
+        )
 
-        pred_class = CLASS_NAMES[pred]
+    pred_class = CLASS_NAMES[pred]
 
     try:
         row = {
