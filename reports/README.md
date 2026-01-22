@@ -579,9 +579,13 @@ will check the repositories and the code to verify your answers.
 > Example:
 > *The biggest challenges in the project was using ... tool to do ... . The reason for this was ...*
 >
-> Answer: One of the biggest challenges in the project was working with Google Cloud Platform and deploying our API in a cloud environment. This was mainly due to a multitude of factors such as authentication, permissions, container images, environment variables and service configurations, with small misconfigurations ending in failures that were difficult to diagnose.
+> Answer: Initially one of the biggest challenges was setting up our codebase and repo in such a way that it was easy for each team member to have equivalent configs across their devices. Using a github repo from the cookiecutter template and using uv as a dependency management tool ended up helping us a lot in this. Also by writing a lot of invoke commands to help speed configuration up helped. But that was not the end of our initial struggles, we also had issues gaining a shared overview of the repository and granting the corresponding access to members. In short it was a hassle to make sure everyone had access to the repo, gcs, wandb, etc.
+
+> A bit further into the project one of the biggest challenges became working with Google Cloud Platform and deploying our API in a cloud environment. This was mainly due to a multitude of factors such as authentication, permissions, container images, environment variables and service configurations, with small misconfigurations ending in failures that were difficult to diagnose.
 
 A particular time-consuming aspect was deploying the FastAPI-based inference service, with tasks such as ensuring the container complies with Cloud Run requirements being particularly tricky with multiple iterations being needed. In addition, integrating model artifacts stored in Google Could Storage introduced challenges related to service account permissions and runtime configuration. To fix these issues. Debugging these issues often involved examining Cloud Run logs, adjusting Dockerfiles and refining startup logic in the API.
+
+
 
 --- question 30 fill here ---
 
