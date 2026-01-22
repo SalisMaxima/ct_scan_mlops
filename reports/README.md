@@ -89,18 +89,18 @@ will check the repositories and the code to verify your answers.
 * [x] Create a trigger workflow for automatically building your docker images (M21)
 * [x] Get your model training in GCP using either the Engine or Vertex AI (M21)
 * [x] Create a FastAPI application that can do inference using your model (M22)
-* [ ] Deploy your model in GCP using either Functions or Run as the backend (M23)
+* [x] Deploy your model in GCP using either Functions or Run as the backend (M23)
 * [x] Write API tests for your application and setup continues integration for these (M24)
 * [x] Load test your application (M24)
 * [x] Create a more specialized ML-deployment API using either ONNX or BentoML, or both (M25)
-* [ ] Create a frontend for your API (M26)
+* [x] Create a frontend for your API (M26)
 
 ### Week 3
 
-* [ ] Check how robust your model is towards data drifting (M27)
-* [ ] Setup collection of input-output data from your deployed application (M27)
-* [ ] Deploy to the cloud a drift detection API (M27)
-* [ ] Instrument your API with a couple of system metrics (M28)
+* [x] Check how robust your model is towards data drifting (M27)
+* [x] Setup collection of input-output data from your deployed application (M27)
+* [x] Deploy to the cloud a drift detection API (M27)
+* [x] Instrument your API with a couple of system metrics (M28)
 * [ ] Setup cloud monitoring of your instrumented application (M28)
 * [ ] Create one or more alert systems in GCP to alert you if your app is not behaving correctly (M28)
 * [ ] If applicable, optimize the performance of your data loading using distributed data loading (M29)
@@ -129,7 +129,7 @@ will check the repositories and the code to verify your answers.
 > **Enter the study number for each member in the group**
 >
 >
-> Answer: s243924, sXXXXXX, sXXXXXX, sXXXXXX
+> Answer: s243924, s204696, s253810, s250989
 
 --- question 2 fill here ---
 
