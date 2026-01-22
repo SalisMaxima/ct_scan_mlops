@@ -221,7 +221,7 @@ will check the repositories and the code to verify your answers.
 > *In total we have implemented X tests. Primarily we are testing ... and ... as these the most critical parts of our*
 > *application but also ... .*
 >
-> Answer: In total, we have implemented 86 tests. The tests cover critical components of the system including data preprocessing and loading, model architecture, training logic, evaluation metrics, configuration handling and the API layer. We included sanity checks ensuring that models can learn by overfittinga single batch, verified correct behaviour of Hydra configuration overrides, and tested the training and evaluation pipeline end-to-end using synthetic data. Additionally, we implemented API tests for the FastAPI endpoints, including health checks, prediction behavior, and error handling. All tests are CI-friendly and do not rely on external datasets, ensuring that they run in automated workflows.
+> Answer: In total, we have implemented 86 tests covering critical components: data preprocessing and loading, model architecture, training logic, evaluation metrics, configuration handling, and the API layer. We included sanity checks ensuring models can learn by overfitting a single batch, verified Hydra configuration overrides, and tested training and evaluation end-to-end using synthetic data. API tests cover health checks, predictions, and error handling. All tests run without external datasets.
 
 --- question 7 fill here ---
 
@@ -253,11 +253,7 @@ will check the repositories and the code to verify your answers.
 > *We made use of both branches and PRs in our project. In our group, each member had an branch that they worked on in*
 > *addition to the main branch. To merge code we ...*
 >
-> Answer:Our workflow made use of both branches and pull requests throughout the project. Even if our code coverage were 100% (or close to it), we would not consider the project error-free. Coverage only tells us which lines of code were executed during tests, not whether the tests meaningfully validate correctness or cover edge cases. For example, a test can execute a function without checking that its outputs are correct, and coverage would still increase. Additionally, integration issues (e.g., data formats, deployment configuration, cloud permissions) and runtime failures can occur even when all code paths are technically “covered.” High coverage is useful as a quality signal, but it must be combined with good test assertions, realistic test cases, and testing of failure modes to build confidence in correctness.
->
-> When a feature or fix was ready, it was merged into the main branch using a pull request. Pull requests provided an opportunity for review and discussion before code was integrated, helping us catch errors early and maintain a consistent code style. They also ensured that all relevant CI checks, such as unit tests and linting, were run automatically before merging. This reduced the risk of introducing breaking changes into the main branch.
->
-> Overall, using branches and pull requests improved collaboration, code quality, and traceability. It allowed us to keep the main branch stable while still enabling rapid and structured development, which is especially important in larger or collaborative software projects.
+> Answer: Our workflow made use of both branches and pull requests throughout the project. Each team member worked on feature branches for new functionality or bug fixes, keeping the main branch stable. When a feature was ready, it was merged via a pull request. PRs provided opportunities for code review and discussion, helping catch errors early and maintain consistent code style. All relevant CI checks (unit tests, linting, Docker builds) ran automatically before merging, reducing the risk of breaking changes. This approach improved collaboration, code quality, and traceability, allowing rapid yet structured development across the team.
 
 --- question 9 fill here ---
 
@@ -291,7 +287,7 @@ will check the repositories and the code to verify your answers.
 > *and one for running ... . In particular for our ..., we used ... .An example of a triggered workflow can be seen*
 > *here: <weblink>*
 >
-> Answer:
+> Answer: Our continuous integration is organized into multiple GitHub Actions workflows covering different aspects of the development lifecycle. The main testing workflow (`tests.yaml`) runs pytest with coverage on a matrix of three operating systems (Ubuntu, Windows, macOS) using Python 3.12, ensuring cross-platform compatibility. We use `linting.yaml` to enforce code quality with Ruff, which performs both linting and formatting with automatic fixes committed back to the repository. The `pre-commit.yaml` workflow validates pre-commit hooks including Ruff, mypy for type checking, codespell for spelling, and detect-secrets for security scanning. For API testing, `api-tests.yaml` runs FastAPI endpoint tests separately to validate our inference service. Docker images are built using `docker-build.yaml` on pull requests and published via `docker-publish.yaml` on merge to main, building three image variants: CPU training, CUDA GPU training, and API serving. We also have `cml_data.yaml` for DVC data workflows that post sample images as PR comments, and `model_registry.yaml` for W&B model registry integration. We make extensive use of caching throughout: uv dependency caching is enabled in all workflows for faster Python package installation, and Docker layer caching uses Google Artifact Registry for persistence across builds, significantly reducing build times. While we test on multiple operating systems to ensure broad compatibility, we use a single Python version (3.12) as specified in our project requirements to maintain consistency. An example workflow can be seen here: https://github.com/DTU-MLOps-Group-2/ct_scan_mlops/actions/workflows/tests.yaml
 
 --- question 11 fill here ---
 
@@ -310,7 +306,7 @@ will check the repositories and the code to verify your answers.
 > Example:
 > *We used a simple argparser, that worked in the following way: Python  my_script.py --lr 1e-3 --batch_size 25*
 >
-> Answer:
+> Answer: We used Hydra for configuration management. All experiment settings are defined in YAML files under `configs/`, organized into subdirectories: `model/` (cnn.yaml, resnet18.yaml), `data/` (chest_ct.yaml), and `train/` (default.yaml). To run an experiment with default settings: `invoke train`. To override parameters: `invoke train --args "model=resnet18 train.max_epochs=100 train.optimizer.lr=0.001"`. This allows flexible experimentation without modifying code.
 
 --- question 12 fill here ---
 
@@ -325,7 +321,7 @@ will check the repositories and the code to verify your answers.
 > *We made use of config files. Whenever an experiment is run the following happens: ... . To reproduce an experiment*
 > *one would have to do ...*
 >
-> Answer:
+> Answer: We ensured reproducibility through multiple mechanisms. First, a global seed (default: 42) is set in the configuration and applied to Python, NumPy, and PyTorch at the start of each training run. Second, Hydra automatically saves a complete snapshot of the configuration used for each experiment in the `.hydra/` output folder, allowing exact recreation of any run. Third, all hyperparameters and metrics are logged to Weights & Biases, providing a searchable history of experiments with their exact configurations. Fourth, our `uv.lock` file pins exact versions of all dependencies, ensuring the same package versions across environments. Fifth, DVC tracks data versions in Google Cloud Storage, so we can retrieve the exact dataset used for any experiment. To reproduce a run, one would check out the corresponding Git commit, run `uv sync` to restore dependencies, `dvc pull` to get the data, and execute training with the saved Hydra config.
 
 --- question 13 fill here ---
 
@@ -342,7 +338,9 @@ will check the repositories and the code to verify your answers.
 > *As seen in the first image when have tracked ... and ... which both inform us about ... in our experiments.*
 > *As seen in the second image we are also tracking ... and ...*
 >
-> Answer:
+> Answer: We used Weights & Biases (W&B) for comprehensive experiment tracking throughout the project. As shown in the first image, our W&B dashboard displays multiple training runs with their key metrics, allowing us to compare experiments across different model architectures and hyperparameter configurations. We track several important metrics during training. The training and validation loss curves show how well the model is learning and whether it is overfitting. The training and validation accuracy metrics indicate classification performance on the four-class CT scan classification task (adenocarcinoma, large cell carcinoma, squamous cell carcinoma, and normal). We also monitor the learning rate schedule to verify that our cosine annealing scheduler is working correctly. Beyond scalar metrics, W&B logs sample images from the training data at the start of each run, helping us verify that data loading and augmentation pipelines are functioning properly. The system requirements metrics (GPU memory usage, system memory) help identify resource bottlenecks. All hyperparameters from our Hydra configuration are automatically captured, making it easy to understand what settings produced each result. We also implemented W&B sweeps for hyperparameter optimization using Bayesian search, exploring learning rates, weight decay, batch sizes, and model architectures. The sweep dashboard shows parameter importance and helps identify optimal configurations. Model artifacts including checkpoints are versioned and stored in W&B, enabling model registry functionality for deployment pipelines.
+>
+> ![wandb_dashboard](figures/wandb.png)
 
 --- question 14 fill here ---
 
@@ -357,7 +355,7 @@ will check the repositories and the code to verify your answers.
 > *For our project we developed several images: one for training, inference and deployment. For example to run the*
 > *training docker image: `docker run trainer:latest lr=1e-3 batch_size=64`. Link to docker file: <weblink>*
 >
-> Answer:
+> Answer: We developed four Docker images for different purposes. The `train.dockerfile` provides CPU-based training using a lightweight Python 3.12 base image with uv for dependency management. The `train_cuda.dockerfile` is a three-stage build using NVIDIA CUDA 12.4 base for GPU training, with build tools separated from the minimal runtime image. The `api.dockerfile` serves our FastAPI inference application, and `api.cloudrun.dockerfile` is optimized for Google Cloud Run deployment with proper port configuration. To run training locally: `docker build -f dockerfiles/train.dockerfile -t ct-scan:train . && docker run ct-scan:train`. For the API: `docker build -f dockerfiles/api.dockerfile -t ct-scan:api . && docker run -p 8000:8000 -e MODEL_PATH=/models/best.pt ct-scan:api`. Models are mounted at runtime rather than baked into images. Link to API Dockerfile: https://github.com/DTU-MLOps-Group-2/ct_scan_mlops/blob/master/dockerfiles/api.dockerfile
 
 --- question 15 fill here ---
 
@@ -372,7 +370,7 @@ will check the repositories and the code to verify your answers.
 > *Debugging method was dependent on group member. Some just used ... and others used ... . We did a single profiling*
 > *run of our main code at some point that showed ...*
 >
-> Answer:
+> Answer: Debugging approaches varied among team members. Some used print statements and loguru logging, while others used IDE debuggers in VS Code or PyCharm with breakpoints. We extensively use loguru throughout the codebase for structured logging with automatic file rotation and compression. For profiling, we integrated PyTorch Profiler directly into our training script. When enabled in the configuration (`train.profiling.enabled: true`), the profiler runs on the first batch of the first epoch, capturing CPU time per operation, tensor shapes, and call stacks. The output includes a summary table showing the most time-consuming operations and TensorBoard trace files in `artifacts/profiling/`. This helped us identify data loading as a bottleneck, leading us to optimize our DataLoader with proper num_workers settings. The profiler is automatically disabled during hyperparameter sweeps to avoid overhead.
 
 --- question 16 fill here ---
 
@@ -389,7 +387,7 @@ will check the repositories and the code to verify your answers.
 > Example:
 > *We used the following two services: Engine and Bucket. Engine is used for... and Bucket is used for...*
 >
-> Answer:
+> Answer: We used four main GCP services. Google Cloud Storage (GCS) stores our training data and model artifacts, integrated via DVC for version control. Google Artifact Registry (GAR) hosts our Docker container images with layer caching for faster CI/CD builds. Google Cloud Run deploys our FastAPI inference API as a serverless container with automatic scaling and GCS bucket mounting for model files. Google Vertex AI runs training jobs using custom containers, supporting both CPU and GPU (NVIDIA Tesla T4) configurations triggered via GitHub Actions workflows.
 
 --- question 17 fill here ---
 
@@ -404,7 +402,7 @@ will check the repositories and the code to verify your answers.
 > *We used the compute engine to run our ... . We used instances with the following hardware: ... and we started the*
 > *using a custom container: ...*
 >
-> Answer:
+> Answer: We used Vertex AI rather than raw Compute Engine for model training. Our `train_vertex.yml` GitHub Actions workflow creates custom training jobs with configurable parameters: model architecture (CNN or ResNet18), number of epochs, W&B logging mode, and accelerator type. For CPU training, we use n1-standard-8 instances (8 vCPU, 30GB RAM). For GPU training, we add an NVIDIA Tesla T4 accelerator. The workflow builds a Docker image from our `train_cuda.dockerfile`, pushes it to Artifact Registry, then creates a Vertex AI custom job using the gcloud CLI. The container includes DVC support and automatically pulls training data from GCS before starting. W&B API keys are injected via GCP Secret Manager for secure experiment tracking. Job progress can be monitored through the Cloud Console.
 
 --- question 18 fill here ---
 
@@ -414,6 +412,8 @@ will check the repositories and the code to verify your answers.
 > **You can take inspiration from [this figure](figures/bucket.png).**
 >
 > Answer:
+>
+> ![gcp_bucket](figures/bucket.png)
 
 --- question 19 fill here ---
 
@@ -423,6 +423,8 @@ will check the repositories and the code to verify your answers.
 > **stored. You can take inspiration from [this figure](figures/registry.png).**
 >
 > Answer:
+>
+> ![artifact_registry](figures/registry.png)
 
 --- question 20 fill here ---
 
@@ -432,6 +434,8 @@ will check the repositories and the code to verify your answers.
 > **your project. You can take inspiration from [this figure](figures/build.png).**
 >
 > Answer:
+>
+> ![cloud_build](figures/build.png)
 
 --- question 21 fill here ---
 
@@ -446,7 +450,7 @@ will check the repositories and the code to verify your answers.
 > *We managed to train our model in the cloud using the Engine. We did this by ... . The reason we choose the Engine*
 > *was because ...*
 >
-> Answer:
+> Answer: Yes, we trained our model in the cloud using Google Vertex AI. We implemented a GitHub Actions workflow (`train_vertex.yml`) that automates the entire process. When triggered manually or on specific events, the workflow builds our training Docker image (either CPU or CUDA variant), pushes it to Artifact Registry, and creates a Vertex AI custom training job. The job configuration specifies machine type (n1-standard-8), optional GPU (NVIDIA Tesla T4), and environment variables including W&B credentials from Secret Manager. The container pulls training data via DVC from GCS before starting. We chose Vertex AI over raw Compute Engine because it provides managed infrastructure, automatic cleanup after job completion, and better integration with other GCP ML services. Training progress is logged to W&B and can be monitored via the Cloud Console.
 
 --- question 22 fill here ---
 
@@ -463,7 +467,7 @@ will check the repositories and the code to verify your answers.
 > *We did manage to write an API for our model. We used FastAPI to do this. We did this by ... . We also added ...*
 > *to the API to make it more ...*
 >
-> Answer:
+> Answer: Yes, we wrote a FastAPI application for model inference (`src/ct_scan_mlops/api.py`). The API exposes four endpoints: `/health` returns API status and model availability, `/predict` accepts CT scan image uploads and returns the predicted class (one of four: adenocarcinoma, large cell carcinoma, squamous cell carcinoma, or normal) with confidence scores, `/feedback` collects user corrections for model improvement, and `/metrics` exposes Prometheus metrics. The model is loaded asynchronously on startup using a lifespan context manager, supporting both PyTorch (.pt) and Lightning checkpoint (.ckpt) formats. Images are preprocessed using torchvision transforms (resize to 224x224, normalize with ImageNet statistics). We added Prometheus instrumentation via prometheus-fastapi-instrumentator for automatic HTTP metrics collection and custom gauges for system metrics.
 
 --- question 23 fill here ---
 
@@ -479,7 +483,7 @@ will check the repositories and the code to verify your answers.
 > *worked. Afterwards we deployed it in the cloud, using ... . To invoke the service an user would call*
 > *`curl -X POST -F "file=@file.json"<weburl>`*
 >
-> Answer:
+> Answer: We deployed our API both locally and in the cloud. Locally, we run the FastAPI server using `invoke api` which starts uvicorn with auto-reload for development. For cloud deployment, we use Google Cloud Run via the `deploy_cloudrun.yml` GitHub Actions workflow. The workflow builds our `api.cloudrun.dockerfile` image, pushes it to Artifact Registry, and deploys to Cloud Run with 4GB memory and 2 CPUs. The model files are mounted from a GCS bucket rather than baked into the image, allowing model updates without redeployment. To invoke the deployed service: `curl -X POST -F "file=@ct_scan.png" https://ct-scan-api-HASH-ew.a.run.app/predict`. The API also supports unauthenticated access for demonstration purposes and includes a TCP startup probe for health checking.
 
 --- question 24 fill here ---
 
@@ -494,7 +498,7 @@ will check the repositories and the code to verify your answers.
 > *For unit testing we used ... and for load testing we used ... . The results of the load testing showed that ...*
 > *before the service crashed.*
 >
-> Answer:
+> Answer: Yes, we performed both unit testing and load testing. For unit testing, we use pytest with FastAPI's TestClient (`tests/test_api.py`). Tests cover the health endpoint, prediction endpoint with valid and invalid images, feedback submission with correct and incorrect predictions, and error handling when the model is not loaded. We use mock models to isolate tests from actual model files. For load testing, we implemented a Locust configuration (`tests/locustfile.py`). The ApiUser class simulates realistic user behavior with weighted tasks: health checks (weight 5) and predictions (weight 1) with random 0.5-2.0 second wait times between requests. Running `locust -f tests/locustfile.py --host=http://localhost:8000` opens a web interface to configure concurrent users and observe response times, throughput, and failure rates under load.
 
 --- question 25 fill here ---
 
@@ -509,7 +513,7 @@ will check the repositories and the code to verify your answers.
 > *We did not manage to implement monitoring. We would like to have monitoring implemented such that over time we could*
 > *measure ... and ... that would inform us about this ... behaviour of our application.*
 >
-> Answer:
+> Answer: Yes, we implemented monitoring using Prometheus metrics. Our FastAPI application uses prometheus-fastapi-instrumentator to automatically collect HTTP-level metrics (request counts, latencies, response sizes) exposed at the `/metrics` endpoint. Additionally, we implemented custom Prometheus Gauges for system-level monitoring: `system_cpu_percent` tracks CPU utilization, `system_memory_percent` tracks memory usage, and `process_rss_bytes` tracks the API process memory footprint. These are updated every 5 seconds by a background async task using the psutil library. While we instrumented the API with metrics, we did not fully set up GCP Cloud Monitoring dashboards or alerting rules. The metrics endpoint is ready for scraping by Prometheus, which could then feed into Grafana for visualization or alerting.
 
 --- question 26 fill here ---
 
@@ -528,7 +532,7 @@ will check the repositories and the code to verify your answers.
 > *Group member 1 used ..., Group member 2 used ..., in total ... credits was spend during development. The service*
 > *costing the most was ... due to ... . Working in the cloud was ...*
 >
-> Answer:
+> Answer: [USER INPUT NEEDED: Please provide credit usage information per team member and identify which service was most expensive. Format: "Group member 1 (sXXXXXX) used X credits, Group member 2 used Y credits... The most expensive service was ... because ...". Also include your thoughts on working in the cloud - was it easy to set up? What were the benefits and drawbacks?]
 
 --- question 27 fill here ---
 
@@ -544,7 +548,7 @@ will check the repositories and the code to verify your answers.
 > *We implemented a frontend for our API. We did this because we wanted to show the user ... . The frontend was*
 > *implemented using ...*
 >
-> Answer:
+> Answer: We implemented several extra features beyond the core requirements. First, we built a Streamlit frontend (`src/ct_scan_mlops/frontend/`) that provides a user-friendly interface for uploading CT scan images and viewing predictions, with the ability to submit feedback on whether predictions were correct. Second, we implemented a comprehensive feedback collection system that stores user corrections for potential model retraining. Third, we set up W&B hyperparameter sweeps with Bayesian optimization to systematically explore the hyperparameter space. Fourth, we added data drift detection capabilities as indicated in the project checklist. The frontend connects to our FastAPI backend and displays real-time health status, prediction results, and allows users to correct misclassifications.
 
 --- question 28 fill here ---
 
@@ -561,7 +565,9 @@ will check the repositories and the code to verify your answers.
 > *The starting point of the diagram is our local setup, where we integrated ... and ... and ... into our code.*
 > *Whenever we commit code and push to GitHub, it auto triggers ... and ... . From there the diagram shows ...*
 >
-> Answer:
+> Answer: The diagram below shows our complete MLOps pipeline architecture. The starting point is local development, where developers write code using VS Code with pre-commit hooks (ruff, mypy, codespell) enforcing code quality. Code is pushed to GitHub, which serves as our central version control and CI/CD orchestration platform. GitHub Actions workflows trigger on various events: pushes to main run tests across Ubuntu, Windows, and macOS; pull requests trigger linting, Docker builds, and DVC data workflows. For data management, DVC tracks dataset versions with actual files stored in Google Cloud Storage (GCS), allowing reproducible data access across environments. Docker images for training (CPU and CUDA variants) and API serving are built by GitHub Actions and pushed to Google Artifact Registry (GAR), which also provides layer caching for faster builds. Model training can occur locally or in the cloud via Vertex AI custom jobs, triggered by the `train_vertex.yml` workflow. Training metrics, hyperparameters, and model artifacts are logged to Weights & Biases for experiment tracking and model registry functionality. The trained model is stored in GCS and served via our FastAPI application deployed on Google Cloud Run. Cloud Run provides automatic scaling, GCS bucket mounting for model files, and a managed runtime environment. The API exposes prediction endpoints and Prometheus metrics for monitoring. Users can interact with the system through the Streamlit frontend or direct API calls, with feedback collected for model improvement.
+>
+> ![architecture](figures/architecture.png)
 
 --- question 29 fill here ---
 
@@ -575,7 +581,7 @@ will check the repositories and the code to verify your answers.
 > Example:
 > *The biggest challenges in the project was using ... tool to do ... . The reason for this was ...*
 >
-> Answer:
+> Answer: [USER INPUT NEEDED: Please describe the main challenges your team faced during the project. Consider topics like: GCP setup and authentication issues, Docker debugging, CI/CD pipeline configuration, data handling with DVC, W&B integration, Cloud Run deployment challenges, team coordination, time management, etc. This should be 200-400 words. Example format: "The biggest challenge was setting up GCP authentication for GitHub Actions because... We also struggled with... To overcome this we... Another significant challenge was..."]
 
 --- question 30 fill here ---
 
@@ -593,6 +599,6 @@ will check the repositories and the code to verify your answers.
 > *Student sXXXXXX was in charge of training our models in the cloud and deploying them afterwards.*
 > *All members contributed to code by...*
 > *We have used ChatGPT to help debug our code. Additionally, we used GitHub Copilot to help write some of our code.*
-> Answer:
+> Answer: [USER INPUT NEEDED: Please provide individual contributions for each team member. Format: "Student s243924 was responsible for... Student s204696 worked on... Student s253810 contributed... Student s250989 handled... All members contributed to code review and testing. We used the following AI tools in our project: ChatGPT for debugging assistance, GitHub Copilot for code completion, Claude Code for...". This should be 50-300 words.]
 
 --- question 31 fill here ---
