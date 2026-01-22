@@ -143,7 +143,7 @@ will check the repositories and the code to verify your answers.
 > *We used the third-party framework ... in our project. We used functionality ... and functionality ... from the*
 > *package to do ... and ... in our project*.
 >
-> Answer:
+> Answer: We used uv for dependency and environment management instead of the traditional pip and requirements.txt workflow. For monitoring and observability, we integrated prometheus-fastapi-instrumentator together with psutil to instrument our FastAPI application with HTTP-level metrics and system-level metrics such as CPU usage, memory usage, and process RSS. Additionally, we used Weights & Biases (wandb) for experiment tracking. While experiment tracking is discussed conceptually in the course, W&B enabled us to log metrics, hyperparameters, and training artifacts, visualize learning curves, and compare experiments across runs and team members, significantly improving experiment management and reproducibility.
 
 --- question 3 fill here ---
 
@@ -163,12 +163,9 @@ will check the repositories and the code to verify your answers.
 > *We used ... for managing our dependencies. The list of dependencies was auto-generated using ... . To get a*
 > *complete copy of our development environment, one would have to run the following commands*
 >
-> Answer: Our repository manages all project dependencies using uv, with pyproject.toml and uv.lock as the core configuration files. The pyproject.toml file defines our intended dependencies while uv.lock pins the exact versions of every dependency and transitive dependency. This should ensure full reproducibility across machines, CI and deployment. A new team member can get an exact copy of the development environment by following these steps:
-Install Python (matching the version specified in the project, e.g. via .python-version).
-Install uv.
-Clone the repository.
-Run uv sync.
-> The uv sync command creates a local virtual environment and installs dependencies exactly as specified in uv.lock. Because uv.lock is committed to the repository, every team member and CI job installs identical package versions.
+> Answer: We managed dependencies using uv together with pyproject.toml and uv.lock, following the course’s emphasis on reproducibility and environment consistency. The pyproject.toml file specifies the intended dependencies of the project, including runtime, development, and optional groups, while uv.lock pins the exact versions of all direct and transitive dependencies. This ensures that the same environment can be reproduced across different machines, operating systems, CI pipelines, and deployment targets.
+>
+>  To obtain an exact copy of the development environment, a new team member would first install a compatible Python version (as specified in the project) and then install uv. After cloning the repository, they simply run uv sync. This command creates a local virtual environment and installs dependencies exactly as defined in uv.lock. Because the lock file is committed to version control, every team member and automated workflow installs identical package versions. This setup minimizes “works on my machine” issues and aligns well with the course material on package management, reproducibility, and reliable software development practices.
 
 --- question 4 fill here ---
 
@@ -184,7 +181,9 @@ Run uv sync.
 > *because we did not use any ... in our project. We have added an ... folder that contains ... for running our*
 > *experiments.*
 >
-> Answer:
+> Answer:The project was initialized using the provided cookiecutter template, which gave us a standardized and well-organized project structure from the start. We filled out the core folders defined by the template, including the src directory for all source code, tests for unit tests, configs for configuration files, and reports for generated figures and experiment outputs. The main application logic, including training, evaluation, and inference code, lives inside the ct_scan_mlops package under src, following best practices for Python packaging discussed in the course.
+>
+> The project was initialized using the provided cookiecutter template, which gave us a standardized and well-organized project structure from the start. We filled out the core folders defined by the template, including the src directory for all source code, tests for unit tests, configs for configuration files, and reports for generated figures and experiment outputs. The main application logic, including training, evaluation, and inference code, lives inside the ct_scan_mlops package under src, following best practices for Python packaging discussed in the course.
 
 --- question 5 fill here ---
 
@@ -199,7 +198,11 @@ Run uv sync.
 > *We used ... for linting and ... for formatting. We also used ... for typing and ... for documentation. These*
 > *concepts are important in larger projects because ... . For example, typing ...*
 >
-> Answer:
+> Answer:Yes, we implemented several rules and tools to enforce code quality, formatting, typing, and documentation. For code quality and formatting, we used ruff, which acted as both a linter and formatter. Ruff helped us enforce consistent code style, catch common bugs (such as unused imports or undefined variables), and apply best practices automatically across the codebase. We also integrated these checks into our development workflow and CI to ensure consistent quality over time.
+>
+> For typing, we made use of Python type hints throughout the code and configured mypy to perform static type checking. This helped catch type-related errors early and made function interfaces clearer for all team members. Documentation was handled through clear docstrings and inline comments, and we used tools such as mkdocs to generate project documentation where relevant.
+>
+> For typing, we made use of Python type hints throughout the code and configured mypy to perform static type checking. This helped catch type-related errors early and made function interfaces clearer for all team members. Documentation was handled through clear docstrings and inline comments, and we used tools such as mkdocs to generate project documentation where relevant.
 
 --- question 6 fill here ---
 
