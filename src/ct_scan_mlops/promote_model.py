@@ -93,15 +93,14 @@ def promote_to_production(model_path: str, project: str) -> None:
         artifact = run.use_artifact(model_path, type="model")
         logger.info(f"Found artifact: {artifact.name} (version: {artifact.version})")
 
-        # Get the artifact's collection (registered model)
-        # The artifact path format is: entity/project/artifact_name:alias_or_version
-        artifact_name = artifact.name.split(":")[0]  # Remove version/alias
+        # Determine the target path dynamically from the loaded artifact.
+        # This respects the registry/project path provided in the workflow input.
+        # artifact.name typically looks like "artifact_name:version", so we strip the version.
+        collection_name = artifact.name.split(":")[0]
 
-        # Link to model registry with production alias
-        # UPDATE: Changed target_path to support new W&B Registry (Core)
-        # "wandb-registry-model" is the default registry name after migration.
-        # If your registry is named differently, update "model" below.
-        target_path = f"wandb-registry-model/{artifact_name}"
+        # We construct the target path using the artifact's entity and project.
+        # This ensures we are linking to the collection within the correct registry.
+        target_path = f"{artifact.entity}/{artifact.project}/{collection_name}"
 
         logger.info(f"Linking to registry path: {target_path}")
         run.link_artifact(artifact, target_path=target_path, aliases=["production"])
