@@ -10,7 +10,7 @@ This module also provides utilities to convert PyTorch Lightning checkpoints
 from __future__ import annotations
 
 import argparse
-import collections  # <--- 1. Add this import
+import collections
 import sys
 import typing
 from pathlib import Path
@@ -21,6 +21,7 @@ from loguru import logger
 from omegaconf import OmegaConf
 from omegaconf.base import ContainerMetadata
 from omegaconf.dictconfig import DictConfig
+from omegaconf.nodes import AnyNode  # <--- 1. Add this import
 
 
 def convert_ckpt_to_pt(ckpt_path: Path, pt_path: Path) -> None:
@@ -46,9 +47,16 @@ def convert_ckpt_to_pt(ckpt_path: Path, pt_path: Path) -> None:
 
     # Try secure loading first with weights_only=True
     try:
-        # ALLOWLISTING: Add collections.defaultdict to the safe globals
+        # ALLOWLISTING: Add AnyNode to the safe globals
         with torch.serialization.safe_globals(
-            [DictConfig, ContainerMetadata, typing.Any, dict, collections.defaultdict]
+            [
+                DictConfig,
+                ContainerMetadata,
+                typing.Any,
+                dict,
+                collections.defaultdict,
+                AnyNode,  # <--- 2. Add AnyNode here
+            ]
         ):
             checkpoint = torch.load(ckpt_path, map_location="cpu", weights_only=True)
         logger.info("Loaded checkpoint with secure mode (weights_only=True)")
