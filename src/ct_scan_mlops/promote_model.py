@@ -45,7 +45,9 @@ def convert_ckpt_to_pt(ckpt_path: Path, pt_path: Path) -> None:
 
     # Try secure loading first with weights_only=True
     try:
-        with torch.serialization.safe_globals([DictConfig, ContainerMetadata, typing.Any]):
+        # ALLOWLISTING: We add 'dict' and 'typing.Any' to the safe globals
+        # because PyTorch 2.6+ weights_only=True is very strict.
+        with torch.serialization.safe_globals([DictConfig, ContainerMetadata, typing.Any, dict]):
             checkpoint = torch.load(ckpt_path, map_location="cpu", weights_only=True)
         logger.info("Loaded checkpoint with secure mode (weights_only=True)")
     except Exception as e:
