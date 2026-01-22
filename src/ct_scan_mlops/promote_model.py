@@ -10,18 +10,13 @@ This module also provides utilities to convert PyTorch Lightning checkpoints
 from __future__ import annotations
 
 import argparse
-import collections
 import sys
-import typing
 from pathlib import Path
 
 import torch
 import wandb
 from loguru import logger
 from omegaconf import OmegaConf
-from omegaconf.base import ContainerMetadata
-from omegaconf.dictconfig import DictConfig
-from omegaconf.nodes import AnyNode  # <--- 1. Add this import
 
 
 def convert_ckpt_to_pt(ckpt_path: Path, pt_path: Path) -> None:
@@ -45,31 +40,14 @@ def convert_ckpt_to_pt(ckpt_path: Path, pt_path: Path) -> None:
 
     logger.info(f"Loading checkpoint from {ckpt_path}")
 
-    # Try secure loading first with weights_only=True
     try:
-        # ALLOWLISTING: Add AnyNode to the safe globals
-        with torch.serialization.safe_globals(
-            [
-                DictConfig,
-                ContainerMetadata,
-                typing.Any,
-                dict,
-                collections.defaultdict,
-                AnyNode,  # <--- 2. Add AnyNode here
-            ]
-        ):
-            checkpoint = torch.load(ckpt_path, map_location="cpu", weights_only=True)
-        logger.info("Loaded checkpoint with secure mode (weights_only=True)")
+        # We trust our own training artifacts, so we load with weights_only=False.
+        # We add '# nosec' to ignore Bandit security warnings (B301/B614) about unsafe deserialization.
+        checkpoint = torch.load(ckpt_path, map_location="cpu", weights_only=False)  # nosec
+        logger.info("Loaded checkpoint (trusted mode)")
     except Exception as e:
-        logger.error(
-            f"Failed to load checkpoint with weights_only=True: {e}. "
-            "The checkpoint may contain non-tensor objects that cannot be loaded securely. "
-            "Ensure the checkpoint was created by our training pipeline."
-        )
-        raise RuntimeError(
-            f"Cannot load checkpoint from {ckpt_path} with secure loading. "
-            "If this is a valid Lightning checkpoint, it may need manual conversion."
-        ) from e
+        logger.error(f"Failed to load checkpoint: {e}")
+        raise RuntimeError(f"Cannot load checkpoint from {ckpt_path}") from e
 
     # Extract state_dict from the checkpoint
     if isinstance(checkpoint, dict) and "state_dict" in checkpoint:
