@@ -86,18 +86,11 @@ jobs:
           echo "Downloading W&B artifact: ${{ inputs.wandb_artifact }}"
           uv tool run wandb artifact get "${{ inputs.wandb_artifact }}" --root ./wandb_artifacts
 
-          # Find the artifact directory
-          ART_DIR=$(find ./wandb_artifacts -maxdepth 1 -mindepth 1 -type d | head -n 1)
-          if [ -z "$ART_DIR" ]; then
-            echo "::error::No artifact directory found under ./wandb_artifacts"
-            exit 1
-          fi
-
-          # Locate the model file
-          MODEL_FILE=$(find "$ART_DIR" -name "${{ inputs.artifact_file }}" -print -quit)
+          # Locate the model file anywhere under the download root
+          MODEL_FILE=$(find ./wandb_artifacts -name "${{ inputs.artifact_file }}" -print -quit)
           if [ -z "$MODEL_FILE" ]; then
             echo "::error::Artifact file not found: ${{ inputs.artifact_file }}"
-            echo "Available files:" && find "$ART_DIR" -type f
+            echo "Available files:" && find ./wandb_artifacts -type f
             exit 1
           fi
 
