@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import sys
+import typing
 from pathlib import Path
 
 import torch
@@ -44,7 +45,7 @@ def convert_ckpt_to_pt(ckpt_path: Path, pt_path: Path) -> None:
 
     # Try secure loading first with weights_only=True
     try:
-        with torch.serialization.safe_globals([DictConfig, ContainerMetadata]):
+        with torch.serialization.safe_globals([DictConfig, ContainerMetadata, typing.Any]):
             checkpoint = torch.load(ckpt_path, map_location="cpu", weights_only=True)
         logger.info("Loaded checkpoint with secure mode (weights_only=True)")
     except Exception as e:
