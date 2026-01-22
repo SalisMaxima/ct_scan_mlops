@@ -1,0 +1,22 @@
+# Big folders to exclude from Cloud Build upload
+.venv/
+artifacts/
+wandb/
+reports/
+outputs/
+.dvc/cache/
+__pycache__/
+*.pt
+*.pth
+*.onnx
+*.ckpt
+
+# If you have other large data folders, exclude them
+data/raw/
+data/interim/
+data/processed/
+
+# Keep drift inputs (needed for your drift Docker build)
+!data/drift/
+!data/drift/reference.csv
+!data/drift/current.csv
