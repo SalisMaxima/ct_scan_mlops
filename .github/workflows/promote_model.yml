@@ -86,8 +86,8 @@ jobs:
           echo "Downloading W&B artifact: ${{ inputs.wandb_artifact }}"
           uv tool run wandb artifact get "${{ inputs.wandb_artifact }}" --root ./wandb_artifacts
 
-          # Find the artifact directory
-          ART_DIR=$(find ./wandb_artifacts -maxdepth 1 -mindepth 1 -type d | head -n 1)
+          # Find the artifact directory (allow nested layouts)
+          ART_DIR=$(find ./wandb_artifacts -type d -name "artifact" -o -type d -maxdepth 2 -mindepth 1 | head -n 1)
           if [ -z "$ART_DIR" ]; then
             echo "::error::No artifact directory found under ./wandb_artifacts"
             exit 1
