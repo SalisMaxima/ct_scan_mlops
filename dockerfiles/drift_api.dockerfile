@@ -18,6 +18,8 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 # Copy source code
 COPY src/ src/
+COPY data/drift/reference.csv data/drift/reference.csv
+
 
 # (Optional) If you keep reference.csv in repo and want it baked into the image:
 # COPY data/drift/reference.csv data/drift/reference.csv
@@ -46,6 +48,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Copy virtual environment + code
 COPY --from=builder /app/.venv /app/.venv
 COPY --from=builder /app/src /app/src
+COPY --from=builder /app/data /app/data
 # COPY --from=builder /app/data /app/data  # only if you baked reference.csv above
 
 ENV PATH="/app/.venv/bin:$PATH"
