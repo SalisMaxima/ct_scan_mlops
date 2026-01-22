@@ -79,6 +79,18 @@ def convert_ckpt_to_pt(ckpt_path: Path, pt_path: Path) -> None:
 def promote_to_production(model_path: str, project: str) -> None:
     """Promote a model artifact to production alias in W&B.
 
+    **Behavioral Change from Previous Implementation:**
+    This function now dynamically determines the target registry path from the
+    artifact's entity and project, rather than using a hardcoded "wandb-registry-model"
+    prefix. This means models are promoted within their original entity/project context,
+    not to a central "model-registry" collection.
+
+    - Previous: `target_path = "wandb-registry-model/{artifact_name}"`
+    - Current: `target_path = "{artifact.entity}/{artifact.project}/{collection_name}"`
+
+    This change respects the registry/project path provided in the workflow input,
+    allowing for more flexible deployment patterns (e.g., team-specific registries).
+
     Args:
         model_path: W&B artifact path (e.g., entity/project/model:staging)
         project: W&B project name
@@ -98,8 +110,12 @@ def promote_to_production(model_path: str, project: str) -> None:
         # artifact.name typically looks like "artifact_name:version", so we strip the version.
         collection_name = artifact.name.split(":")[0]
 
-        # We construct the target path using the artifact's entity and project.
-        # This ensures we are linking to the collection within the correct registry.
+        # BEHAVIORAL CHANGE: We now construct the target path using the artifact's
+        # entity and project (e.g., "team-name/project-name/model-collection").
+        # Previous implementation used a hardcoded "wandb-registry-model" prefix.
+        # This change allows models to remain in their original entity/project context
+        # rather than being promoted to a central registry, enabling team-specific
+        # or project-specific deployment patterns.
         target_path = f"{artifact.entity}/{artifact.project}/{collection_name}"
 
         logger.info(f"Linking to registry path: {target_path}")
