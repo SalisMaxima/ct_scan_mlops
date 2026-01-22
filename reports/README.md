@@ -583,9 +583,7 @@ will check the repositories and the code to verify your answers.
 
 > A bit further into the project one of the biggest challenges became working with Google Cloud Platform and deploying our API in a cloud environment. This was mainly due to a multitude of factors such as authentication, permissions, container images, environment variables and service configurations, with small misconfigurations ending in failures that were difficult to diagnose.
 
-A particular time-consuming aspect was deploying the FastAPI-based inference service, with tasks such as ensuring the container complies with Cloud Run requirements being particularly tricky with multiple iterations being needed. In addition, integrating model artifacts stored in Google Could Storage introduced challenges related to service account permissions and runtime configuration. To fix these issues. Debugging these issues often involved examining Cloud Run logs, adjusting Dockerfiles and refining startup logic in the API.
-
-
+> Throughout the project, we spent time getting used to working on a shared codebase. A major challenge was resolving git merge conflicts, and we had to learn how to handle them effectively.  This was a bit difficult to learn and we all feel like its something we still struggle a bit with and use time on. The branch protection rules were also a pain point, although crucial for our workflow and project. They meant we had to create branches and pull requests for every change. For each commit in these PRs, checks had to run, and three of them were required. This made developing on the main branch take more time and could be frustrating when we only wanted to implement a small fix.
 
 --- question 30 fill here ---
 
