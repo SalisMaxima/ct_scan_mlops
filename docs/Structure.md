@@ -27,12 +27,13 @@ ct_scan_mlops/
 │
 ├── README.md               # Main project documentation
 ├── CLAUDE.md               # AI assistant instructions (source of truth)
-├── GetStarted.md           # Setup guide
-├── COLLABORATION.md        # W&B team workflow guide
-├── DEPENDENCIES.md         # Dependency documentation
-├── TEAM_SETUP.md           # Team configuration guide
-├── PROJECT_OVERVIEW.md     # MLOps checklist mapping
-├── changes.md              # Change log
+│
+├── docs/                   # Documentation (see below)
+│   ├── GetStarted.md       # Setup guide
+│   ├── COLLABORATION.md    # W&B team workflow guide
+│   ├── DEPENDENCIES.md     # Dependency documentation
+│   ├── TEAM_SETUP.md       # Team configuration guide
+│   └── PROJECT_OVERVIEW.md # MLOps checklist mapping
 │
 ├── .pre-commit-config.yaml # Pre-commit hook configuration
 ├── .gitignore              # Git ignore rules
