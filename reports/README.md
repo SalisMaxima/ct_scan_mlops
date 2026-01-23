@@ -509,7 +509,9 @@ will check the repositories and the code to verify your answers.
 > *We did not manage to implement monitoring. We would like to have monitoring implemented such that over time we could*
 > *measure ... and ... that would inform us about this ... behaviour of our application.*
 >
-> Answer: Yes, we implemented monitoring using Prometheus metrics. Our FastAPI application uses prometheus-fastapi-instrumentator to automatically collect HTTP-level metrics (request counts, latencies, response sizes) exposed at the `/metrics` endpoint. Additionally, we implemented a custom Prometheus Counter to count how many our model makes wrong prediction using feedback from users in the frontend. While we instrumented the API with metrics, we did not fully set up GCP Cloud Monitoring dashboards or alerting rules instead we created SOLs for latency and availability ![latency and availability SOL](figures\gcloud-SLO.png), and we created an alert for latency if it is more than one second ![Latency Alert](figures\Alert_request_latency.png). The metrics endpoint is ready for scraping by Prometheus, which could then feed into Grafana for visualization or alerting.
+> Answer: Yes, we implemented monitoring using Prometheus metrics. Our FastAPI application uses prometheus-fastapi-instrumentator to automatically collect HTTP-level metrics (request counts, latencies, response sizes) exposed at the `/metrics` endpoint. Additionally, we implemented a custom Prometheus Counter to count how many our model makes wrong prediction using feedback from users in the frontend. While we instrumented the API with metrics, we did not fully set up GCP Cloud Monitoring dashboards or alerting rules instead we created SOLs for latency and availability, and we created an alert for latency if it is more than one second. The metrics endpoint is ready for scraping by Prometheus, which could then feed into Grafana for visualization or alerting.
+> ![latency and availability SOL](figures/gcloud-SLO.png)
+> ![Latency Alert](figures/Alert_request_latency.png)
 
 --- question 26 fill here ---
 
