@@ -1,13 +1,14 @@
 steps:
-- name: gcr.io/cloud-builders/docker
-  env:
-    - DOCKER_BUILDKIT=1
-  args:
-    - build
-    - -f
-    - dockerfiles/drift_api.dockerfile
-    - -t
-    - gcr.io/dtu-mlops-data-482907/drift-api
-    - .
+  - name: 'gcr.io/cloud-builders/docker'
+    env:
+      - 'DOCKER_BUILDKIT=1'
+    args:
+      - build
+      - -f
+      - dockerfiles/api.cloudrun.dockerfile  # Fixed: Points to an existing file
+      - -t
+      - europe-west1-docker.pkg.dev/dtu-mlops-data-482907/ct-scan-mlops/drift-api  # Fixed: Uses Artifact Registry
+      - .
+
 images:
-- gcr.io/dtu-mlops-data-482907/drift-api
+  - europe-west1-docker.pkg.dev/dtu-mlops-data-482907/ct-scan-mlops/drift-api
