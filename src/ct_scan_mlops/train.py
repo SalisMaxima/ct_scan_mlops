@@ -47,6 +47,12 @@ class LitModel(pl.LightningModule):
             "lr": [],
         }
 
+        # Cache profiling config (parsed once, not every training step)
+        profiling_cfg = cfg.get("train", {}).get("profiling", {})
+        self._profiling_enabled = bool(profiling_cfg.get("enabled", True))
+        self._profiling_steps = int(profiling_cfg.get("steps", 5))
+        self._profiled = False
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.model(x)
 
@@ -57,24 +63,22 @@ class LitModel(pl.LightningModule):
 
     def training_step(self, batch, batch_idx: int):
         x, y = batch
-        profiling_cfg = self.cfg.get("train", {}).get("profiling", {})
-        profiling_enabled = bool(profiling_cfg.get("enabled", True))
-        profiling_steps = int(profiling_cfg.get("steps", 5))
 
-        if profiling_enabled and batch_idx == 0 and self.current_epoch == 0:
+        # Run profiling once on first batch of first epoch (if enabled)
+        if self._profiling_enabled and not self._profiled and batch_idx == 0 and self.current_epoch == 0:
             with profile(
                 activities=[ProfilerActivity.CPU],
                 record_shapes=True,
                 with_stack=True,
                 on_trace_ready=tensorboard_trace_handler(str(profiling_dir)),
             ) as prof:
-                for _ in range(max(1, profiling_steps)):
+                for _ in range(max(1, self._profiling_steps)):
                     y_hat = self(x)
                     loss = self.criterion(y_hat, y)
                     prof.step()
 
             print(prof.key_averages().table(sort_by="cpu_time_total", row_limit=20))
-
+            self._profiled = True
         else:
             y_hat = self(x)
             loss = self.criterion(y_hat, y)
@@ -111,10 +115,16 @@ class LitModel(pl.LightningModule):
 
     def on_train_start(self):
         """Log sample images at training start."""
-        if self.trainer.train_dataloader is not None and self.logger is not None:
-            batch = next(iter(self.trainer.train_dataloader))
-            x, y = batch
-            self.logger.experiment.log({"examples": [wandb.Image(x[j].cpu()) for j in range(min(8, len(x)))]})
+        if self.trainer.train_dataloader is None or self.logger is None:
+            return
+
+        # Only log images if using WandbLogger
+        if not isinstance(self.logger, WandbLogger):
+            return
+
+        batch = next(iter(self.trainer.train_dataloader))
+        x, y = batch
+        self.logger.experiment.log({"examples": [wandb.Image(x[j].cpu()) for j in range(min(8, len(x)))]})
 
     def on_train_epoch_end(self):
         """Track metrics at end of each epoch for plotting."""
@@ -221,12 +231,6 @@ def set_seed(seed: int, device: torch.device) -> None:
     logger.info(f"Random seed set to {seed}")
 
 
-def accuracy(logits: torch.Tensor, targets: torch.Tensor) -> float:
-    """Compute classification accuracy."""
-    preds = torch.argmax(logits, dim=1)
-    return (preds == targets).float().mean().item()
-
-
 def train_model(
     cfg: DictConfig,
     output_dir: str,
@@ -252,6 +256,8 @@ def train_model(
     pl.seed_everything(cfg.seed, workers=True)
 
     # Data - using LightningDataModule for best practices
+    # Note: Trainer.fit() calls datamodule.setup() automatically, but we call it here
+    # to log dataset sizes before training starts
     datamodule = ChestCTDataModule(cfg)
     datamodule.setup(stage="fit")
     logger.info(f"Train batches: {len(datamodule.train_dataloader())}, Val batches: {len(datamodule.val_dataloader())}")

@@ -1,11 +1,48 @@
 from __future__ import annotations
 
+from collections.abc import Callable
+from typing import Protocol
+
 import torch
 import torch.nn as nn
 from omegaconf import DictConfig
 from torchvision import models
 
+# Model registry for extensible model building
 
+
+class ModelConfigFactory(Protocol):
+    @classmethod
+    def from_config(cls, cfg: DictConfig) -> nn.Module: ...
+
+
+MODEL_REGISTRY: dict[str, type[ModelConfigFactory]] = {}
+
+
+def register_model(*names: str) -> Callable[[type[nn.Module]], type[nn.Module]]:
+    """Decorator to register a model class with one or more names.
+
+    Args:
+        *names: One or more names to register the model under (case-insensitive).
+
+    Returns:
+        Decorator function that registers the class and returns it unchanged.
+
+    Example:
+        @register_model("custom_cnn", "cnn")
+        class CustomCNN(nn.Module):
+            ...
+    """
+
+    def decorator(cls: type[nn.Module]) -> type[nn.Module]:
+        for name in names:
+            MODEL_REGISTRY[name.lower()] = cls
+        return cls
+
+    return decorator
+
+
+@register_model("custom_cnn", "cnn", "customcnn")
 class CustomCNN(nn.Module):
     """Configurable CNN for image classification.
 
@@ -64,7 +101,22 @@ class CustomCNN(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.classifier(self.features(x))
 
+    @classmethod
+    def from_config(cls, cfg: DictConfig) -> CustomCNN:
+        """Create CustomCNN from Hydra config."""
+        model_cfg = cfg.model
+        return cls(
+            num_classes=model_cfg.num_classes,
+            in_channels=model_cfg.get("input_channels", 3),
+            hidden_dims=list(model_cfg.hidden_dims),
+            fc_hidden=model_cfg.fc_hidden,
+            dropout=model_cfg.dropout,
+            batch_norm=model_cfg.batch_norm,
+            image_size=cfg.data.image_size,
+        )
 
+
+@register_model("resnet18", "resnet")
 class ResNet18(nn.Module):
     """ResNet18 for transfer learning.
 
@@ -108,39 +160,41 @@ class ResNet18(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.backbone(x)
 
-
-def build_model(cfg: DictConfig) -> nn.Module:
-    """Build model from Hydra config.
-
-    Args:
-        cfg: Hydra config containing model parameters.
-             Expected to have cfg.model with name, num_classes, etc.
-
-    Returns:
-        Configured model instance.
-    """
-    model_cfg = cfg.model
-    name = model_cfg.name.lower()
-
-    if name in {"custom_cnn", "cnn", "customcnn"}:
-        return CustomCNN(
-            num_classes=model_cfg.num_classes,
-            in_channels=model_cfg.get("input_channels", 3),
-            hidden_dims=list(model_cfg.hidden_dims),
-            fc_hidden=model_cfg.fc_hidden,
-            dropout=model_cfg.dropout,
-            batch_norm=model_cfg.batch_norm,
-            image_size=cfg.data.image_size,
-        )
-
-    if name in {"resnet18", "resnet"}:
-        return ResNet18(
+    @classmethod
+    def from_config(cls, cfg: DictConfig) -> ResNet18:
+        """Create ResNet18 from Hydra config."""
+        model_cfg = cfg.model
+        return cls(
             num_classes=model_cfg.num_classes,
             pretrained=model_cfg.get("pretrained", True),
             freeze_backbone=model_cfg.get("freeze_backbone", False),
         )
 
-    raise ValueError(f"Unknown model: {name}. Use 'custom_cnn' or 'resnet18'.")
+
+def build_model(cfg: DictConfig) -> nn.Module:
+    """Build model from Hydra config using the model registry.
+
+    Models are registered with the @register_model decorator and must implement
+    a from_config(cfg) class method for instantiation.
+
+    Args:
+        cfg: Hydra config containing model parameters.
+             Expected to have cfg.model.name specifying which model to build.
+
+    Returns:
+        Configured model instance.
+
+    Raises:
+        ValueError: If the model name is not found in the registry.
+    """
+    name = cfg.model.name.lower()
+
+    if name not in MODEL_REGISTRY:
+        available = ", ".join(sorted(MODEL_REGISTRY.keys()))
+        raise ValueError(f"Unknown model: '{name}'. Available models: {available}")
+
+    model_cls = MODEL_REGISTRY[name]
+    return model_cls.from_config(cfg)
 
 
 if __name__ == "__main__":

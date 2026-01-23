@@ -423,11 +423,11 @@ def create_dataloaders(
         Tuple of (train_loader, val_loader, test_loader)
     """
     data_cfg = cfg.data
-    processed_path = Path("data/processed")
+    processed_path = Path(data_cfg.get("processed_path", "data/processed"))
 
     # Check if processed data exists
     if use_processed and (processed_path / "train_images.pt").exists():
-        logger.info("Using preprocessed data from data/processed/")
+        logger.info(f"Using preprocessed data from {processed_path}")
         train_ds = ProcessedChestCTDataset(processed_path, split="train")
         val_ds = ProcessedChestCTDataset(processed_path, split="valid")
         test_ds = ProcessedChestCTDataset(processed_path, split="test")
@@ -520,11 +520,11 @@ class ChestCTDataModule(pl.LightningDataModule):
         Args:
             stage: One of 'fit', 'validate', 'test', or 'predict'
         """
-        processed_path = Path("data/processed")
+        processed_path = Path(self.data_cfg.get("processed_path", "data/processed"))
 
         # Check if processed data exists
         if self.use_processed and (processed_path / "train_images.pt").exists():
-            logger.info("Using preprocessed data from data/processed/")
+            logger.info(f"Using preprocessed data from {processed_path}")
             if stage == "fit" or stage is None:
                 self.train_ds = ProcessedChestCTDataset(processed_path, split="train")
                 self.val_ds = ProcessedChestCTDataset(processed_path, split="valid")
@@ -606,6 +606,12 @@ class ChestCTDataModule(pl.LightningDataModule):
             pin_memory=self.data_cfg.get("pin_memory", True),
             persistent_workers=self.data_cfg.get("persistent_workers", False) and self.data_cfg.num_workers > 0,
         )
+
+    def predict_dataloader(self) -> DataLoader:
+        """Create prediction dataloader (uses test set by default)."""
+        if self.test_ds is None:
+            self.setup(stage="test")
+        return self.test_dataloader()
 
 
 def chest_ct(
