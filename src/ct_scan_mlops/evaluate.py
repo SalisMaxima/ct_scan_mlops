@@ -16,21 +16,13 @@ from sklearn.metrics import classification_report, confusion_matrix
 
 from ct_scan_mlops.data import CLASSES, create_dataloaders
 from ct_scan_mlops.model import build_model
+from ct_scan_mlops.utils import get_device
 
 app = typer.Typer()
 
 # Get the relative path to the config directory from the project root
 # Hydra requires relative paths, not absolute
 _CONFIG_PATH = "../../configs"
-
-
-def get_device() -> torch.device:
-    """Get the best available device."""
-    if torch.cuda.is_available():
-        return torch.device("cuda")
-    if torch.backends.mps.is_available():
-        return torch.device("mps")
-    return torch.device("cpu")
 
 
 def evaluate_model(

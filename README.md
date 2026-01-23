@@ -39,9 +39,9 @@ We create our own **CNN model** that takes images and performs multi-classificat
 
 ## Getting Started
 
-See [GetStarted.md](GetStarted.md) for setup instructions.
+See [GetStarted.md](docs/GetStarted.md) for setup instructions.
 
-For a complete list of all project dependencies, see [DEPENDENCIES.md](DEPENDENCIES.md).
+For a complete list of all project dependencies, see [DEPENDENCIES.md](docs/DEPENDENCIES.md).
 
 ---
 
@@ -49,7 +49,7 @@ For a complete list of all project dependencies, see [DEPENDENCIES.md](DEPENDENC
 
 This project uses **Weights & Biases** for experiment tracking with team collaboration.
 
-**For Team Members:** See [COLLABORATION.md](COLLABORATION.md) for:
+**For Team Members:** See [COLLABORATION.md](docs/COLLABORATION.md) for:
 
 - How to join the W&B team
 - Running training with automatic attribution

@@ -23,6 +23,7 @@ from prometheus_client import Counter, Gauge, make_asgi_app
 from prometheus_fastapi_instrumentator import Instrumentator
 from torchvision import transforms
 
+from ct_scan_mlops.data import CLASSES, IMAGENET_MEAN, IMAGENET_STD
 from ct_scan_mlops.model import build_model
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -84,12 +85,8 @@ def load_config(cfg_path: Path) -> DictConfig:
     return cfg
 
 
-CLASS_NAMES = [
-    "adenocarcinoma",
-    "large_cell_carcinoma",
-    "normal",
-    "squamous_cell_carcinoma",
-]
+# Use canonical class labels from data module to ensure consistency with training
+CLASS_NAMES = CLASSES
 
 LOAD_MODEL = os.environ.get("LOAD_MODEL", "1") == "1"
 
@@ -99,6 +96,7 @@ tfm = transforms.Compose(
     [
         transforms.Resize((224, 224)),
         transforms.ToTensor(),
+        transforms.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD),
     ]
 )
 

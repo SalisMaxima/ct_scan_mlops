@@ -6,6 +6,9 @@ train_dir: train
 valid_dir: valid
 test_dir: test
 
+# Preprocessed data path (for faster loading)
+processed_path: data/processed
+
 # Class mapping
 classes:
   - adenocarcinoma

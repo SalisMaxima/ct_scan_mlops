@@ -88,7 +88,7 @@ class TestPredictEndpoint:
         data = response.json()
         # Mock model returns highest logit for index 2
         assert data["pred_index"] == 2
-        assert data["pred_class"] == "normal"
+        assert data["pred_class"] == api.CLASS_NAMES[2]
 
     def test_predict_invalid_image(self, client):
         """Test prediction with invalid image data."""

@@ -31,6 +31,6 @@ invoke dvc-pull      # Get data from remote
 ## Docs (on-demand)
 - `docs/Structure.md` - **Complete repository structure index**
 - `README.md` - Full project overview and all commands
-- `GetStarted.md` - Setup instructions
-- `COLLABORATION.md` - W&B team workflow
+- `docs/GetStarted.md` - Setup instructions
+- `docs/COLLABORATION.md` - W&B team workflow
 - `docs/` - Course materials and detailed guides
