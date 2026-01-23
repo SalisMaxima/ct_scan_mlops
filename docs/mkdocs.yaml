@@ -1,23 +1,81 @@
-site_name: ct_scan_mlops
+site_name: CT Scan MLOps
 site_author: MLOps Group 2
+site_description: Chest CT scan classification for lung tumor detection
+repo_url: https://github.com/SalisMaxima/ct_scan_mlops
 docs_dir: source
 
 theme:
-  language: en
   name: material
+  language: en
   features:
     - content.code.copy
     - content.code.annotate
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - search.suggest
+    - search.highlight
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
 
 plugins:
   - search
   - mkdocstrings:
       handlers:
         python:
+          paths: [../src]
           options:
             show_root_heading: true
+            show_root_full_path: false
+            docstring_style: google
+            merge_init_into_class: true
             separate_signature: true
             show_signature_annotations: true
+            show_source: true
+            heading_level: 2
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - admonition
+  - pymdownx.details
+  - tables
+  - toc:
+      permalink: true
 
 nav:
   - Home: index.md
+  - Getting Started:
+    - getting-started/index.md
+    - Installation: getting-started/installation.md
+    - Quick Start: getting-started/quickstart.md
+  - User Guide:
+    - user-guide/index.md
+    - Training: user-guide/training.md
+    - Evaluation: user-guide/evaluation.md
+    - Configuration: user-guide/configuration.md
+    - Docker: user-guide/docker.md
+  - API Reference:
+    - api-reference/index.md
+    - Data: api-reference/data.md
+    - Model: api-reference/model.md
+    - Training: api-reference/train.md
+    - Evaluation: api-reference/evaluate.md
+    - FastAPI: api-reference/api.md
+    - Utilities: api-reference/utils.md
+  - Development:
+    - development/index.md
+    - Collaboration: development/collaboration.md
+    - Project Structure: development/structure.md
