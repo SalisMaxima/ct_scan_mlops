@@ -21,7 +21,7 @@ COPY configs/ configs/
 
 # Install the project
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen
+    uv pip install --no-deps .
 
 # Runtime stage - minimal image
 FROM python:3.12-slim-bookworm AS runtime
@@ -36,8 +36,9 @@ ENV PIP_DISABLE_PIP_VERSION_CHECK=1
 ENV PYTHONUNBUFFERED=1
 
 # Ensure certs are up to date (fixes many SSL errors)
+# Added libglib2.0-0 and libxcb1 to resolve OpenCV import errors
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates curl \
+    ca-certificates curl libglib2.0-0 libxcb1 \
   && update-ca-certificates \
   && rm -rf /var/lib/apt/lists/*
 
@@ -59,6 +60,5 @@ EXPOSE 8080
 # NOTE: Models are no longer baked into this image.
 # They must be mounted at runtime, e.g. via Cloud Run volumes or GCS FUSE
 # Override CONFIG_PATH and MODEL_PATH env vars as needed for your deployment.
-
 # Cloud Run will provide PORT environment variable (default: 8080)
 CMD ["bash", "-c", "uvicorn ct_scan_mlops.api:app --host 0.0.0.0 --port ${PORT}"]
