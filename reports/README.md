@@ -602,13 +602,13 @@ will check the repositories and the code to verify your answers.
 >
 > *All members contributed to code by...*
 > *We have used ChatGPT to help debug our code. Additionally, we used GitHub Copilot to help write some of our code.*
-> 
+>
 > Answer: Student s243924 This student was primarily responsible for the project environment, data engineering, and configuration management. They established the dedicated project environment to manage dependencies and initialized the file structure using a cookiecutter template. They maintained dependency tracking through requirements.txt and pyproject.toml/uv.lock and implemented data.py to handle dataset downloading and preprocessing. Additionally, they ensured adherence to coding standards, documented essential code sections, and implemented command-line interfaces. They also set up version control for data and supported the use of Hydra for experiment configuration and hyperparameter management.
-> 
+>
 > Student s253810 This student focused on model development, training logic, and experimental optimization. They implemented the model architecture in model.py and the training procedure in train.py, ensuring the training loop was functional. They wrote configuration files for experiments and utilized profiling tools to optimize code performance. This student integrated logging for important events and set up Weights & Biases to track training progress, metrics, and artifacts. They also conducted hyperparameter optimization sweeps, implemented PyTorch Lightning to reduce boilerplate, and performed robustness checks regarding data drifting.
-> 
+>
 > Student s204696 This student was responsible for the initial repository setup, Quality Assurance, and Continuous Integration. They created the git repository and ensured all team members had write access . Their focus then shifted to testing, where they wrote unit tests for data handling and model training and calculated code coverage. They established continuous integration workflows on GitHub , adding caching, multi-OS/Python/PyTorch testing, linting, and pre-commit hooks . They also implemented continuous workflows triggered by data changes and model registry updates, wrote API tests, and performed load testing on the deployed application.
-> 
+>
 > Student s250989 This student handled containerization, cloud infrastructure, and deployment. They constructed and validated Docker files locally  and configured triggers for automated image builds. They set up GCP storage buckets linked with data version control and managed model training on GCP using Vertex AI. Following this, they developed a FastAPI application for inference and deployed it using Cloud Run or Functions. They expanded the deployment scope by creating specialized APIs using ONNX  and a frontend interface. Finally, they implemented input-output data collection , deployed a drift detection API, instrumented the system with metrics, and set up cloud monitoring and alerting .
 Throughout the project, we used GitHub Copilot and Claude to assist with debugging, conducting code reviews, and fixing buggy implementations.
 >
