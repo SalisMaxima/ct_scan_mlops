@@ -288,7 +288,7 @@ ct_scan_mlops/
 
 ## Links
 
-- **GitHub Repo:** [https://github.com/SalisMaxima/ct_scan_mlops](https://github.com/DTU-MLOps-Group-2/ct_scan_mlops)
+- **GitHub Repo:** [https://github.com/DTU-MLOps-Group-2/ct_scan_mlops](https://github.com/DTU-MLOps-Group-2/ct_scan_mlops)
 - **Dataset:** [https://www.kaggle.com/datasets/mohamedhanyyy/chest-ctscan-images](https://www.kaggle.com/datasets/mohamedhanyyy/chest-ctscan-images)
 - **Course Material:** [https://skaftenicki.github.io/dtu_mlops/](https://skaftenicki.github.io/dtu_mlops/)
 
