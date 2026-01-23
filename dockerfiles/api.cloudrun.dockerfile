@@ -36,8 +36,9 @@ ENV PIP_DISABLE_PIP_VERSION_CHECK=1
 ENV PYTHONUNBUFFERED=1
 
 # Ensure certs are up to date (fixes many SSL errors)
+# Added libglib2.0-0 and libxcb1 to resolve OpenCV import errors
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates curl libglib2.0-0 \
+    ca-certificates curl libglib2.0-0 libxcb1 \
   && update-ca-certificates \
   && rm -rf /var/lib/apt/lists/*
 
