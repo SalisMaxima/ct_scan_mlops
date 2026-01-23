@@ -1,7 +1,7 @@
 site_name: CT Scan MLOps
 site_author: MLOps Group 2
 site_description: Chest CT scan classification for lung tumor detection
-repo_url: https://github.com/SalisMaxima/ct_scan_mlops
+repo_url: https://github.com/DTU-MLOps-Group-2/ct_scan_mlops
 docs_dir: source
 
 theme:
