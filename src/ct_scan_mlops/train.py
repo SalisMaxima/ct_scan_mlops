@@ -18,6 +18,7 @@ from torch.profiler import ProfilerActivity, profile, tensorboard_trace_handler
 
 from ct_scan_mlops.data import ChestCTDataModule
 from ct_scan_mlops.model import build_model
+from ct_scan_mlops.utils import get_device
 
 # Find project root for Hydra config path
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -198,18 +199,6 @@ def configure_logging(output_dir: str) -> None:
     )
 
     logger.info(f"Logging configured. Logs saved to {log_path}")
-
-
-def get_device() -> torch.device:
-    """Get the best available device.
-
-    Priority: CUDA > MPS (Apple Silicon) > CPU
-    """
-    if torch.cuda.is_available():
-        return torch.device("cuda")
-    if torch.backends.mps.is_available():
-        return torch.device("mps")
-    return torch.device("cpu")
 
 
 def set_seed(seed: int, device: torch.device) -> None:

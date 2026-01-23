@@ -23,7 +23,7 @@ from prometheus_client import Counter, Gauge, make_asgi_app
 from prometheus_fastapi_instrumentator import Instrumentator
 from torchvision import transforms
 
-from ct_scan_mlops.data import CLASSES
+from ct_scan_mlops.data import CLASSES, IMAGENET_MEAN, IMAGENET_STD
 from ct_scan_mlops.model import build_model
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -96,6 +96,7 @@ tfm = transforms.Compose(
     [
         transforms.Resize((224, 224)),
         transforms.ToTensor(),
+        transforms.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD),
     ]
 )
 
