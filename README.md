@@ -29,7 +29,6 @@ The dataset contains ~1000 images with somewhat balanced volume across 4 classif
 
 1. Standardize data to the correct file format (nearly all images are PNG while 12 images are JPEG - these are converted to PNG)
 2. Data is pre-split into training (70%), validation (20%), and test (10%) sets to minimize data leakage
-3. Augmentation with linear transformations for horizontal/vertical flips and rotations, increasing model robustness through significant increases in data volume
 
 ## Models
 
