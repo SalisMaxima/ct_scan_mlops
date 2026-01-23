@@ -75,7 +75,7 @@ def load_config(cfg_path: Path) -> DictConfig:
         try:
             with initialize_config_dir(
                 version_base=None,
-                config_dir=str(cfg_path.parent),
+                config_dir=str(cfg_path.parent.resolve()),
             ):
                 return compose(config_name=cfg_path.stem)
         except Exception as exc:  # pragma: no cover - defensive, depends on Hydra internals
