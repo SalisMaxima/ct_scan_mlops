@@ -1,0 +1,25 @@
+# Default radiomics feature extraction configuration
+#
+# Features extracted (~50 total):
+# - Intensity (8): mean, std, skewness, kurtosis, percentiles, entropy
+# - GLCM Texture (13): contrast, homogeneity, energy, correlation, etc.
+# - Shape (9): area, perimeter, eccentricity, solidity, compactness, etc.
+# - Region (6): solid_ratio, ggo_ratio, low_density_ratio, gradients
+# - Wavelet (14): subband energies and means at multiple decomposition levels
+
+# Feature categories to extract
+use_intensity: true
+use_glcm: true
+use_shape: true
+use_region: true
+use_wavelet: true
+
+# GLCM parameters
+glcm_distances:
+  - 1
+  - 2
+  - 3
+
+# Wavelet parameters
+wavelet_type: "db4"  # Daubechies 4 wavelet
+wavelet_level: 2     # Number of decomposition levels

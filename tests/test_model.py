@@ -11,7 +11,7 @@ from typing import Any
 import pytest
 import torch
 
-from ct_scan_mlops.model import CustomCNN, ResNet18, build_model
+from ct_scan_mlops.model import CustomCNN, DualPathwayModel, ResNet18, build_model
 
 
 class AttrDict(dict):
@@ -186,3 +186,128 @@ def test_build_model_unknown_raises():
     )
     with pytest.raises(ValueError):
         build_model(cfg)
+
+
+# ============================================
+# DualPathwayModel Tests
+# ============================================
+
+
+def test_dual_pathway_initialization():
+    """Test DualPathwayModel can be initialized."""
+    model = DualPathwayModel(
+        num_classes=4,
+        radiomics_dim=50,
+        radiomics_hidden=128,
+        cnn_feature_dim=512,
+        fusion_hidden=256,
+        dropout=0.3,
+        pretrained=False,
+        freeze_backbone=False,
+    )
+    assert model is not None
+    assert isinstance(model, torch.nn.Module)
+
+
+def test_dual_pathway_forward_with_features():
+    """Test DualPathwayModel forward pass with radiomics features."""
+    model = DualPathwayModel(
+        num_classes=4,
+        radiomics_dim=50,
+        pretrained=False,
+    )
+
+    batch_size = 2
+    images = torch.randn(batch_size, 3, 224, 224)
+    features = torch.randn(batch_size, 50)
+
+    with torch.no_grad():
+        output = model(images, features)
+
+    assert output.shape == (batch_size, 4)
+
+
+def test_dual_pathway_forward_without_features():
+    """Test DualPathwayModel forward pass without features (backwards compatibility)."""
+    model = DualPathwayModel(
+        num_classes=4,
+        radiomics_dim=50,
+        pretrained=False,
+    )
+
+    batch_size = 2
+    images = torch.randn(batch_size, 3, 224, 224)
+
+    with torch.no_grad():
+        output = model(images, features=None)
+
+    # Should still work (CNN-only mode) with num_classes output
+    assert output.shape == (batch_size, 4)
+
+
+def test_dual_pathway_freeze_unfreeze():
+    """Test DualPathwayModel freeze and unfreeze methods."""
+    model = DualPathwayModel(num_classes=4, pretrained=False, freeze_backbone=True)
+
+    # Check backbone is frozen
+    for param in model.cnn_backbone.parameters():
+        assert not param.requires_grad
+
+    # Unfreeze and check
+    model.unfreeze_backbone()
+    for param in model.cnn_backbone.parameters():
+        assert param.requires_grad
+
+
+def test_build_model_dual_pathway():
+    """build_model should return DualPathwayModel configured from cfg."""
+    cfg = make_cfg(
+        model=AttrDict(
+            name="dual_pathway",
+            num_classes=4,
+            radiomics_dim=50,
+            radiomics_hidden=128,
+            cnn_feature_dim=512,
+            fusion_hidden=256,
+            dropout=0.3,
+            pretrained=False,
+            freeze_backbone=False,
+        ),
+        data=AttrDict(image_size=224),
+        features=AttrDict(
+            use_intensity=True,
+            use_glcm=True,
+            use_shape=True,
+            use_region=True,
+            use_wavelet=True,
+        ),
+    )
+
+    model = build_model(cfg)
+    assert isinstance(model, DualPathwayModel)
+
+    # Test forward pass
+    batch_size = 2
+    images = torch.randn(batch_size, 3, 224, 224)
+    features = torch.randn(batch_size, 50)
+
+    with torch.no_grad():
+        output = model(images, features)
+
+    assert output.shape == (batch_size, 4)
+
+
+@pytest.mark.parametrize("model_name", ["dual_pathway", "dualpathway", "hybrid"])
+def test_build_model_dual_pathway_aliases(model_name: str):
+    """build_model should accept all dual pathway model aliases."""
+    cfg = make_cfg(
+        model=AttrDict(
+            name=model_name,
+            num_classes=4,
+            pretrained=False,
+        ),
+        data=AttrDict(image_size=224),
+    )
+
+    model = build_model(cfg)
+    assert isinstance(model, DualPathwayModel)

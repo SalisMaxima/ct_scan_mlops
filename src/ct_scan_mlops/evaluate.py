@@ -32,6 +32,7 @@ def evaluate_model(
     log_to_wandb: bool = False,
     save_confusion_matrix: bool = True,
     output_dir: Path | None = None,
+    use_features: bool = False,
 ) -> dict[str, float]:
     """
     Core evaluation logic. Can be called standalone or from a sweep wrapper.
@@ -43,6 +44,7 @@ def evaluate_model(
         log_to_wandb: Whether to log metrics to wandb (assumes wandb is initialized)
         save_confusion_matrix: Whether to save confusion matrix plot
         output_dir: Directory to save outputs (confusion matrix, etc.)
+        use_features: Whether test_loader returns (image, features, label) tuples
 
     Returns:
         Dictionary with test metrics (accuracy, per-class metrics)
@@ -55,9 +57,19 @@ def evaluate_model(
     logger.info("Running evaluation on test set...")
 
     with torch.no_grad():
-        for images, targets in test_loader:
-            images, targets = images.to(device), targets.to(device)
-            outputs = model(images)
+        for batch in test_loader:
+            # Handle both 2-tuple and 3-tuple batch formats
+            if len(batch) == 3:
+                images, features, targets = batch
+                images = images.to(device)
+                features = features.to(device)
+                targets = targets.to(device)
+                outputs = model(images, features) if use_features else model(images)
+            else:
+                images, targets = batch
+                images, targets = images.to(device), targets.to(device)
+                outputs = model(images)
+
             preds = outputs.argmax(dim=1)
 
             correct += (preds == targets).sum().item()
@@ -272,11 +284,14 @@ def evaluate_cli(
     device = get_device()
     logger.info(f"Using device: {device}")
 
+    # Detect if using dual-pathway model
+    use_features = cfg.model.name in ("dual_pathway", "dualpathway", "hybrid")
+
     # Load model
     model = load_model_from_checkpoint(checkpoint_path, cfg, device)
 
-    # Create dataloaders
-    _, _, test_loader = create_dataloaders(cfg, use_processed=True)
+    # Create dataloaders (with features if needed)
+    _, _, test_loader = create_dataloaders(cfg, use_processed=True, use_features=use_features)
 
     # Evaluate
     metrics = evaluate_model(
@@ -286,6 +301,7 @@ def evaluate_cli(
         log_to_wandb=use_wandb,
         save_confusion_matrix=True,
         output_dir=out_dir,
+        use_features=use_features,
     )
 
     if use_wandb:
@@ -331,11 +347,14 @@ def evaluate_hydra(cfg: DictConfig) -> dict[str, float] | None:
         logger.error(f"Output directory not found: {output_base}")
         return None
 
+    # Detect if using dual-pathway model
+    use_features = cfg.model.name in ("dual_pathway", "dualpathway", "hybrid")
+
     # Load model
     model = load_model_from_checkpoint(checkpoint_path, cfg, device)
 
-    # Create dataloaders
-    _, _, test_loader = create_dataloaders(cfg, use_processed=True)
+    # Create dataloaders (with features if needed)
+    _, _, test_loader = create_dataloaders(cfg, use_processed=True, use_features=use_features)
 
     # Evaluate
     return evaluate_model(
@@ -345,6 +364,7 @@ def evaluate_hydra(cfg: DictConfig) -> dict[str, float] | None:
         log_to_wandb=False,
         save_confusion_matrix=True,
         output_dir=checkpoint_path.parent,
+        use_features=use_features,
     )
 
 

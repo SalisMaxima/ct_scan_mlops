@@ -2,6 +2,7 @@ defaults:
   - model: cnn
   - data: chest_ct
   - train: default
+  - features: default
   - _self_
 
 # General settings

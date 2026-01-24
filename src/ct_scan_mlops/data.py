@@ -189,6 +189,87 @@ class ProcessedChestCTDataset(Dataset):
         return self.images[idx], self.labels[idx]
 
 
+class RadiomicsChestCTDataset(Dataset):
+    """Dataset for preprocessed CT images with radiomics features.
+
+    Returns (image, features, label) tuples for training the dual-pathway model.
+    Use extract_features() to generate the feature files first.
+    """
+
+    def __init__(
+        self,
+        data_path: Path,
+        split: str = "train",
+        normalize_features: bool = True,
+        feature_mean: torch.Tensor | None = None,
+        feature_std: torch.Tensor | None = None,
+    ) -> None:
+        """Initialize dataset from processed tensors and features.
+
+        Args:
+            data_path: Path to processed data folder (containing .pt files)
+            split: One of 'train', 'valid', 'test'
+            normalize_features: Whether to normalize features
+            feature_mean: Mean for feature normalization (computed from train if None)
+            feature_std: Std for feature normalization (computed from train if None)
+        """
+        self.data_path = Path(data_path)
+        self.split = split
+        self.normalize_features = normalize_features
+
+        # Load pre-processed tensors
+        images_path = self.data_path / f"{split}_images.pt"
+        labels_path = self.data_path / f"{split}_labels.pt"
+        features_path = self.data_path / f"{split}_features.pt"
+
+        if not images_path.exists():
+            raise FileNotFoundError(f"Processed data not found at {images_path}. Run 'invoke preprocess-data' first.")
+
+        if not features_path.exists():
+            raise FileNotFoundError(f"Features not found at {features_path}. Run 'invoke extract-features' first.")
+
+        self.images = torch.load(images_path, weights_only=True)
+        self.labels = torch.load(labels_path, weights_only=True)
+        self.features = torch.load(features_path, weights_only=True)
+
+        # Store normalization stats
+        self.feature_mean = feature_mean
+        self.feature_std = feature_std
+
+        # Compute normalization stats from training data if not provided
+        if normalize_features and split == "train" and feature_mean is None:
+            self.feature_mean = self.features.mean(dim=0)
+            self.feature_std = self.features.std(dim=0)
+            # Avoid division by zero
+            self.feature_std = torch.where(
+                self.feature_std > 1e-8,
+                self.feature_std,
+                torch.ones_like(self.feature_std),
+            )
+
+        # Class mapping
+        self.class_to_idx = {c: i for i, c in enumerate(CLASSES)}
+        self.idx_to_class = {i: c for c, i in self.class_to_idx.items()}
+        self.num_classes = len(CLASSES)
+
+        logger.info(f"Loaded {len(self.labels)} samples with {self.features.shape[1]} features for split '{split}'")
+
+    def __len__(self) -> int:
+        return len(self.labels)
+
+    def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        """Return (image, features, label) tuple."""
+        image = self.images[idx]
+        features = self.features[idx]
+        label = self.labels[idx]
+
+        # Normalize features
+        if self.normalize_features and self.feature_mean is not None:
+            features = (features - self.feature_mean) / self.feature_std
+
+        return image, features, label
+
+
 class ChestCTDataset(Dataset):
     """Dataset for Chest CT scan images (loads from raw images).
 
@@ -412,12 +493,14 @@ def preprocess(
 def create_dataloaders(
     cfg: DictConfig,
     use_processed: bool = True,
+    use_features: bool = False,
 ) -> tuple[DataLoader[Any], DataLoader[Any], DataLoader[Any]]:
     """Create train, validation, and test dataloaders from config.
 
     Args:
         cfg: Hydra config containing data and paths settings
         use_processed: If True, use processed tensors (faster). If False, load raw images.
+        use_features: If True, use RadiomicsChestCTDataset (returns image, features, label).
 
     Returns:
         Tuple of (train_loader, val_loader, test_loader)
@@ -425,8 +508,28 @@ def create_dataloaders(
     data_cfg = cfg.data
     processed_path = Path(data_cfg.get("processed_path", "data/processed"))
 
+    # Check if using radiomics features
+    if use_features and (processed_path / "train_features.pt").exists():
+        logger.info(f"Using radiomics features from {processed_path}")
+        # Create training dataset first to compute normalization stats
+        train_ds = RadiomicsChestCTDataset(processed_path, split="train", normalize_features=True)
+        # Use training stats for validation and test
+        val_ds = RadiomicsChestCTDataset(
+            processed_path,
+            split="valid",
+            normalize_features=True,
+            feature_mean=train_ds.feature_mean,
+            feature_std=train_ds.feature_std,
+        )
+        test_ds = RadiomicsChestCTDataset(
+            processed_path,
+            split="test",
+            normalize_features=True,
+            feature_mean=train_ds.feature_mean,
+            feature_std=train_ds.feature_std,
+        )
     # Check if processed data exists
-    if use_processed and (processed_path / "train_images.pt").exists():
+    elif use_processed and (processed_path / "train_images.pt").exists():
         logger.info(f"Using preprocessed data from {processed_path}")
         train_ds = ProcessedChestCTDataset(processed_path, split="train")
         val_ds = ProcessedChestCTDataset(processed_path, split="valid")
@@ -502,17 +605,28 @@ class ChestCTDataModule(pl.LightningDataModule):
     Args:
         cfg: Hydra configuration containing data and paths settings
         use_processed: If True, use processed tensors (faster). If False, load raw images.
+        use_features: If True, use RadiomicsChestCTDataset (returns image, features, label).
     """
 
-    def __init__(self, cfg: DictConfig, use_processed: bool = True) -> None:
+    def __init__(
+        self,
+        cfg: DictConfig,
+        use_processed: bool = True,
+        use_features: bool = False,
+    ) -> None:
         super().__init__()
         self.cfg = cfg
         self.use_processed = use_processed
+        self.use_features = use_features
         self.data_cfg = cfg.data
 
         self.train_ds: Dataset | None = None
         self.val_ds: Dataset | None = None
         self.test_ds: Dataset | None = None
+
+        # Store feature normalization stats (computed from training data)
+        self.feature_mean: torch.Tensor | None = None
+        self.feature_std: torch.Tensor | None = None
 
     def setup(self, stage: str | None = None) -> None:
         """Load datasets for the specified stage.
@@ -521,6 +635,40 @@ class ChestCTDataModule(pl.LightningDataModule):
             stage: One of 'fit', 'validate', 'test', or 'predict'
         """
         processed_path = Path(self.data_cfg.get("processed_path", "data/processed"))
+
+        # Check if using radiomics features
+        if self.use_features and (processed_path / "train_features.pt").exists():
+            logger.info(f"Using radiomics features from {processed_path}")
+            if stage == "fit" or stage is None:
+                # Create training dataset first to compute normalization stats
+                self.train_ds = RadiomicsChestCTDataset(processed_path, split="train", normalize_features=True)
+                # Get normalization stats from training data
+                self.feature_mean = self.train_ds.feature_mean
+                self.feature_std = self.train_ds.feature_std
+
+                # Create validation dataset with training stats
+                self.val_ds = RadiomicsChestCTDataset(
+                    processed_path,
+                    split="valid",
+                    normalize_features=True,
+                    feature_mean=self.feature_mean,
+                    feature_std=self.feature_std,
+                )
+            if stage == "test" or stage is None:
+                # Use training stats if available, otherwise load train to compute
+                if self.feature_mean is None:
+                    train_ds = RadiomicsChestCTDataset(processed_path, split="train", normalize_features=True)
+                    self.feature_mean = train_ds.feature_mean
+                    self.feature_std = train_ds.feature_std
+
+                self.test_ds = RadiomicsChestCTDataset(
+                    processed_path,
+                    split="test",
+                    normalize_features=True,
+                    feature_mean=self.feature_mean,
+                    feature_std=self.feature_std,
+                )
+            return
 
         # Check if processed data exists
         if self.use_processed and (processed_path / "train_images.pt").exists():

@@ -52,6 +52,23 @@ def preprocess_data(ctx: Context) -> None:
 
 
 @task
+def extract_features(ctx: Context, n_jobs: int = -1, args: str = "") -> None:
+    """Extract radiomics features from preprocessed images.
+
+    Args:
+        n_jobs: Number of parallel jobs (-1 = all CPUs)
+        args: Additional Hydra config overrides
+
+    Examples:
+        invoke extract-features
+        invoke extract-features --n-jobs 4
+        invoke extract-features --args "features.use_wavelet=false"
+    """
+    full_args = f"n_jobs={n_jobs} {args}".strip()
+    ctx.run(f"uv run python -m {PROJECT_NAME}.features.extract_radiomics {full_args}", echo=True, pty=not WINDOWS)
+
+
+@task
 def train(ctx: Context, entity: str = "", args: str = "") -> None:
     """Train model with wandb logging.
 
