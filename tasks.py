@@ -64,7 +64,7 @@ def extract_features(ctx: Context, n_jobs: int = -1, args: str = "") -> None:
         invoke extract-features --n-jobs 4
         invoke extract-features --args "features.use_wavelet=false"
     """
-    full_args = f"n_jobs={n_jobs} {args}".strip()
+    full_args = f"+n_jobs={n_jobs} {args}".strip()
     ctx.run(f"uv run python -m {PROJECT_NAME}.features.extract_radiomics {full_args}", echo=True, pty=not WINDOWS)
 
 
@@ -165,11 +165,124 @@ def evaluate(ctx: Context, checkpoint: str = "", wandb: bool = False, entity: st
         print("Example: invoke evaluate --checkpoint outputs/ct_scan_classifier/2026-01-14/12-34-56/best_model.ckpt")
         return
 
+    # Check if .hydra/config.yaml exists in checkpoint's parent directory
+    checkpoint_path = Path(checkpoint)
+    hydra_config = checkpoint_path.parent / ".hydra" / "config.yaml"
+
     cmd = f"uv run python -m {PROJECT_NAME}.evaluate {checkpoint}"
+
+    # Use saved config if available (important for dual-pathway models)
+    if hydra_config.exists():
+        cmd += f" --config {hydra_config}"
+        print(f"Using saved config from {hydra_config}")
+
     if wandb:
         cmd += " --wandb"
         if entity:
             cmd += f" --wandb-entity {entity}"
+    ctx.run(cmd, echo=True, pty=not WINDOWS)
+
+
+@task
+def compare_baselines(
+    ctx: Context,
+    baseline: str = "",
+    improved: str = "",
+    output_dir: str = "reports/baseline_comparison",
+    wandb: bool = False,
+) -> None:
+    """Compare baseline CNN vs improved DualPathway model.
+
+    Args:
+        baseline: Path to baseline model checkpoint (.ckpt)
+        improved: Path to improved model checkpoint (.ckpt)
+        output_dir: Output directory for comparison reports
+        wandb: Log results to W&B
+
+    Examples:
+        invoke compare-baselines --baseline outputs/.../baseline.ckpt --improved outputs/.../improved.ckpt
+        invoke compare-baselines --baseline path/to/baseline.ckpt --improved path/to/improved.ckpt --wandb
+    """
+    if not baseline or not improved:
+        print("ERROR: Both --baseline and --improved checkpoints are required")
+        print("Usage: invoke compare-baselines --baseline path/to/baseline.ckpt --improved path/to/improved.ckpt")
+        return
+
+    cmd = f"uv run python -m {PROJECT_NAME}.analysis.baseline_comparison {baseline} {improved}"
+    cmd += f" --output-dir {output_dir}"
+    if wandb:
+        cmd += " --wandb"
+
+    ctx.run(cmd, echo=True, pty=not WINDOWS)
+
+
+@task
+def analyze_features(
+    ctx: Context,
+    checkpoint: str = "",
+    method: str = "permutation",
+    n_repeats: int = 10,
+    output_dir: str = "reports/feature_importance",
+    wandb: bool = False,
+) -> None:
+    """Analyze radiomics feature importance for DualPathway model.
+
+    Args:
+        checkpoint: Path to DualPathway model checkpoint (.ckpt)
+        method: Analysis method (permutation, gradient, both)
+        n_repeats: Number of permutation repeats for variance estimation
+        output_dir: Output directory for analysis reports
+        wandb: Log results to W&B
+
+    Examples:
+        invoke analyze-features --checkpoint outputs/.../best_model.ckpt
+        invoke analyze-features --checkpoint path/to/model.ckpt --method both --wandb
+    """
+    if not checkpoint:
+        print("ERROR: --checkpoint is required")
+        print("Usage: invoke analyze-features --checkpoint path/to/model.ckpt")
+        return
+
+    cmd = f"uv run python -m {PROJECT_NAME}.analysis.feature_importance {checkpoint}"
+    cmd += f" --method {method} --n-repeats {n_repeats} --output-dir {output_dir}"
+    if wandb:
+        cmd += " --wandb"
+
+    ctx.run(cmd, echo=True, pty=not WINDOWS)
+
+
+@task
+def analyze_errors(
+    ctx: Context,
+    checkpoint: str = "",
+    class_filter: str = "",
+    output_dir: str = "reports/error_analysis",
+    wandb: bool = False,
+) -> None:
+    """Analyze misclassified samples.
+
+    Args:
+        checkpoint: Path to model checkpoint (.ckpt)
+        class_filter: Filter errors for specific class (e.g., adenocarcinoma)
+        output_dir: Output directory for analysis reports
+        wandb: Log results to W&B
+
+    Examples:
+        invoke analyze-errors --checkpoint outputs/.../best_model.ckpt
+        invoke analyze-errors --checkpoint path/to/model.ckpt --class-filter adenocarcinoma --wandb
+    """
+    if not checkpoint:
+        print("ERROR: --checkpoint is required")
+        print("Usage: invoke analyze-errors --checkpoint path/to/model.ckpt")
+        return
+
+    cmd = f"uv run python -m {PROJECT_NAME}.analysis.error_analysis {checkpoint}"
+    cmd += f" --output-dir {output_dir}"
+    if class_filter:
+        cmd += f" --class-filter {class_filter}"
+    if wandb:
+        cmd += " --wandb"
+
     ctx.run(cmd, echo=True, pty=not WINDOWS)
 
 
