@@ -4,6 +4,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
+# Add OmegaConf and typing classes to safe globals for checkpoint loading
+# PyTorch 2.6 requires explicit allowlisting for weights_only=True
+from typing import Any
+
 import hydra
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -12,11 +16,14 @@ import typer
 import wandb
 from loguru import logger
 from omegaconf import DictConfig, OmegaConf
+from omegaconf.base import Container, ContainerMetadata
 from sklearn.metrics import classification_report, confusion_matrix
 
 from ct_scan_mlops.data import CLASSES, create_dataloaders
 from ct_scan_mlops.model import build_model
 from ct_scan_mlops.utils import get_device
+
+torch.serialization.add_safe_globals([DictConfig, Container, ContainerMetadata, Any])
 
 app = typer.Typer()
 
@@ -180,8 +187,9 @@ def load_model_from_checkpoint(
     # Build model from config
     model = build_model(cfg).to(device)
 
-    # Load checkpoint with weights_only=True for security (supports Lightning checkpoints)
-    checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=True)
+    # Load checkpoint (weights_only=False for OmegaConf/Lightning compatibility)
+    # Note: These are trusted checkpoints from our own training runs
+    checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
 
     # Handle different checkpoint formats
     if isinstance(checkpoint, dict):
