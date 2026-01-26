@@ -92,6 +92,28 @@ def train(ctx: Context, entity: str = "", args: str = "") -> None:
 
 
 @task
+def train_dual(ctx: Context, top_features: bool = False, entity: str = "", args: str = "") -> None:
+    """Train dual pathway model (CNN + radiomics features).
+
+    Args:
+        top_features: Use only top 16 features (default: False, uses all 50)
+        entity: Wandb entity (optional)
+        args: Additional Hydra config overrides
+
+    Examples:
+        invoke train-dual                    # Train with all 50 features
+        invoke train-dual --top-features     # Train with top 16 features
+        invoke train-dual --args "train.max_epochs=100"
+    """
+    model = "dual_pathway_top_features" if top_features else "dual_pathway"
+    features = "features=top_features" if top_features else ""
+    entity_override = f"wandb.entity={entity}" if entity else ""
+
+    full_args = f"model={model} {features} {entity_override} {args}".strip()
+    ctx.run(f"uv run python -m {PROJECT_NAME}.train {full_args}", echo=True, pty=not WINDOWS)
+
+
+@task
 def sweep(
     ctx: Context, sweep_config: str = "configs/sweeps/train_sweep.yaml", project: str = "", entity: str = ""
 ) -> None:
