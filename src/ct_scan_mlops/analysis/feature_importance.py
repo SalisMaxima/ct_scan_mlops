@@ -13,15 +13,13 @@ import torch
 import typer
 import wandb
 from loguru import logger
-from omegaconf import OmegaConf
 from sklearn.metrics import accuracy_score
 from torch import nn
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from ct_scan_mlops.analysis.utils import load_feature_metadata, log_to_wandb
+from ct_scan_mlops.analysis.utils import ModelLoader, load_feature_metadata, log_to_wandb
 from ct_scan_mlops.data import CLASSES, create_dataloaders
-from ct_scan_mlops.evaluate import load_model_from_checkpoint
 from ct_scan_mlops.utils import get_device
 
 app = typer.Typer()
@@ -36,13 +34,10 @@ def compute_permutation_importance(
 ) -> dict:
     """Compute permutation importance for each radiomics feature.
 
-    Algorithm:
-    1. Baseline accuracy on test set
-    2. For each feature i in [0..49]:
-        - Shuffle feature i across batch
-        - Measure accuracy drop
-        - Repeat n_repeats times, average
-    3. Rank features by mean importance
+    Optimized algorithm:
+    1. Cache ALL data (images, features, targets) during baseline phase
+    2. Use direct tensor indexing for permutation evaluation
+    3. Complexity: O(M * K * N) instead of O(M * K * N^2)
 
     Args:
         model: Trained DualPathway model
@@ -56,83 +51,78 @@ def compute_permutation_importance(
     """
     model.eval()
 
-    # 1. Compute baseline accuracy
-    logger.info("Computing baseline accuracy...")
-    all_preds = []
-    all_targets = []
+    # Phase 1: Cache ALL data and compute baseline accuracy
+    logger.info("Caching test data and computing baseline accuracy...")
+
+    all_images_list = []
     all_features_list = []
+    all_targets_list = []
+    all_preds = []
 
     with torch.no_grad():
-        for batch in test_loader:
+        for batch in tqdm(test_loader, desc="Caching data"):
             images, features, targets = batch
             images = images.to(device)
             features = features.to(device)
             targets = targets.to(device)
 
+            # Cache data (keep on CPU to save GPU memory)
+            all_images_list.append(images.cpu())
+            all_features_list.append(features.cpu())
+            all_targets_list.append(targets.cpu())
+
+            # Compute baseline predictions
             outputs = model(images, features)
             preds = outputs.argmax(dim=1)
-
             all_preds.extend(preds.cpu().numpy())
-            all_targets.extend(targets.cpu().numpy())
-            all_features_list.append(features.cpu())
 
-    baseline_accuracy = accuracy_score(all_targets, all_preds)
-    logger.info(f"Baseline accuracy: {baseline_accuracy:.4f}")
-
-    # Concatenate all features
+    # Concatenate all cached data
+    all_images = torch.cat(all_images_list, dim=0)  # (N, C, H, W)
     all_features = torch.cat(all_features_list, dim=0)  # (N, 50)
-    all_targets = np.array(all_targets)
+    all_targets = torch.cat(all_targets_list, dim=0)  # (N,)
+    all_targets_np = all_targets.numpy()
 
-    # 2. For each feature, compute importance via permutation
+    baseline_accuracy = accuracy_score(all_targets_np, all_preds)
+    logger.info(f"Baseline accuracy: {baseline_accuracy:.4f}")
+    logger.info(f"Cached {len(all_targets)} samples for permutation testing")
+
+    # Phase 2: Permutation importance with direct tensor indexing
     n_features = all_features.shape[1]
+    n_samples = len(all_features)
+    batch_size = test_loader.batch_size or 32
     importances = np.zeros((n_features, n_repeats))
 
     logger.info(f"Computing permutation importance for {n_features} features...")
+
     for feature_idx in tqdm(range(n_features), desc="Features"):
         for repeat in range(n_repeats):
-            # Create a copy and shuffle this feature
+            # Create permuted features
             features_permuted = all_features.clone()
-            perm_idx = torch.randperm(features_permuted.shape[0])
+            perm_idx = torch.randperm(n_samples)
             features_permuted[:, feature_idx] = features_permuted[perm_idx, feature_idx]
 
-            # Evaluate with permuted features
+            # Evaluate with permuted features using batched inference
             preds_permuted = []
-            batch_size = test_loader.batch_size
 
             with torch.no_grad():
-                for i in range(0, len(features_permuted), batch_size):
-                    batch_features = features_permuted[i : i + batch_size].to(device)
-                    # Need corresponding images
-                    batch_idx = 0
-                    images_batch = None
+                for i in range(0, n_samples, batch_size):
+                    end_idx = min(i + batch_size, n_samples)
 
-                    # Reconstruct images for this batch
-                    for batch in test_loader:
-                        images, _, _ = batch
-                        batch_end = batch_idx + images.shape[0]
-                        if batch_idx <= i < batch_end:
-                            start_in_batch = i - batch_idx
-                            end_in_batch = min(i + batch_size, batch_end) - batch_idx
-                            images_batch = images[start_in_batch:end_in_batch].to(device)
-                            break
-                        batch_idx = batch_end
+                    # Direct tensor indexing - no dataloader re-iteration!
+                    batch_images = all_images[i:end_idx].to(device)
+                    batch_features = features_permuted[i:end_idx].to(device)
 
-                    if images_batch is None:
-                        continue
-
-                    outputs = model(images_batch, batch_features[: images_batch.shape[0]])
+                    outputs = model(batch_images, batch_features)
                     preds = outputs.argmax(dim=1)
                     preds_permuted.extend(preds.cpu().numpy())
 
             # Compute accuracy drop
-            acc_permuted = accuracy_score(all_targets[: len(preds_permuted)], preds_permuted)
+            acc_permuted = accuracy_score(all_targets_np, preds_permuted)
             importances[feature_idx, repeat] = baseline_accuracy - acc_permuted
 
-    # 3. Aggregate importance scores
+    # Phase 3: Aggregate results
     importances_mean = importances.mean(axis=1)
     importances_std = importances.std(axis=1)
-
-    # Sort by importance
     sorted_idx = np.argsort(importances_mean)[::-1]
 
     results = {
@@ -410,23 +400,34 @@ def save_feature_ranking(results: dict, output_dir: Path) -> Path:
 
 @app.command()
 def main(
-    checkpoint: str = typer.Argument(..., help="Path to DualPathway model checkpoint"),
+    checkpoint: str = typer.Argument(..., help="Path to model checkpoint"),
     method: str = typer.Option("permutation", "--method", "-m", help="Analysis method (permutation, gradient, both)"),
     n_repeats: int = typer.Option(10, "--n-repeats", "-n", help="Number of permutation repeats"),
     output_dir: str = typer.Option("reports/feature_importance", "--output-dir", "-o", help="Output directory"),
+    config: str = typer.Option(None, "--config", "-c", help="Path to config file (auto-detected if not provided)"),
     use_wandb: bool = typer.Option(False, "--wandb", help="Log results to W&B"),
     wandb_project: str = typer.Option("CT_Scan_MLOps", help="W&B project name"),
     top_k: int = typer.Option(20, "--top-k", help="Number of top features to display"),
 ) -> None:
-    """Analyze radiomics feature importance for DualPathway model."""
+    """Analyze radiomics feature importance for model.
+
+    Works with DualPathway models that use radiomics features.
+    Config is auto-detected from checkpoint directory or can be provided via --config.
+    """
     checkpoint_path = Path(checkpoint)
     output_path = Path(output_dir)
 
-    if not checkpoint_path.exists():
-        raise FileNotFoundError(f"Checkpoint not found: {checkpoint_path}")
-
     device = get_device()
     logger.info(f"Using device: {device}")
+
+    # Load model using ModelLoader (auto-detects config and uses_features)
+    loaded = ModelLoader.load(checkpoint_path, device, config_override=config)
+
+    if not loaded.uses_features:
+        raise typer.BadParameter(
+            f"Model '{loaded.model_name}' does not use radiomics features. "
+            "Feature importance analysis requires a DualPathway/hybrid model."
+        )
 
     # Initialize W&B if requested
     if use_wandb:
@@ -436,17 +437,9 @@ def main(
     metadata = load_feature_metadata()
     feature_names = metadata["feature_names"]
 
-    # Load model
-    config_path = checkpoint_path.parent / ".hydra" / "config.yaml"
-    if not config_path.exists():
-        raise FileNotFoundError(f"Config not found at {config_path}")
-
-    cfg = OmegaConf.load(config_path)
-    model = load_model_from_checkpoint(checkpoint_path, cfg, device)
-
-    # Create test dataloader with features
+    # Create test dataloader with features (uses_features from ModelLoader)
     logger.info("Creating test dataloader...")
-    _, _, test_loader = create_dataloaders(cfg, use_features=True)
+    _, _, test_loader = create_dataloaders(loaded.config, use_features=loaded.uses_features)
 
     # Compute importance
     perm_results = None
@@ -454,7 +447,7 @@ def main(
 
     if method in ["permutation", "both"]:
         logger.info("Computing permutation importance...")
-        perm_results = compute_permutation_importance(model, test_loader, device, n_repeats, feature_names)
+        perm_results = compute_permutation_importance(loaded.model, test_loader, device, n_repeats, feature_names)
 
         # Save results
         output_path.mkdir(parents=True, exist_ok=True)
@@ -468,7 +461,7 @@ def main(
 
     if method in ["gradient", "both"]:
         logger.info("Computing gradient attribution...")
-        grad_results = compute_gradient_attribution(model, test_loader, device, feature_names)
+        grad_results = compute_gradient_attribution(loaded.model, test_loader, device, feature_names)
 
         # Save results
         output_path.mkdir(parents=True, exist_ok=True)

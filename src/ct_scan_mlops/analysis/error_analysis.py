@@ -14,14 +14,19 @@ import torch
 import typer
 import wandb
 from loguru import logger
-from omegaconf import OmegaConf
 from torch import nn
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from ct_scan_mlops.analysis.utils import load_feature_metadata, log_to_wandb, save_image_grid
+from ct_scan_mlops.analysis.utils import (
+    ModelLoader,
+    load_feature_metadata,
+    log_to_wandb,
+    model_forward,
+    save_image_grid,
+    unpack_batch,
+)
 from ct_scan_mlops.data import CLASSES, create_dataloaders
-from ct_scan_mlops.evaluate import load_model_from_checkpoint
 from ct_scan_mlops.utils import get_device
 
 app = typer.Typer()
@@ -70,18 +75,8 @@ def collect_predictions(
     logger.info("Collecting predictions and error cases...")
     with torch.no_grad():
         for batch in tqdm(test_loader, desc="Batches"):
-            if len(batch) == 3:
-                images, features, targets = batch
-                images = images.to(device)
-                features = features.to(device)
-                targets = targets.to(device)
-                outputs = model(images, features) if use_features else model(images)
-            else:
-                images, targets = batch
-                images = images.to(device)
-                targets = targets.to(device)
-                outputs = model(images)
-                features = None
+            images, features, targets = unpack_batch(batch, device, use_features)
+            outputs = model_forward(model, images, features, use_features)
 
             probs = torch.softmax(outputs, dim=1)
             preds = outputs.argmax(dim=1)
@@ -423,22 +418,27 @@ def main(
     checkpoint: str = typer.Argument(..., help="Path to model checkpoint"),
     class_filter: str = typer.Option("", "--class-filter", "-c", help="Filter errors for specific class"),
     output_dir: str = typer.Option("reports/error_analysis", "--output-dir", "-o", help="Output directory"),
+    config: str = typer.Option(None, "--config", help="Path to config file (auto-detected if not provided)"),
     use_wandb: bool = typer.Option(False, "--wandb", help="Log results to W&B"),
     wandb_project: str = typer.Option("CT_Scan_MLOps", help="W&B project name"),
     max_images: int = typer.Option(50, "--max-images", help="Max images to show in grid"),
 ) -> None:
-    """Analyze misclassified samples."""
+    """Analyze misclassified samples.
+
+    Config and feature usage are auto-detected from checkpoint.
+    Use --config to override.
+    """
     checkpoint_path = Path(checkpoint)
     output_path = Path(output_dir)
-
-    if not checkpoint_path.exists():
-        raise FileNotFoundError(f"Checkpoint not found: {checkpoint_path}")
 
     if class_filter and class_filter not in CLASSES:
         raise ValueError(f"Invalid class filter: {class_filter}. Must be one of {CLASSES}")
 
     device = get_device()
     logger.info(f"Using device: {device}")
+
+    # Load model using ModelLoader (auto-detects config and uses_features)
+    loaded = ModelLoader.load(checkpoint_path, device, config_override=config)
 
     # Initialize W&B if requested
     if use_wandb:
@@ -448,22 +448,13 @@ def main(
     metadata = load_feature_metadata()
     feature_names = metadata["feature_names"]
 
-    # Load model
-    config_path = checkpoint_path.parent / ".hydra" / "config.yaml"
-    if not config_path.exists():
-        raise FileNotFoundError(f"Config not found at {config_path}")
-
-    cfg = OmegaConf.load(config_path)
-    model = load_model_from_checkpoint(checkpoint_path, cfg, device)
-
     # Create test dataloader
     logger.info("Creating test dataloader...")
-    use_features = cfg.get("model", {}).get("name", "") in ["dual_pathway", "dualpathway", "hybrid"]
-    _, _, test_loader = create_dataloaders(cfg, use_features=use_features)
+    _, _, test_loader = create_dataloaders(loaded.config, use_features=loaded.uses_features)
 
     # Collect predictions and errors
     error_cases, all_preds, all_targets = collect_predictions(
-        model, test_loader, device, use_features, collect_images=True
+        loaded.model, test_loader, device, loaded.uses_features, collect_images=True
     )
 
     # Analyze patterns

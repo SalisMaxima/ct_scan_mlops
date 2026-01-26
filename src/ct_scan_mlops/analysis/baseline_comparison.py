@@ -12,15 +12,20 @@ import torch
 import typer
 import wandb
 from loguru import logger
-from omegaconf import OmegaConf
 from scipy.stats import chi2_contingency
 from sklearn.metrics import classification_report, cohen_kappa_score, confusion_matrix, roc_auc_score
 from torch import nn
 from torch.utils.data import DataLoader
 
-from ct_scan_mlops.analysis.utils import compute_calibration_error, log_to_wandb
+from ct_scan_mlops.analysis.utils import (
+    LoadedModel,
+    ModelLoader,
+    compute_calibration_error,
+    log_to_wandb,
+    model_forward,
+    unpack_batch,
+)
 from ct_scan_mlops.data import CLASSES, create_dataloaders
-from ct_scan_mlops.evaluate import load_model_from_checkpoint
 from ct_scan_mlops.utils import get_device
 
 app = typer.Typer()
@@ -30,43 +35,30 @@ def load_both_models(
     baseline_checkpoint: Path,
     improved_checkpoint: Path,
     device: torch.device,
-) -> tuple[nn.Module, nn.Module]:
+    baseline_config: Path | str | None = None,
+    improved_config: Path | str | None = None,
+) -> tuple[LoadedModel, LoadedModel]:
     """Load baseline and improved models from checkpoints.
 
-    Uses load_model_from_checkpoint() with auto-detected configs
-    from .hydra/config.yaml in each checkpoint directory.
+    Uses ModelLoader for automatic config detection and feature detection.
 
     Args:
         baseline_checkpoint: Path to baseline model checkpoint
         improved_checkpoint: Path to improved model checkpoint
         device: Device to load models on
+        baseline_config: Optional config override for baseline model
+        improved_config: Optional config override for improved model
 
     Returns:
-        Tuple of (baseline_model, improved_model)
+        Tuple of (baseline_loaded, improved_loaded) LoadedModel objects
     """
-    # Load configs from checkpoint directories
-    baseline_dir = baseline_checkpoint.parent
-    improved_dir = improved_checkpoint.parent
-
-    # Try to find .hydra/config.yaml in checkpoint directory
-    baseline_config_path = baseline_dir / ".hydra" / "config.yaml"
-    improved_config_path = improved_dir / ".hydra" / "config.yaml"
-
-    if not baseline_config_path.exists():
-        raise FileNotFoundError(f"Baseline config not found at {baseline_config_path}")
-    if not improved_config_path.exists():
-        raise FileNotFoundError(f"Improved config not found at {improved_config_path}")
-
-    baseline_cfg = OmegaConf.load(baseline_config_path)
-    improved_cfg = OmegaConf.load(improved_config_path)
-
     logger.info(f"Loading baseline model from {baseline_checkpoint}")
-    baseline_model = load_model_from_checkpoint(baseline_checkpoint, baseline_cfg, device)
+    baseline_loaded = ModelLoader.load(baseline_checkpoint, device, config_override=baseline_config)
 
     logger.info(f"Loading improved model from {improved_checkpoint}")
-    improved_model = load_model_from_checkpoint(improved_checkpoint, improved_cfg, device)
+    improved_loaded = ModelLoader.load(improved_checkpoint, device, config_override=improved_config)
 
-    return baseline_model, improved_model
+    return baseline_loaded, improved_loaded
 
 
 def mcnemar_test(y_true: np.ndarray, y_pred1: np.ndarray, y_pred2: np.ndarray) -> dict:
@@ -137,17 +129,8 @@ def collect_predictions(
 
     with torch.no_grad():
         for batch in test_loader:
-            if len(batch) == 3:
-                images, features, targets = batch
-                images = images.to(device)
-                features = features.to(device)
-                targets = targets.to(device)
-                outputs = model(images, features) if use_features else model(images)
-            else:
-                images, targets = batch
-                images = images.to(device)
-                targets = targets.to(device)
-                outputs = model(images)
+            images, features, targets = unpack_batch(batch, device, use_features)
+            outputs = model_forward(model, images, features, use_features)
 
             probs = torch.softmax(outputs, dim=1)
             preds = outputs.argmax(dim=1)
@@ -495,20 +478,23 @@ def main(
     baseline: str = typer.Argument(..., help="Path to baseline model checkpoint"),
     improved: str = typer.Argument(..., help="Path to improved model checkpoint"),
     output_dir: str = typer.Option("reports/baseline_comparison", "--output-dir", "-o", help="Output directory"),
+    baseline_config: str = typer.Option(
+        None, "--baseline-config", help="Config for baseline (auto-detected if not provided)"
+    ),
+    improved_config: str = typer.Option(
+        None, "--improved-config", help="Config for improved (auto-detected if not provided)"
+    ),
     use_wandb: bool = typer.Option(False, "--wandb", help="Log results to W&B"),
     wandb_project: str = typer.Option("CT_Scan_MLOps", help="W&B project name"),
-    baseline_uses_features: bool = typer.Option(False, "--baseline-features", help="Baseline uses features"),
-    improved_uses_features: bool = typer.Option(True, "--improved-features", help="Improved uses features"),
 ) -> None:
-    """Compare baseline CNN vs improved DualPathway model."""
+    """Compare baseline CNN vs improved DualPathway model.
+
+    Configs and feature usage are auto-detected from checkpoints.
+    Use --baseline-config/--improved-config to override.
+    """
     baseline_path = Path(baseline)
     improved_path = Path(improved)
     output_path = Path(output_dir)
-
-    if not baseline_path.exists():
-        raise FileNotFoundError(f"Baseline checkpoint not found: {baseline_path}")
-    if not improved_path.exists():
-        raise FileNotFoundError(f"Improved checkpoint not found: {improved_path}")
 
     device = get_device()
     logger.info(f"Using device: {device}")
@@ -517,26 +503,32 @@ def main(
     if use_wandb:
         wandb.init(project=wandb_project, name="baseline_comparison", job_type="analysis")
 
-    # Load models
-    baseline_model, improved_model = load_both_models(baseline_path, improved_path, device)
+    # Load models using ModelLoader (auto-detects config and uses_features)
+    baseline_loaded, improved_loaded = load_both_models(
+        baseline_path,
+        improved_path,
+        device,
+        baseline_config=baseline_config,
+        improved_config=improved_config,
+    )
 
-    # Load improved model config to get data settings
-    improved_config_path = improved_path.parent / ".hydra" / "config.yaml"
-    cfg = OmegaConf.load(improved_config_path)
+    logger.info(f"Baseline model: {baseline_loaded.model_name} (uses_features={baseline_loaded.uses_features})")
+    logger.info(f"Improved model: {improved_loaded.model_name} (uses_features={improved_loaded.uses_features})")
 
-    # Create test dataloader with features
+    # Create test dataloader - use features if either model needs them
+    use_features_for_loader = baseline_loaded.uses_features or improved_loaded.uses_features
     logger.info("Creating test dataloader...")
-    _, _, test_loader = create_dataloaders(cfg, use_features=improved_uses_features)
+    _, _, test_loader = create_dataloaders(improved_loaded.config, use_features=use_features_for_loader)
 
     # Compare models
     logger.info("Comparing models...")
     metrics = compare_models(
-        baseline_model,
-        improved_model,
+        baseline_loaded.model,
+        improved_loaded.model,
         test_loader,
         device,
-        baseline_uses_features,
-        improved_uses_features,
+        baseline_loaded.uses_features,
+        improved_loaded.uses_features,
     )
 
     # Save metrics
