@@ -20,6 +20,11 @@ invoke ruff          # Lint + format (run after code changes)
 invoke test          # Run tests
 invoke train         # Train model
 invoke dvc-pull      # Get data from remote
+
+# Analysis commands (use after training)
+invoke compare-baselines --baseline path/to/baseline.ckpt --improved path/to/improved.ckpt
+invoke analyze-features --checkpoint path/to/model.ckpt
+invoke analyze-errors --checkpoint path/to/model.ckpt
 ```
 
 ## Key Paths

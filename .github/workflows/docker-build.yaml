@@ -19,6 +19,8 @@ env:
 
 jobs:
   docker-build:
+    # Skip docker-build for Dependabot PRs (secrets not available for security)
+    if: github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -33,6 +35,9 @@ jobs:
           - dockerfile: dockerfiles/api.dockerfile
             tag: ct-scan-mlops:api
             cache-tag: api-latest
+          - dockerfile: dockerfiles/api.cloudrun.dockerfile
+            tag: ct-scan-mlops:api-cloudrun
+            cache-tag: api-cloudrun
 
     steps:
       - name: Free Disk Space (Ubuntu)

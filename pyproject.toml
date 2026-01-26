@@ -58,6 +58,10 @@ dependencies = [
     "prometheus-fastapi-instrumentator>=7.0.0",
     "evidently>=0.7.20",
     "prometheus-client>=0.24.1",
+    # Radiomics Feature Extraction
+    "scikit-image>=0.21.0",         # GLCM, regionprops
+    "PyWavelets>=1.4.0",            # Wavelet features
+    "joblib>=1.3.0",                # Parallel processing
 ]
 
 [dependency-groups]

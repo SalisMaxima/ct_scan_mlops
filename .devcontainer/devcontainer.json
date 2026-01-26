@@ -6,12 +6,20 @@
     "image": "mcr.microsoft.com/devcontainers/python:3.12-bullseye",
     "features": {},
 
-    // Enable NVIDIA GPU passthrough (requires NVIDIA drivers + NVIDIA Container Toolkit on the host).
-    "runArgs": ["--gpus=all"],
-    "containerEnv": {
-        "NVIDIA_VISIBLE_DEVICES": "all",
-        "NVIDIA_DRIVER_CAPABILITIES": "compute,utility"
-    },
+    // GPU support: Docker GPU passthrough is disabled by default for macOS compatibility.
+    // PyTorch will automatically use CPU on macOS and can still use Metal Performance Shaders.
+    //
+    // For Linux hosts with NVIDIA GPUs:
+    // 1. Ensure NVIDIA drivers and NVIDIA Container Toolkit are installed
+    // 2. Uncomment the lines below:
+    // "runArgs": ["--gpus=all"],
+    // "containerEnv": {
+    //     "NVIDIA_VISIBLE_DEVICES": "all",
+    //     "NVIDIA_DRIVER_CAPABILITIES": "compute,utility"
+    // },
+    //
+    // PyTorch will automatically detect and use CUDA GPUs when available.
+    // No code changes needed - torch.cuda.is_available() handles detection.
 
     // Use 'postCreateCommand' to run commands after the container is created.
     "postCreateCommand": "bash .devcontainer/post_create.sh",

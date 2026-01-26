@@ -1,0 +1,49 @@
+# Top-performing features based on permutation importance analysis
+# These 16 features showed positive importance >= 0.002
+# Reduces dimensionality from 50 -> 16 features
+#
+# Performance baseline: 81.27% accuracy
+# Feature selection threshold: importance >= 0.002
+
+# Enable all feature categories to extract, then filter
+use_intensity: true
+use_glcm: true
+use_shape: true
+use_region: true
+use_wavelet: true
+
+# GLCM parameters
+glcm_distances:
+  - 1
+  - 2
+  - 3
+
+# Wavelet parameters
+wavelet_type: "db4"
+wavelet_level: 2
+
+# Selected features (in order of importance)
+selected_features:
+  # Shape features (7 of top 16)
+  - sphericity              # 0.009841 - Most important
+  - major_axis_length       # 0.006349
+  - solidity                # 0.005079
+  - perimeter               # 0.004762
+  - compactness             # 0.003810
+  - eccentricity            # 0.003810
+  - extent                  # 0.002857
+
+  # Texture features (2)
+  - glcm_correlation_std    # 0.005079
+  - glcm_contrast_mean      # 0.003810
+
+  # Wavelet features (5)
+  - wavelet_L2_HH_energy    # 0.004444
+  - wavelet_L2_HL_energy    # 0.004127
+  - wavelet_L1_LH_mean      # 0.002857
+  - wavelet_L2_HH_mean      # 0.002540
+  - wavelet_L1_HH_energy    # 0.002222
+
+  # Region features (2)
+  - max_gradient            # 0.003175
+  - ggo_ratio               # 0.002222

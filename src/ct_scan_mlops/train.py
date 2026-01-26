@@ -17,6 +17,7 @@ from pytorch_lightning.loggers import WandbLogger
 from torch.profiler import ProfilerActivity, profile, tensorboard_trace_handler
 
 from ct_scan_mlops.data import ChestCTDataModule
+from ct_scan_mlops.losses import build_loss
 from ct_scan_mlops.model import build_model
 from ct_scan_mlops.utils import get_device
 
@@ -31,11 +32,12 @@ profiling_dir.mkdir(parents=True, exist_ok=True)
 class LitModel(pl.LightningModule):
     """Lightning module wrapping the CT scan classifier."""
 
-    def __init__(self, cfg: DictConfig):
+    def __init__(self, cfg: DictConfig, use_features: bool = False):
         super().__init__()
         self.cfg = cfg
         self.model = build_model(cfg)
-        self.criterion = torch.nn.CrossEntropyLoss()
+        self.criterion = build_loss(cfg)
+        self.use_features = use_features
         self.save_hyperparameters(ignore=["model"])
 
         # Track training history for plotting
@@ -53,8 +55,24 @@ class LitModel(pl.LightningModule):
         self._profiling_steps = int(profiling_cfg.get("steps", 5))
         self._profiled = False
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, features: torch.Tensor | None = None) -> torch.Tensor:
+        if self.use_features and features is not None:
+            return self.model(x, features)
         return self.model(x)
+
+    def _unpack_batch(self, batch: tuple) -> tuple[torch.Tensor, torch.Tensor | None, torch.Tensor]:
+        """Unpack batch handling both 2-tuple and 3-tuple formats.
+
+        Returns:
+            Tuple of (images, features_or_none, labels)
+        """
+        if len(batch) == 3:
+            # RadiomicsChestCTDataset format: (image, features, label)
+            x, features, y = batch
+            return x, features, y
+        # Standard format: (image, label)
+        x, y = batch
+        return x, None, y
 
     def _compute_accuracy(self, logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
         """Compute classification accuracy."""
@@ -62,7 +80,7 @@ class LitModel(pl.LightningModule):
         return (preds == targets).float().mean()
 
     def training_step(self, batch, batch_idx: int):
-        x, y = batch
+        x, features, y = self._unpack_batch(batch)
 
         # Run profiling once on first batch of first epoch (if enabled)
         if self._profiling_enabled and not self._profiled and batch_idx == 0 and self.current_epoch == 0:
@@ -73,14 +91,14 @@ class LitModel(pl.LightningModule):
                 on_trace_ready=tensorboard_trace_handler(str(profiling_dir)),
             ) as prof:
                 for _ in range(max(1, self._profiling_steps)):
-                    y_hat = self(x)
+                    y_hat = self(x, features)
                     loss = self.criterion(y_hat, y)
                     prof.step()
 
             print(prof.key_averages().table(sort_by="cpu_time_total", row_limit=20))
             self._profiled = True
         else:
-            y_hat = self(x)
+            y_hat = self(x, features)
             loss = self.criterion(y_hat, y)
 
         acc = self._compute_accuracy(y_hat, y)
@@ -91,8 +109,8 @@ class LitModel(pl.LightningModule):
         return loss
 
     def validation_step(self, batch, batch_idx: int):
-        x, y = batch
-        y_hat = self(x)
+        x, features, y = self._unpack_batch(batch)
+        y_hat = self(x, features)
         loss = self.criterion(y_hat, y)
         acc = self._compute_accuracy(y_hat, y)
 
@@ -103,8 +121,8 @@ class LitModel(pl.LightningModule):
 
     def test_step(self, batch, batch_idx: int):
         """Test step for model evaluation."""
-        x, y = batch
-        y_hat = self(x)
+        x, features, y = self._unpack_batch(batch)
+        y_hat = self(x, features)
         loss = self.criterion(y_hat, y)
         acc = self._compute_accuracy(y_hat, y)
 
@@ -123,7 +141,7 @@ class LitModel(pl.LightningModule):
             return
 
         batch = next(iter(self.trainer.train_dataloader))
-        x, y = batch
+        x, _features, _y = self._unpack_batch(batch)
         self.logger.experiment.log({"examples": [wandb.Image(x[j].cpu()) for j in range(min(8, len(x)))]})
 
     def on_train_epoch_end(self):
@@ -255,15 +273,28 @@ def train_model(
     set_seed(cfg.seed, get_device())
     pl.seed_everything(cfg.seed, workers=True)
 
+    # Detect if using dual-pathway model (requires radiomics features)
+    use_features = cfg.model.name in ("dual_pathway", "dualpathway", "hybrid")
+    if use_features:
+        logger.info("Dual-pathway model detected - enabling radiomics features")
+        # Verify feature files exist
+        processed_path = Path(cfg.data.get("processed_path", "data/processed"))
+        features_file = processed_path / "train_features.pt"
+        if not features_file.exists():
+            raise FileNotFoundError(
+                f"Radiomics features not found at {features_file}. "
+                "Run 'invoke extract-features' first before training dual_pathway model."
+            )
+
     # Data - using LightningDataModule for best practices
     # Note: Trainer.fit() calls datamodule.setup() automatically, but we call it here
     # to log dataset sizes before training starts
-    datamodule = ChestCTDataModule(cfg)
+    datamodule = ChestCTDataModule(cfg, use_features=use_features)
     datamodule.setup(stage="fit")
     logger.info(f"Train batches: {len(datamodule.train_dataloader())}, Val batches: {len(datamodule.val_dataloader())}")
 
     # Lightning model
-    lit_model = LitModel(cfg)
+    lit_model = LitModel(cfg, use_features=use_features)
 
     # Log model info
     total_params = sum(p.numel() for p in lit_model.model.parameters())

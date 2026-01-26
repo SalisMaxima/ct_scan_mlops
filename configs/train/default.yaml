@@ -2,6 +2,22 @@
 max_epochs: 50
 min_epochs: 10
 
+# Loss function configuration
+# Options: cross_entropy, focal, weighted_ce, label_smoothing, pairwise_confusion
+loss:
+  type: cross_entropy
+  # Focal loss settings (used when type: focal)
+  gamma: 2.0
+  # Class weights: [adenocarcinoma, large_cell, squamous_cell, normal]
+  # Higher weights increase focus on that class during training
+  # Squamous has highest error rate, so can boost its weight
+  class_weights: null  # e.g., [1.0, 1.0, 1.3, 0.7]
+  # Label smoothing (used when type: label_smoothing)
+  smoothing: 0.1
+  # Pairwise confusion penalty (used when type: pairwise_confusion)
+  confusion_pairs: [[0, 2], [2, 0]]  # adeno <-> squamous
+  penalty_weight: 0.5
+
 # Profiling (used once at epoch 0 / batch 0)
 # Useful for debugging performance, but can slow down sweeps.
 profiling:

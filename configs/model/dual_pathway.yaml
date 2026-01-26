@@ -1,0 +1,35 @@
+# Dual-Pathway Model: CNN + Radiomics Feature Fusion
+#
+# This model combines a ResNet18 CNN backbone with hand-crafted radiomics
+# features for improved lung cancer classification.
+#
+# Architecture:
+#   Image -> ResNet18 -> CNN Features (512-d)
+#                              |
+#   Radiomics -> FC Layers -> Radiomics Features (128-d)
+#                              |
+#                        Concatenate (640-d)
+#                              |
+#                        Fusion Layers
+#                              |
+#                        Classification (4 classes)
+#
+# Research shows hybrid models achieve ~0.817 AUC vs 0.801 for DL alone.
+
+name: dual_pathway
+num_classes: 4
+
+# Radiomics pathway configuration
+# Input dimension depends on enabled features in configs/features/default.yaml
+# Default: intensity(8) + glcm(13) + shape(9) + region(6) + wavelet(14) = 50
+radiomics_dim: 50
+radiomics_hidden: 128
+
+# CNN pathway configuration
+cnn_feature_dim: 512
+pretrained: true
+freeze_backbone: false
+
+# Fusion configuration
+fusion_hidden: 256
+dropout: 0.3
