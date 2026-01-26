@@ -189,7 +189,7 @@ def load_model_from_checkpoint(
 
     # Load checkpoint (weights_only=False for OmegaConf/Lightning compatibility)
     # Note: These are trusted checkpoints from our own training runs
-    checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
+    checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)  # nosec B614
 
     # Handle different checkpoint formats
     if isinstance(checkpoint, dict):

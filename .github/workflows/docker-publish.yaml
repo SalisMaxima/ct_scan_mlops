@@ -1,14 +1,7 @@
 name: Docker publish
 
 on:
-  push:
-    branches: ["main", "master"]
-    paths:
-      - "Dockerfile*"
-      - "dockerfiles/**"
-      - "pyproject.toml"
-      - "uv.lock"
-      - ".github/workflows/docker-publish.yaml"
+  workflow_dispatch:  # Manual trigger only
 
 env:
   REGISTRY: ghcr.io

@@ -735,7 +735,7 @@ class ChestCTDataModule(pl.LightningDataModule):
             raw_cfg_path = Path(self.cfg.paths.data_dir)
             if not raw_cfg_path.exists():
                 raise FileNotFoundError(
-                    "Raw dataset path does not exist: "
+                    "Raw dataset path does not exist: "  # nosec B608
                     f"{raw_cfg_path}.\n"
                     "Fix by pulling/downloading data and (optionally) preprocessing:\n"
                     "  - invoke dvc-pull\n"
