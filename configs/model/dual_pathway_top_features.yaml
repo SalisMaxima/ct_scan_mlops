@@ -1,0 +1,36 @@
+# Dual-Pathway Model with Top Features Only
+#
+# This model combines a ResNet18 CNN backbone with only the top-performing
+# hand-crafted radiomics features (16 features with importance >= 0.002).
+#
+# Architecture:
+#   Image -> ResNet18 -> CNN Features (512-d)
+#                              |
+#   Radiomics (16) -> FC -> Radiomics Features (128-d)
+#                              |
+#                        Concatenate (640-d)
+#                              |
+#                        Fusion Layers
+#                              |
+#                        Classification (4 classes)
+#
+# Feature selection based on permutation importance analysis.
+# Baseline: 50 features @ 81.27% accuracy
+# Optimized: 16 features (removed 34 low/negative importance features)
+
+name: dual_pathway
+num_classes: 4
+
+# Radiomics pathway configuration
+# IMPORTANT: This must match the number of selected_features in top_features.yaml
+radiomics_dim: 16  # Changed from 50 to 16
+radiomics_hidden: 128
+
+# CNN pathway configuration
+cnn_feature_dim: 512
+pretrained: true
+freeze_backbone: false
+
+# Fusion configuration
+fusion_hidden: 256
+dropout: 0.3

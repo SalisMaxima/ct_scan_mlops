@@ -13,7 +13,7 @@ from albumentations.pytorch import ToTensorV2
 from loguru import logger
 from omegaconf import DictConfig
 from PIL import Image
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import DataLoader, Dataset, WeightedRandomSampler
 from tqdm import tqdm
 
 # Canonical class labels
@@ -135,6 +135,55 @@ def get_transforms(
                     brightness_limit=brightness,
                     contrast_limit=contrast,
                     p=0.5,
+                )
+            )
+
+        # Enhanced augmentations for shape confusion mitigation
+        if train_cfg.get("elastic_transform", False):
+            aug_transforms.append(
+                A.ElasticTransform(
+                    alpha=train_cfg.get("elastic_alpha", 120),
+                    sigma=train_cfg.get("elastic_sigma", 6),
+                    p=train_cfg.get("elastic_p", 0.3),
+                )
+            )
+
+        if train_cfg.get("grid_distortion", False):
+            aug_transforms.append(
+                A.GridDistortion(
+                    num_steps=train_cfg.get("grid_steps", 5),
+                    distort_limit=train_cfg.get("grid_distort_limit", 0.3),
+                    p=train_cfg.get("grid_p", 0.3),
+                )
+            )
+
+        if train_cfg.get("coarse_dropout", False):
+            aug_transforms.append(
+                A.CoarseDropout(
+                    max_holes=train_cfg.get("dropout_max_holes", 8),
+                    max_height=train_cfg.get("dropout_max_height", 32),
+                    max_width=train_cfg.get("dropout_max_width", 32),
+                    min_holes=train_cfg.get("dropout_min_holes", 1),
+                    min_height=train_cfg.get("dropout_min_height", 8),
+                    min_width=train_cfg.get("dropout_min_width", 8),
+                    fill_value=0,
+                    p=train_cfg.get("dropout_p", 0.3),
+                )
+            )
+
+        if train_cfg.get("gaussian_noise", False):
+            aug_transforms.append(
+                A.GaussNoise(
+                    var_limit=train_cfg.get("noise_var_limit", (10.0, 50.0)),
+                    p=train_cfg.get("noise_p", 0.3),
+                )
+            )
+
+        if train_cfg.get("blur", False):
+            aug_transforms.append(
+                A.GaussianBlur(
+                    blur_limit=train_cfg.get("blur_limit", (3, 7)),
+                    p=train_cfg.get("blur_p", 0.2),
                 )
             )
 
@@ -723,7 +772,45 @@ class ChestCTDataModule(pl.LightningDataModule):
                 self.test_ds = ChestCTDataset(data_dir, split="test", transform=eval_transform)
 
     def train_dataloader(self) -> DataLoader:
-        """Create training dataloader."""
+        """Create training dataloader with optional weighted sampling."""
+        # Check if weighted sampling is enabled
+        sampling_cfg = self.data_cfg.get("sampling", {})
+        use_weighted = sampling_cfg.get("weighted", False)
+
+        if use_weighted:
+            # Get class weights from config
+            class_weights = sampling_cfg.get("class_weights", [1.0, 1.0, 1.0, 1.0])
+            class_weights = torch.tensor(class_weights, dtype=torch.float32)
+
+            # Get labels from dataset
+            if hasattr(self.train_ds, "labels"):
+                labels = self.train_ds.labels
+            elif hasattr(self.train_ds, "samples"):
+                labels = torch.tensor([s[1] for s in self.train_ds.samples])
+            else:
+                logger.warning("Cannot determine labels for weighted sampling, falling back to shuffle")
+                use_weighted = False
+
+        if use_weighted:
+            # Compute sample weights based on class
+            sample_weights = class_weights[labels]
+            sampler = WeightedRandomSampler(
+                weights=sample_weights,
+                num_samples=len(sample_weights),
+                replacement=True,
+            )
+            logger.info(f"Using weighted sampling with class_weights: {class_weights.tolist()}")
+
+            return DataLoader(
+                self.train_ds,
+                batch_size=self.data_cfg.batch_size,
+                sampler=sampler,  # Cannot use shuffle with sampler
+                num_workers=self.data_cfg.num_workers,
+                pin_memory=self.data_cfg.get("pin_memory", True),
+                persistent_workers=self.data_cfg.get("persistent_workers", False) and self.data_cfg.num_workers > 0,
+            )
+
+        # Default: shuffle without weighted sampling
         return DataLoader(
             self.train_ds,
             batch_size=self.data_cfg.batch_size,

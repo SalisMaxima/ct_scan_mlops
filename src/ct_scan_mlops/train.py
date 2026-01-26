@@ -17,6 +17,7 @@ from pytorch_lightning.loggers import WandbLogger
 from torch.profiler import ProfilerActivity, profile, tensorboard_trace_handler
 
 from ct_scan_mlops.data import ChestCTDataModule
+from ct_scan_mlops.losses import build_loss
 from ct_scan_mlops.model import build_model
 from ct_scan_mlops.utils import get_device
 
@@ -35,7 +36,7 @@ class LitModel(pl.LightningModule):
         super().__init__()
         self.cfg = cfg
         self.model = build_model(cfg)
-        self.criterion = torch.nn.CrossEntropyLoss()
+        self.criterion = build_loss(cfg)
         self.use_features = use_features
         self.save_hyperparameters(ignore=["model"])
 

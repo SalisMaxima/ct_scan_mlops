@@ -41,6 +41,8 @@ class FeatureConfig:
         glcm_distances: Pixel distances for GLCM computation.
         wavelet_type: Type of wavelet for decomposition.
         wavelet_level: Number of wavelet decomposition levels.
+        selected_features: Optional list of specific features to extract.
+                          If provided, only these features will be included.
     """
 
     use_intensity: bool = True
@@ -51,6 +53,7 @@ class FeatureConfig:
     glcm_distances: list[int] = field(default_factory=lambda: [1, 2, 3])
     wavelet_type: str = "db4"
     wavelet_level: int = 2
+    selected_features: list[str] | None = None
 
     @classmethod
     def from_dict(cls, cfg: dict) -> FeatureConfig:
@@ -64,6 +67,7 @@ class FeatureConfig:
             glcm_distances=list(cfg.get("glcm_distances", [1, 2, 3])),
             wavelet_type=cfg.get("wavelet_type", "db4"),
             wavelet_level=cfg.get("wavelet_level", 2),
+            selected_features=cfg.get("selected_features"),
         )
 
     @classmethod
@@ -141,6 +145,16 @@ class FeatureExtractor:
                     level=self.config.wavelet_level,
                 )
             )
+
+        # Filter features if selected_features is specified
+        if self.config.selected_features:
+            filtered_features = {}
+            for feature_name in self.config.selected_features:
+                if feature_name in features:
+                    filtered_features[feature_name] = features[feature_name]
+                else:
+                    logger.warning(f"Selected feature '{feature_name}' not found in extracted features")
+            features = filtered_features
 
         # Convert to array
         feature_array = np.array(list(features.values()), dtype=np.float32)
@@ -222,7 +236,11 @@ class FeatureExtractor:
                 )
             )
 
-        self._feature_names = list(features.keys())
+        # Filter features if selected_features is specified
+        if self.config.selected_features:
+            self._feature_names = [name for name in self.config.selected_features if name in features]
+        else:
+            self._feature_names = list(features.keys())
         return self._feature_names
 
     def save_metadata(self, output_path: Path) -> None:

@@ -287,6 +287,44 @@ def analyze_errors(
 
 
 @task
+def analyze_confusion(
+    ctx: Context,
+    checkpoint: str = "",
+    output_dir: str = "reports/confusion_analysis",
+    wandb: bool = False,
+    max_images: int = 20,
+) -> None:
+    """Analyze adenocarcinoma-squamous confusion patterns.
+
+    This performs deep analysis of the specific confusion between adenocarcinoma
+    and squamous cell carcinoma, including logit margin analysis, feature
+    comparison, and t-SNE visualization.
+
+    Args:
+        checkpoint: Path to model checkpoint (.ckpt)
+        output_dir: Output directory for analysis reports
+        wandb: Log results to W&B
+        max_images: Maximum images per confusion grid
+
+    Examples:
+        invoke analyze-confusion --checkpoint outputs/.../best_model.ckpt
+        invoke analyze-confusion --checkpoint path/to/model.ckpt --wandb
+    """
+    if not checkpoint:
+        print("ERROR: --checkpoint is required")
+        print("Usage: invoke analyze-confusion --checkpoint path/to/model.ckpt")
+        return
+
+    cmd = f"uv run python -m {PROJECT_NAME}.analysis.confusion_analysis {checkpoint}"
+    cmd += f" --output-dir {output_dir}"
+    cmd += f" --max-images {max_images}"
+    if wandb:
+        cmd += " --wandb"
+
+    ctx.run(cmd, echo=True, pty=not WINDOWS)
+
+
+@task
 def test(ctx: Context) -> None:
     """Run tests."""
     ctx.run("uv run coverage run -m pytest tests/", echo=True, pty=not WINDOWS)
