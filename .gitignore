@@ -202,7 +202,7 @@ outputs/
 reports/**/*.png
 reports/**/*.json
 reports/**/*.txt
-
+reports/baseline*
 # Credentials
 .config/gcloud/application_default_credentials.json
 github-dvc-key.json
