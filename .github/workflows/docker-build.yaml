@@ -33,6 +33,9 @@ jobs:
           - dockerfile: dockerfiles/api.dockerfile
             tag: ct-scan-mlops:api
             cache-tag: api-latest
+          - dockerfile: dockerfiles/api.cloudrun.dockerfile
+            tag: ct-scan-mlops:api-cloudrun
+            cache-tag: api-cloudrun
 
     steps:
       - name: Free Disk Space (Ubuntu)
