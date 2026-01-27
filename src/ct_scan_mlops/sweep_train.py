@@ -65,10 +65,55 @@ def sweep_train(
         help="Max epochs (maps to train.max_epochs)",
     ),
     seed: int = typer.Option(None, help="Random seed"),
-    wandb_project: str = typer.Option(None, help="Override W&B project"),
-    wandb_entity: str = typer.Option(None, help="Override W&B entity (team/user)"),
-    wandb_mode: str = typer.Option(None, help="online | offline | disabled"),
-    disable_profiling: bool = typer.Option(True, help="Disable the one-time PyTorch profiler run"),
+    wandb_project: str = typer.Option(
+        None,
+        "--wandb_project",
+        "--wandb-project",
+        help="Override W&B project",
+    ),
+    wandb_entity: str = typer.Option(
+        None,
+        "--wandb_entity",
+        "--wandb-entity",
+        help="Override W&B entity (team/user)",
+    ),
+    wandb_mode: str = typer.Option(
+        None,
+        "--wandb_mode",
+        "--wandb-mode",
+        help="online | offline | disabled",
+    ),
+    disable_profiling: str = typer.Option(
+        "True",
+        "--disable_profiling",
+        "--disable-profiling",
+        help="Disable the one-time PyTorch profiler run",
+    ),
+    dropout: float = typer.Option(None, help="Dropout rate (maps to model.dropout)"),
+    fusion_hidden: int = typer.Option(
+        None,
+        "--fusion_hidden",
+        "--fusion-hidden",
+        help="Fusion hidden dim (maps to model.fusion_hidden)",
+    ),
+    radiomics_hidden: int = typer.Option(
+        None,
+        "--radiomics_hidden",
+        "--radiomics-hidden",
+        help="Radiomics hidden dim (maps to model.radiomics_hidden)",
+    ),
+    freeze_backbone: str = typer.Option(
+        None,
+        "--freeze_backbone",
+        "--freeze-backbone",
+        help="Freeze backbone (maps to model.freeze_backbone)",
+    ),
+    eta_min: float = typer.Option(
+        None,
+        "--eta_min",
+        "--eta-min",
+        help="Min LR (maps to train.scheduler.eta_min)",
+    ),
 ) -> None:
     """Train one run (designed to be launched by `wandb agent`)."""
 
@@ -104,8 +149,27 @@ def sweep_train(
     if wandb_mode:
         overrides.append(f"wandb.mode={wandb_mode}")
 
-    if disable_profiling:
+    if disable_profiling and str(disable_profiling).lower() == "true":
         overrides.append("train.profiling.enabled=false")
+
+    if dropout is not None:
+        overrides.append(f"model.dropout={dropout}")
+
+    if fusion_hidden is not None:
+        overrides.append(f"model.fusion_hidden={fusion_hidden}")
+
+    if radiomics_hidden is not None:
+        overrides.append(f"model.radiomics_hidden={radiomics_hidden}")
+
+    if freeze_backbone is not None:
+        # Normalize string boolean to lowercase "true"/"false"
+        val = str(freeze_backbone).lower()
+        if val not in ("true", "false"):
+            raise ValueError(f"Invalid boolean value for freeze_backbone: {freeze_backbone}")
+        overrides.append(f"model.freeze_backbone={val}")
+
+    if eta_min is not None:
+        overrides.append(f"train.scheduler.eta_min={eta_min}")
 
     # Hydra's initialize(config_path=...) requires a *relative* path.
     # For sweeps (which can be launched from various working directories),

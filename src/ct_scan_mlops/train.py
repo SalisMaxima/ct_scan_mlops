@@ -353,6 +353,23 @@ def train_model(
     # ---- Train ----
     trainer.fit(lit_model, datamodule=datamodule)
 
+    # ---- Test on best checkpoint ----
+    # Load the best model checkpoint and evaluate on test set
+    best_ckpt_path = output_path / "best_model.ckpt"
+    if best_ckpt_path.exists():
+        logger.info(f"Evaluating best model on test set: {best_ckpt_path}")
+        # In PyTorch 2.6, `weights_only` defaults to True for security.
+        # The checkpoint contains `omegaconf.DictConfig` and `collections.defaultdict`.
+        # Even with safe_globals, defaultdict causes issues in some PT versions/environments,
+        # so we explicitly disable weights_only for the trusted local checkpoint.
+        test_results = trainer.test(ckpt_path=str(best_ckpt_path), datamodule=datamodule, weights_only=False)
+        test_acc = test_results[0].get("test_acc") if test_results else None
+        if test_acc is not None:
+            logger.info(f"Test accuracy: {test_acc:.4f}")
+    else:
+        logger.warning("Best checkpoint not found, skipping test evaluation")
+        test_acc = None
+
     # ---- Save final model weights (pure PyTorch format for easy loading) ----
     final_model_path = output_path / "model.pt"
     torch.save(lit_model.model.state_dict(), final_model_path)
@@ -373,6 +390,7 @@ def train_model(
         metadata={
             "epochs_trained": trainer.current_epoch,
             "best_val_acc": best_val_acc_value,
+            "test_acc": test_acc,
             "final_train_loss": lit_model.training_history["train_loss"][-1]
             if lit_model.training_history["train_loss"]
             else None,

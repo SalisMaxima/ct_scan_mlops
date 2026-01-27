@@ -153,11 +153,11 @@ invoke sweep
 
 - Sweeps disable the one-time PyTorch profiling run by default (the `ct_scan_mlops.sweep_train` entrypoint sets
   `train.profiling.enabled=false`) because it slows down hyperparameter search.
-- The metric used by the sweep is `val_acc` (logged by Lightning).
+- The metric used by the sweep is `test_acc` (evaluated on test set after training completes).
 
 **How to find the best parameters**
 
-- In the W&B UI: open the sweep → sort runs by `val_acc`.
+- In the W&B UI: open the sweep → sort runs by `test_acc`.
 - From the terminal (prints best run + config as JSON):
 
 ```bash

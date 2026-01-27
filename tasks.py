@@ -196,6 +196,32 @@ def sweep_best(ctx: Context, sweep_id: str, metric: str = "val_acc", goal: str =
 
 
 @task
+def sweep_report(
+    ctx: Context,
+    sweep_id: str,
+    output_dir: str = "reports/sweep_analysis",
+    metric: str = "test_acc",
+    goal: str = "maximize",
+) -> None:
+    """Generate a comprehensive analysis report for a W&B sweep.
+
+    Args:
+        sweep_id: The full sweep id, e.g. ENTITY/PROJECT/SWEEP_ID
+        output_dir: Output directory for the report
+        metric: Metric to analyze (default: test_acc)
+        goal: maximize | minimize
+
+    Example:
+        invoke sweep-report --sweep-id ENTITY/PROJECT/SWEEP_ID
+    """
+    ctx.run(
+        f"uv run python -m {PROJECT_NAME}.analysis.sweep_report {sweep_id} --output-dir {output_dir} --metric {metric} --goal {goal}",
+        echo=True,
+        pty=not WINDOWS,
+    )
+
+
+@task
 def evaluate(ctx: Context, checkpoint: str = "", wandb: bool = False, entity: str = "") -> None:
     """Evaluate model on test set.
 

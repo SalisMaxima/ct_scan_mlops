@@ -14,7 +14,7 @@ method: grid
 run_cap: 12
 
 metric:
-  name: val_acc
+  name: test_acc
   goal: maximize
 
 parameters:

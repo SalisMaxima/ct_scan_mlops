@@ -11,10 +11,10 @@
 name: dual-pathway-hparam-sweep
 method: bayes
 
-run_cap: 30
+run_cap: 50
 
 metric:
-  name: val_acc
+  name: test_acc
   goal: maximize
 
 early_terminate:
@@ -44,6 +44,23 @@ parameters:
 
   max_epochs:
     values: [15, 25]
+
+  dropout:
+    values: [0.1, 0.3, 0.5]
+
+  fusion_hidden:
+    values: [128, 256, 512]
+
+  radiomics_hidden:
+    values: [64, 128, 256]
+
+  freeze_backbone:
+    values: [true, false]
+
+  eta_min:
+    distribution: log_uniform_values
+    min: 1e-6
+    max: 1e-4
 
 command:
   - ${env}

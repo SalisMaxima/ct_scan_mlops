@@ -17,7 +17,7 @@ method: bayes
 run_cap: 50
 
 metric:
-  name: val_acc
+  name: test_acc
   goal: maximize
 
 # Early termination using Hyperband
