@@ -6,12 +6,28 @@ import json
 from pathlib import Path
 from typing import Annotated, Any
 
+import numpy as np
 import pandas as pd
 import typer
 import wandb
 import wandb.apis.reports as wr
 from loguru import logger
 from tqdm import tqdm
+
+
+class NumpyEncoder(json.JSONEncoder):
+    """Special JSON encoder for numpy types."""
+
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        if isinstance(obj, np.floating):
+            return float(obj)
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        if isinstance(obj, (np.bool_, bool)):
+            return bool(obj)
+        return super().default(obj)
 
 
 def fetch_sweep_runs(sweep_id: str) -> tuple[pd.DataFrame, Any]:
@@ -99,7 +115,9 @@ def generate_wandb_report(sweep: Any, metric: str, top_params: list[str]) -> str
 
     # 1. Parallel Coordinates Plot
     # Shows relationship between top params and metric
-    pc_columns = [wr.PCColumn(f"c::{p}") for p in top_params] + [wr.PCColumn(f"s::{metric}")]
+    pc_columns = [wr.ParallelCoordinatesPlotColumn(f"c::{p}") for p in top_params] + [
+        wr.ParallelCoordinatesPlotColumn(f"s::{metric}")
+    ]
 
     # 2. Scatter Plots
     # Create a scatter plot for each top parameter vs metric
@@ -110,7 +128,6 @@ def generate_wandb_report(sweep: Any, metric: str, top_params: list[str]) -> str
                 title=f"{metric} vs {param}",
                 x=f"c::{param}",
                 y=f"s::{metric}",
-                color=f"s::{metric}",  # Color by metric itself
             )
         )
 
@@ -123,17 +140,13 @@ def generate_wandb_report(sweep: Any, metric: str, top_params: list[str]) -> str
         wr.H2("Parallel Coordinates"),
         wr.P("Visualizing the relationship between high-impact hyperparameters and performance."),
         wr.PanelGrid(
-            runsets=[
-                wr.Runset(project=project, entity=entity).set_filters_with_python_expr(f'run.sweep == "{sweep_id}"')
-            ],
+            runsets=[wr.Runset(project=project, entity=entity, filters=f'Sweep == "{sweep_id}"')],
             panels=[wr.ParallelCoordinatesPlot(columns=pc_columns, layout={"h": 12, "w": 24})],
         ),
         wr.H2("Hyperparameter Correlations"),
         wr.P(f"Top {len(top_params)} hyperparameters correlated with {metric}."),
         wr.PanelGrid(
-            runsets=[
-                wr.Runset(project=project, entity=entity).set_filters_with_python_expr(f'run.sweep == "{sweep_id}"')
-            ],
+            runsets=[wr.Runset(project=project, entity=entity, filters=f'Sweep == "{sweep_id}"')],
             panels=scatter_plots,
         ),
     ]
@@ -188,7 +201,7 @@ def report(
     }
 
     with (output_dir / "best_run.json").open("w") as f:
-        json.dump(best_run_info, f, indent=2)
+        json.dump(best_run_info, f, indent=2, cls=NumpyEncoder)
 
     logger.info(f"Saved local data to {output_dir}")
 

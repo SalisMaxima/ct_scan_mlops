@@ -1,0 +1,80 @@
+# Fine-tuning Sweep: Narrows search space around best configuration (rich-sweep-11)
+# Targets the optimized region for Dual Pathway model
+#
+# Best found:
+#   lr: ~6.6e-5 (Lower LRs are better)
+#   dropout: 0.5
+#   batch_size: 8
+#   freeze_backbone: False
+#
+# Run with:
+#   uv run wandb sweep configs/sweeps/dual_pathway_finetune.yaml
+
+name: dual-pathway-finetune-sweep
+method: bayes
+
+run_cap: 30
+
+metric:
+  name: test_acc
+  goal: maximize
+
+parameters:
+  model:
+    value: dual_pathway_top_features
+
+  features:
+    value: top_features
+
+  # Centered around 6.6e-5, looking specifically at the lower end
+  lr:
+    distribution: log_uniform_values
+    min: 1e-5
+    max: 1e-4
+
+  # Best was 4.8e-6, narrowing range
+  weight_decay:
+    distribution: log_uniform_values
+    min: 1e-6
+    max: 1e-4
+
+  # Best was 8, checking neighbor values
+  batch_size:
+    values: [4, 8, 16]
+
+  # Keeping standard max_epochs
+  max_epochs:
+    value: 25
+
+  # Best was 0.5, checking slightly higher/lower
+  dropout:
+    distribution: uniform
+    min: 0.35
+    max: 0.65
+
+  # Best was 128, negative correlation with larger sizes
+  fusion_hidden:
+    values: [64, 128, 256]
+
+  # Best was 256, positive correlation
+  radiomics_hidden:
+    values: [256, 512]
+
+  # Crucial finding: Unfrozen performs significantly better
+  freeze_backbone:
+    value: false
+
+  # High positive correlation with performance
+  eta_min:
+    distribution: log_uniform_values
+    min: 1e-7
+    max: 1e-5
+
+command:
+  - ${env}
+  - uv
+  - run
+  - python
+  - -m
+  - ct_scan_mlops.sweep_train
+  - ${args}

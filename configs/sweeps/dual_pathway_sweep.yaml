@@ -1,5 +1,5 @@
-# Dual Pathway Model Hyperparameter Sweep
-# Optimizes CNN+Radiomics fusion architecture
+# Dual Pathway Model Hyperparameter Sweep (Comprehensive)
+# Optimizes CNN+Radiomics fusion architecture with BatchNorm
 #
 # Prerequisites:
 #   invoke extract-features --features top_features
@@ -8,10 +8,10 @@
 #   uv run wandb sweep configs/sweeps/dual_pathway_sweep.yaml
 #   uv run wandb agent <ENTITY>/<PROJECT>/<SWEEP_ID>
 
-name: dual-pathway-hparam-sweep
+name: dual-pathway-hparam-sweep-comprehensive
 method: bayes
 
-run_cap: 50
+run_cap: 100  # Increased for a more thorough search
 
 metric:
   name: test_acc
@@ -39,27 +39,34 @@ parameters:
     min: 1e-6
     max: 1e-2
 
+  # Added 64 for better BatchNorm statistics
   batch_size:
-    values: [8, 16, 32]
+    values: [8, 16, 32, 64]
 
   max_epochs:
     values: [15, 25]
 
+  # Changed to continuous uniform distribution for better Bayesian exploration
   dropout:
-    values: [0.1, 0.3, 0.5]
+    distribution: uniform
+    min: 0.0
+    max: 0.6
 
+  # Added 64 based on negative correlation findings
   fusion_hidden:
-    values: [128, 256, 512]
+    values: [64, 128, 256, 512]
 
+  # Added 512 based on positive correlation findings
   radiomics_hidden:
-    values: [64, 128, 256]
+    values: [64, 128, 256, 512]
 
+  # Hardcoded to false based on previous sweep results
   freeze_backbone:
-    values: [true, false]
+    value: false
 
   eta_min:
     distribution: log_uniform_values
-    min: 1e-6
+    min: 1e-7
     max: 1e-4
 
 command:

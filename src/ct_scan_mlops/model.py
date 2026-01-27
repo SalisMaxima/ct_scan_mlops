@@ -230,6 +230,7 @@ class DualPathwayModel(nn.Module):
         # CNN feature projection
         self.cnn_projection = nn.Sequential(
             nn.Linear(cnn_in_features, cnn_feature_dim),
+            nn.BatchNorm1d(cnn_feature_dim),
             nn.ReLU(inplace=True),
             nn.Dropout(dropout),
         )
@@ -237,9 +238,11 @@ class DualPathwayModel(nn.Module):
         # Radiomics feature pathway
         self.radiomics_projection = nn.Sequential(
             nn.Linear(radiomics_dim, radiomics_hidden),
+            nn.BatchNorm1d(radiomics_hidden),
             nn.ReLU(inplace=True),
             nn.Dropout(dropout),
             nn.Linear(radiomics_hidden, radiomics_hidden),
+            nn.BatchNorm1d(radiomics_hidden),
             nn.ReLU(inplace=True),
         )
 
@@ -399,4 +402,21 @@ if __name__ == "__main__":
 
     output = resnet(dummy_input)
     print(f"Input shape: {dummy_input.shape}")
+    print(f"Output shape: {output.shape}")
+    print()
+
+    print("=" * 60)
+    print("DualPathwayModel Test")
+    print("=" * 60)
+
+    dual_model = DualPathwayModel(num_classes=4, radiomics_dim=50, pretrained=False)
+    total_params = sum(p.numel() for p in dual_model.parameters())
+    trainable_params = sum(p.numel() for p in dual_model.parameters() if p.requires_grad)
+    print(f"Total parameters: {total_params:,}")
+    print(f"Trainable parameters: {trainable_params:,}")
+
+    dummy_features = torch.randn(2, 50)
+    output = dual_model(dummy_input, dummy_features)
+    print(f"Input image shape: {dummy_input.shape}")
+    print(f"Input features shape: {dummy_features.shape}")
     print(f"Output shape: {output.shape}")
