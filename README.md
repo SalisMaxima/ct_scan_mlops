@@ -164,6 +164,47 @@ invoke sweep
 invoke sweep-best --sweep-id ENTITY/PROJECT/SWEEP_ID
 ```
 
+**Running Sweeps with Dual Pathway Models**
+
+The sweep system now supports the dual pathway model (CNN + Radiomics). Before starting sweeps with dual pathway models, you must extract features.
+
+Prerequisites:
+
+```bash
+# Extract top 16 features (recommended for sweeps)
+invoke extract-features --features top_features
+
+# Or extract all 50 features
+invoke extract-features
+
+# Or prepare all feature configs at once
+invoke prepare-sweep-features
+```
+
+Available sweep configurations:
+
+- `configs/sweeps/train_sweep.yaml` - General sweep (all models including dual_pathway)
+- `configs/sweeps/dual_pathway_sweep.yaml` - Optimized for dual pathway only (Bayesian optimization)
+- `configs/sweeps/model_comparison_sweep.yaml` - Compare CNN vs ResNet18 vs dual pathway (Grid search)
+
+Examples:
+
+```bash
+# Create sweep with dual pathway optimization
+invoke sweep --sweep-config configs/sweeps/dual_pathway_sweep.yaml
+
+# Or use the default sweep (includes all models)
+invoke sweep
+
+# Run agents
+invoke sweep-agent --sweep-id <SWEEP_ID>
+```
+
+Troubleshooting:
+
+- **Error: "Features not found"** - Run `invoke extract-features --features top_features` first
+- **Error: "Dimension mismatch"** - Re-extract features with correct config matching your model
+
 ### Code Quality
 
 ```bash

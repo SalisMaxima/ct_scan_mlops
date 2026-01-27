@@ -21,6 +21,12 @@ invoke test          # Run tests
 invoke train         # Train model
 invoke dvc-pull      # Get data from remote
 
+# Sweeps (hyperparameter optimization)
+invoke extract-features --features top_features  # Prepare features for dual pathway sweeps
+invoke prepare-sweep-features                    # Extract all feature configs for sweeps
+invoke sweep                                     # Create W&B sweep
+invoke sweep-agent <SWEEP_ID>                    # Run sweep agent
+
 # Analysis commands (use after training)
 invoke compare-baselines --baseline path/to/baseline.ckpt --improved path/to/improved.ckpt
 invoke analyze-features --checkpoint path/to/model.ckpt

@@ -1,0 +1,55 @@
+# Dual Pathway Model Hyperparameter Sweep
+# Optimizes CNN+Radiomics fusion architecture
+#
+# Prerequisites:
+#   invoke extract-features --features top_features
+#
+# Run with:
+#   uv run wandb sweep configs/sweeps/dual_pathway_sweep.yaml
+#   uv run wandb agent <ENTITY>/<PROJECT>/<SWEEP_ID>
+
+name: dual-pathway-hparam-sweep
+method: bayes
+
+run_cap: 30
+
+metric:
+  name: val_acc
+  goal: maximize
+
+early_terminate:
+  type: hyperband
+  min_iter: 5
+  eta: 3
+
+parameters:
+  model:
+    value: dual_pathway_top_features
+
+  features:
+    value: top_features
+
+  lr:
+    distribution: log_uniform_values
+    min: 1e-5
+    max: 3e-3
+
+  weight_decay:
+    distribution: log_uniform_values
+    min: 1e-6
+    max: 1e-2
+
+  batch_size:
+    values: [8, 16, 32]
+
+  max_epochs:
+    values: [15, 25]
+
+command:
+  - ${env}
+  - uv
+  - run
+  - python
+  - -m
+  - ct_scan_mlops.sweep_train
+  - ${args}

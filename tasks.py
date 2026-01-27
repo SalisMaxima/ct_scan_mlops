@@ -69,6 +69,33 @@ def extract_features(ctx: Context, n_jobs: int = -1, args: str = "") -> None:
 
 
 @task
+def prepare_sweep_features(ctx: Context, n_jobs: int = -1) -> None:
+    """Extract all feature configurations needed for sweeps.
+
+    Extracts both default (50 features) and top_features (16 features)
+    to ensure all sweep configurations can run.
+
+    Args:
+        n_jobs: Number of parallel jobs (-1 = all CPUs)
+
+    Examples:
+        invoke prepare-sweep-features
+        invoke prepare-sweep-features --n-jobs 4
+    """
+    print("Extracting default features (50 features)...")
+    ctx.run(f"uv run python -m {PROJECT_NAME}.features.extract_radiomics +n_jobs={n_jobs}", echo=True, pty=not WINDOWS)
+
+    print("Extracting top features (16 features)...")
+    ctx.run(
+        f"uv run python -m {PROJECT_NAME}.features.extract_radiomics features=top_features +n_jobs={n_jobs}",
+        echo=True,
+        pty=not WINDOWS,
+    )
+
+    print("✓ Feature extraction complete. Ready for dual_pathway sweeps.")
+
+
+@task
 def train(ctx: Context, entity: str = "", args: str = "") -> None:
     """Train model with wandb logging.
 
