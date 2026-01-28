@@ -1,16 +1,17 @@
-# Fine-tuning Sweep: Narrows search space around best configuration (rich-sweep-11)
+# Fine-tuning Sweep: Narrows search space around best configuration (dutiful-sweep-83)
 # Targets the optimized region for Dual Pathway model
 #
-# Best found:
-#   lr: ~6.6e-5 (Lower LRs are better)
-#   dropout: 0.5
-#   batch_size: 8
-#   freeze_backbone: False
+# Best found (dutiful-sweep-83):
+#   lr: ~1.4e-4
+#   dropout: ~0.1
+#   fusion_hidden: 512
+#   radiomics_hidden: 512
+#   batch_size: 16
 #
 # Run with:
 #   uv run wandb sweep configs/sweeps/dual_pathway_finetune.yaml
 
-name: dual-pathway-finetune-sweep
+name: dual-pathway-finetune-sweep-v2
 method: bayes
 
 run_cap: 30
@@ -26,37 +27,37 @@ parameters:
   features:
     value: top_features
 
-  # Centered around 6.6e-5, looking specifically at the lower end
+  # Centered around 1.4e-4
   lr:
     distribution: log_uniform_values
-    min: 1e-5
-    max: 1e-4
+    min: 5e-5
+    max: 3e-4
 
-  # Best was 4.8e-6, narrowing range
+  # Best was ~6.9e-5
   weight_decay:
     distribution: log_uniform_values
-    min: 1e-6
-    max: 1e-4
+    min: 1e-5
+    max: 5e-4
 
-  # Best was 8, checking neighbor values
+  # Best was 16, checking 8 as well ( BatchNorm stability)
   batch_size:
-    values: [4, 8, 16]
+    values: [8, 16]
 
   # Keeping standard max_epochs
   max_epochs:
     value: 25
 
-  # Best was 0.5, checking slightly higher/lower
+  # Best was 0.1, previous range (0.35-0.65) was too high
   dropout:
     distribution: uniform
-    min: 0.35
-    max: 0.65
+    min: 0.0
+    max: 0.3
 
-  # Best was 128, negative correlation with larger sizes
+  # Best was 512, checking 256 for efficiency
   fusion_hidden:
-    values: [64, 128, 256]
+    values: [256, 512]
 
-  # Best was 256, positive correlation
+  # Best was 512
   radiomics_hidden:
     values: [256, 512]
 
@@ -64,11 +65,11 @@ parameters:
   freeze_backbone:
     value: false
 
-  # High positive correlation with performance
+  # Best was ~2.3e-7
   eta_min:
     distribution: log_uniform_values
-    min: 1e-7
-    max: 1e-5
+    min: 1e-8
+    max: 1e-6
 
 command:
   - ${env}
