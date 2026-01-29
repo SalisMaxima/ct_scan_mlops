@@ -14,7 +14,7 @@
 name: dual-pathway-finetune-sweep-v2
 method: bayes
 
-run_cap: 30
+run_cap: 70
 
 metric:
   name: test_acc
