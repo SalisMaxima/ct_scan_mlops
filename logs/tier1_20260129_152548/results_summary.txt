@@ -1,0 +1,3 @@
+T1_baseline_crossentropy: COMPLETED ✓
+T1_focal_loss_gamma2.0: COMPLETED ✓
+T1_focal_loss_gamma2.5: COMPLETED ✓

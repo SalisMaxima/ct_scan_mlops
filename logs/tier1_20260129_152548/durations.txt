@@ -1,0 +1,2 @@
+T1_focal_loss_gamma2.0: 4 min
+T1_focal_loss_gamma2.5: 73 min
