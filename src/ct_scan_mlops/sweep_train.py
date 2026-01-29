@@ -13,7 +13,6 @@ from __future__ import annotations
 from pathlib import Path
 
 import hydra
-import torch
 import typer
 import wandb
 from loguru import logger
@@ -176,58 +175,6 @@ def sweep_train(
     # we use initialize_config_dir which accepts an absolute path.
     with hydra.initialize_config_dir(config_dir=_CONFIG_DIR, version_base="1.3"):
         cfg = hydra.compose(config_name="config", overrides=overrides)
-
-    # Validate features exist for dual_pathway models
-    is_dual_pathway = cfg.model.name in ("dual_pathway", "dualpathway", "hybrid")
-
-    if is_dual_pathway:
-        processed_path = Path(cfg.data.get("processed_path", "data/processed"))
-        features_file = processed_path / "train_features.pt"
-
-        if not features_file.exists():
-            error_msg = (
-                f"Radiomics features not found at {features_file}. "
-                f"Run 'invoke extract-features' before sweeping dual_pathway models."
-            )
-            logger.error(error_msg)
-
-            # Log to wandb before failing
-            run = wandb.init(
-                project=cfg.wandb.project,
-                entity=cfg.wandb.get("entity"),
-                config=OmegaConf.to_container(cfg, resolve=True),
-            )
-            run.summary["error"] = error_msg
-            run.summary["status"] = "failed_prerequisites"
-            wandb.finish()
-
-            raise FileNotFoundError(error_msg)
-
-        # Verify dimension consistency
-        features_tensor = torch.load(features_file, weights_only=True)
-        expected_dim = cfg.model.get("radiomics_dim", 50)
-        actual_dim = features_tensor.shape[1]
-
-        if actual_dim != expected_dim:
-            error_msg = (
-                f"Feature dimension mismatch: model expects {expected_dim} features "
-                f"but found {actual_dim} in {features_file}. "
-                f"Re-extract features with matching configuration."
-            )
-            logger.error(error_msg)
-
-            run = wandb.init(
-                project=cfg.wandb.project,
-                entity=cfg.wandb.get("entity"),
-                config=OmegaConf.to_container(cfg, resolve=True),
-            )
-            run.summary["error"] = error_msg
-            run.summary["status"] = "dimension_mismatch"
-            wandb.finish()
-
-            raise ValueError(error_msg)
-
-        logger.info(f"✓ Validated: {actual_dim} features available for dual_pathway model")
 
     # Create a W&B run early so we can derive an output dir from the run id.
     run = wandb.init(

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import shutil
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -39,6 +40,14 @@ IMG_EXTS = {".png", ".jpg", ".jpeg"}
 # ImageNet normalization stats (default)
 IMAGENET_MEAN = [0.485, 0.456, 0.406]
 IMAGENET_STD = [0.229, 0.224, 0.225]
+
+
+def _get_num_workers(cfg_workers: int) -> int:
+    """Determine optimal number of workers based on platform."""
+    if sys.platform == "darwin":
+        # macOS often has issues with multiprocessing in DataLoader
+        return 0
+    return cfg_workers
 
 
 def normalize(images: torch.Tensor) -> torch.Tensor:
@@ -615,31 +624,34 @@ def create_dataloaders(
         test_ds = ChestCTDataset(data_dir, split="test", transform=eval_transform)
 
     # Create dataloaders
+    num_workers = _get_num_workers(data_cfg.num_workers)
+
     train_loader = DataLoader(
         train_ds,
         batch_size=data_cfg.batch_size,
         shuffle=True,
-        num_workers=data_cfg.num_workers,
+        num_workers=num_workers,
         pin_memory=data_cfg.get("pin_memory", True),
-        persistent_workers=data_cfg.get("persistent_workers", False) and data_cfg.num_workers > 0,
+        persistent_workers=data_cfg.get("persistent_workers", False) and num_workers > 0,
+        drop_last=True,
     )
 
     val_loader = DataLoader(
         val_ds,
         batch_size=data_cfg.batch_size,
         shuffle=False,
-        num_workers=data_cfg.num_workers,
+        num_workers=num_workers,
         pin_memory=data_cfg.get("pin_memory", True),
-        persistent_workers=data_cfg.get("persistent_workers", False) and data_cfg.num_workers > 0,
+        persistent_workers=data_cfg.get("persistent_workers", False) and num_workers > 0,
     )
 
     test_loader = DataLoader(
         test_ds,
         batch_size=data_cfg.batch_size,
         shuffle=False,
-        num_workers=data_cfg.num_workers,
+        num_workers=num_workers,
         pin_memory=data_cfg.get("pin_memory", True),
-        persistent_workers=data_cfg.get("persistent_workers", False) and data_cfg.num_workers > 0,
+        persistent_workers=data_cfg.get("persistent_workers", False) and num_workers > 0,
     )
 
     return train_loader, val_loader, test_loader
@@ -791,6 +803,8 @@ class ChestCTDataModule(pl.LightningDataModule):
                 logger.warning("Cannot determine labels for weighted sampling, falling back to shuffle")
                 use_weighted = False
 
+        num_workers = _get_num_workers(self.data_cfg.num_workers)
+
         if use_weighted:
             # Compute sample weights based on class
             sample_weights = class_weights[labels]
@@ -805,9 +819,10 @@ class ChestCTDataModule(pl.LightningDataModule):
                 self.train_ds,
                 batch_size=self.data_cfg.batch_size,
                 sampler=sampler,  # Cannot use shuffle with sampler
-                num_workers=self.data_cfg.num_workers,
+                num_workers=num_workers,
                 pin_memory=self.data_cfg.get("pin_memory", True),
-                persistent_workers=self.data_cfg.get("persistent_workers", False) and self.data_cfg.num_workers > 0,
+                persistent_workers=self.data_cfg.get("persistent_workers", False) and num_workers > 0,
+                drop_last=True,
             )
 
         # Default: shuffle without weighted sampling
@@ -815,31 +830,34 @@ class ChestCTDataModule(pl.LightningDataModule):
             self.train_ds,
             batch_size=self.data_cfg.batch_size,
             shuffle=True,
-            num_workers=self.data_cfg.num_workers,
+            num_workers=num_workers,
             pin_memory=self.data_cfg.get("pin_memory", True),
-            persistent_workers=self.data_cfg.get("persistent_workers", False) and self.data_cfg.num_workers > 0,
+            persistent_workers=self.data_cfg.get("persistent_workers", False) and num_workers > 0,
+            drop_last=True,
         )
 
     def val_dataloader(self) -> DataLoader:
         """Create validation dataloader."""
+        num_workers = _get_num_workers(self.data_cfg.num_workers)
         return DataLoader(
             self.val_ds,
             batch_size=self.data_cfg.batch_size,
             shuffle=False,
-            num_workers=self.data_cfg.num_workers,
+            num_workers=num_workers,
             pin_memory=self.data_cfg.get("pin_memory", True),
-            persistent_workers=self.data_cfg.get("persistent_workers", False) and self.data_cfg.num_workers > 0,
+            persistent_workers=self.data_cfg.get("persistent_workers", False) and num_workers > 0,
         )
 
     def test_dataloader(self) -> DataLoader:
         """Create test dataloader."""
+        num_workers = _get_num_workers(self.data_cfg.num_workers)
         return DataLoader(
             self.test_ds,
             batch_size=self.data_cfg.batch_size,
             shuffle=False,
-            num_workers=self.data_cfg.num_workers,
+            num_workers=num_workers,
             pin_memory=self.data_cfg.get("pin_memory", True),
-            persistent_workers=self.data_cfg.get("persistent_workers", False) and self.data_cfg.num_workers > 0,
+            persistent_workers=self.data_cfg.get("persistent_workers", False) and num_workers > 0,
         )
 
     def predict_dataloader(self) -> DataLoader:

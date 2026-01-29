@@ -1,0 +1,236 @@
+_wandb:
+    value:
+        cli_version: 0.24.0
+        e:
+            l1jx46u4b9vd8j3lax3ft3vyczxz3vgz:
+                args:
+                    - --batch_size=16
+                    - --dropout=0.04970676151821258
+                    - --eta_min=1.763377904016462e-08
+                    - --features=top_features
+                    - --freeze_backbone=False
+                    - --fusion_hidden=256
+                    - --lr=0.00011498310240073825
+                    - --max_epochs=25
+                    - --model=dual_pathway_top_features
+                    - --radiomics_hidden=512
+                    - --weight_decay=2.0628611692936967e-05
+                cpu_count: 14
+                cpu_count_logical: 20
+                cudaVersion: "13.1"
+                disk:
+                    /:
+                        total: "197122371584"
+                        used: "109157933056"
+                email: mathiashl@pm.me
+                executable: /media/salismaxima/41827d46-03ee-4c8d-9636-12e2cf1281c3/Projects/ct_scan_mlops/.venv/bin/python3
+                git:
+                    commit: 2d247ee37b23f38c2b7fbeec0b183814e64e0b31  # pragma: allowlist secret
+                    remote: git@github.com:DTU-MLOps-Group-2/ct_scan_mlops.git
+                gpu: NVIDIA GeForce RTX 3080
+                gpu_count: 1
+                gpu_nvidia:
+                    - architecture: Ampere
+                      cudaCores: 8960
+                      memoryTotal: "12884901888"
+                      name: NVIDIA GeForce RTX 3080
+                      uuid: GPU-614eb781-62d7-105e-7a4e-120c5a9b76fe
+                host: SalisMaxima-stationary
+                memory:
+                    total: "33451110400"
+                os: Linux-6.8.0-90-generic-x86_64-with-glibc2.39
+                program: -m ct_scan_mlops.sweep_train
+                python: CPython 3.12.3
+                root: /media/salismaxima/41827d46-03ee-4c8d-9636-12e2cf1281c3/Projects/ct_scan_mlops
+                startedAt: "2026-01-28T06:10:49.277506Z"
+                writerId: l1jx46u4b9vd8j3lax3ft3vyczxz3vgz
+        m: []
+        python_version: 3.12.3
+        t:
+            "1":
+                - 1
+                - 9
+                - 41
+                - 49
+                - 50
+                - 80
+                - 103
+                - 105
+            "2":
+                - 1
+                - 9
+                - 41
+                - 49
+                - 50
+                - 80
+                - 103
+                - 105
+            "3":
+                - 2
+                - 14
+                - 15
+                - 16
+                - 62
+            "4": 3.12.3
+            "5": 0.24.0
+            "12": 0.24.0
+            "13": linux-x86_64
+batch_size:
+    value: 16
+cfg:
+    value: '{''model'': {''name'': ''dual_pathway'', ''num_classes'': 4, ''radiomics_dim'': 16, ''radiomics_hidden'': 512, ''cnn_feature_dim'': 512, ''pretrained'': True, ''freeze_backbone'': False, ''fusion_hidden'': 256, ''dropout'': 0.04970676151821258}, ''data'': {''name'': ''chest_ct_scan'', ''train_dir'': ''train'', ''valid_dir'': ''valid'', ''test_dir'': ''test'', ''processed_path'': ''data/processed'', ''classes'': [''adenocarcinoma'', ''large_cell_carcinoma'', ''squamous_cell_carcinoma'', ''normal''], ''batch_size'': 16, ''num_workers'': 0, ''pin_memory'': True, ''persistent_workers'': True, ''image_size'': 224, ''normalize'': {''mean'': [0.485, 0.456, 0.406], ''std'': [0.229, 0.224, 0.225]}, ''augmentation'': {''train'': {''horizontal_flip'': True, ''vertical_flip'': True, ''rotation_limit'': 30, ''brightness_limit'': 0.2, ''contrast_limit'': 0.2, ''random_crop'': False, ''elastic_transform'': False, ''elastic_alpha'': 120, ''elastic_sigma'': 6, ''elastic_p'': 0.3, ''grid_distortion'': False, ''grid_steps'': 5, ''grid_distort_limit'': 0.3, ''grid_p'': 0.3, ''coarse_dropout'': False, ''dropout_max_holes'': 8, ''dropout_max_height'': 32, ''dropout_max_width'': 32, ''dropout_min_holes'': 1, ''dropout_min_height'': 8, ''dropout_min_width'': 8, ''dropout_p'': 0.3, ''gaussian_noise'': False, ''noise_var_limit'': [10.0, 50.0], ''noise_p'': 0.3, ''blur'': False, ''blur_limit'': [3, 7], ''blur_p'': 0.2}, ''eval'': {''resize_only'': True}}, ''sampling'': {''weighted'': False, ''class_weights'': [1.0, 1.0, 1.3, 0.7]}}, ''train'': {''max_epochs'': 25, ''min_epochs'': 10, ''loss'': {''type'': ''cross_entropy'', ''gamma'': 2.0, ''class_weights'': None, ''smoothing'': 0.1, ''confusion_pairs'': [[0, 2], [2, 0]], ''penalty_weight'': 0.5}, ''profiling'': {''enabled'': False, ''steps'': 5}, ''optimizer'': {''name'': ''adam'', ''lr'': 0.00011498310240073825, ''weight_decay'': 2.0628611692936967e-05, ''betas'': [0.9, 0.999]}, ''scheduler'': {''name'': ''cosine'', ''T_max'': ''${train.max_epochs}'', ''eta_min'': 1.763377904016462e-08}, ''early_stopping'': {''enabled'': False, ''monitor'': ''val_loss'', ''patience'': 10, ''mode'': ''min''}, ''checkpoint'': {''monitor'': ''val_acc'', ''mode'': ''max'', ''save_top_k'': 3, ''save_last'': True}, ''gradient_clip_val'': 0, ''accumulate_grad_batches'': 1, ''accelerator'': ''auto'', ''devices'': 1, ''precision'': 32}, ''features'': {''use_intensity'': True, ''use_glcm'': True, ''use_shape'': True, ''use_region'': True, ''use_wavelet'': True, ''glcm_distances'': [1, 2, 3], ''wavelet_type'': ''db4'', ''wavelet_level'': 2, ''selected_features'': [''sphericity'', ''major_axis_length'', ''solidity'', ''perimeter'', ''compactness'', ''eccentricity'', ''extent'', ''glcm_correlation_std'', ''glcm_contrast_mean'', ''wavelet_L2_HH_energy'', ''wavelet_L2_HL_energy'', ''wavelet_L1_LH_mean'', ''wavelet_L2_HH_mean'', ''wavelet_L1_HH_energy'', ''max_gradient'', ''ggo_ratio'']}, ''seed'': 42, ''experiment_name'': ''ct_scan_classifier'', ''output_dir'': ''outputs/${experiment_name}'', ''wandb'': {''project'': ''CT_Scan_MLOps'', ''entity'': ''mathiashl-danmarks-tekniske-universitet-dtu'', ''mode'': ''online'', ''tags'': [''chest-ct'', ''classification'', ''mlops-course'']}, ''paths'': {''data_dir'': ''data/raw/chest-ctscan-images/Data'', ''models_dir'': ''models'', ''logs_dir'': ''logs''}}'
+data:
+    value:
+        augmentation:
+            eval:
+                resize_only: true
+            train:
+                blur: false
+                blur_limit:
+                    - 3
+                    - 7
+                blur_p: 0.2
+                brightness_limit: 0.2
+                coarse_dropout: false
+                contrast_limit: 0.2
+                dropout_max_height: 32
+                dropout_max_holes: 8
+                dropout_max_width: 32
+                dropout_min_height: 8
+                dropout_min_holes: 1
+                dropout_min_width: 8
+                dropout_p: 0.3
+                elastic_alpha: 120
+                elastic_p: 0.3
+                elastic_sigma: 6
+                elastic_transform: false
+                gaussian_noise: false
+                grid_distort_limit: 0.3
+                grid_distortion: false
+                grid_p: 0.3
+                grid_steps: 5
+                horizontal_flip: true
+                noise_p: 0.3
+                noise_var_limit:
+                    - 10
+                    - 50
+                random_crop: false
+                rotation_limit: 30
+                vertical_flip: true
+        batch_size: 16
+        classes:
+            - adenocarcinoma
+            - large_cell_carcinoma
+            - squamous_cell_carcinoma
+            - normal
+        image_size: 224
+        name: chest_ct_scan
+        normalize:
+            mean:
+                - 0.485
+                - 0.456
+                - 0.406
+            std:
+                - 0.229
+                - 0.224
+                - 0.225
+        num_workers: 0
+        persistent_workers: true
+        pin_memory: true
+        processed_path: data/processed
+        sampling:
+            class_weights:
+                - 1
+                - 1
+                - 1.3
+                - 0.7
+            weighted: false
+        test_dir: test
+        train_dir: train
+        valid_dir: valid
+dropout:
+    value: 0.04970676151821258
+eta_min:
+    value: 1.763377904016462e-08
+experiment_name:
+    value: ct_scan_classifier
+features:
+    value: top_features
+freeze_backbone:
+    value: false
+fusion_hidden:
+    value: 256
+lr:
+    value: 0.00011498310240073825
+max_epochs:
+    value: 25
+model:
+    value: dual_pathway_top_features
+output_dir:
+    value: outputs/ct_scan_classifier
+paths:
+    value:
+        data_dir: data/raw/chest-ctscan-images/Data
+        logs_dir: logs
+        models_dir: models
+radiomics_hidden:
+    value: 512
+seed:
+    value: 42
+train:
+    value:
+        accelerator: auto
+        accumulate_grad_batches: 1
+        checkpoint:
+            mode: max
+            monitor: val_acc
+            save_last: true
+            save_top_k: 3
+        devices: 1
+        early_stopping:
+            enabled: false
+            mode: min
+            monitor: val_loss
+            patience: 10
+        gradient_clip_val: 0
+        loss:
+            class_weights: null
+            confusion_pairs:
+                - - 0
+                  - 2
+                - - 2
+                  - 0
+            gamma: 2
+            penalty_weight: 0.5
+            smoothing: 0.1
+            type: cross_entropy
+        max_epochs: 25
+        min_epochs: 10
+        optimizer:
+            betas:
+                - 0.9
+                - 0.999
+            lr: 0.00011498310240073825
+            name: adam
+            weight_decay: 2.0628611692936967e-05
+        precision: 32
+        profiling:
+            enabled: false
+            steps: 5
+        scheduler:
+            T_max: 25
+            eta_min: 1.763377904016462e-08
+            name: cosine
+use_features:
+    value: true
+wandb:
+    value:
+        entity: mathiashl-danmarks-tekniske-universitet-dtu
+        mode: online
+        project: CT_Scan_MLOps
+        tags:
+            - chest-ct
+            - classification
+            - mlops-course
+weight_decay:
+    value: 2.0628611692936967e-05

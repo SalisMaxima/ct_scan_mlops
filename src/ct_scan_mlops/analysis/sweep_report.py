@@ -191,7 +191,11 @@ def report(
     # 2. Local Analysis (CSV/JSON)
     df.to_csv(output_dir / "sweep_data.csv", index=False)
 
-    best_run = df.loc[df[metric_full].idxmax()] if goal == "maximize" else df.loc[df[metric_full].idxmin()]
+    try:
+        best_run = df.loc[df[metric_full].idxmax()] if goal == "maximize" else df.loc[df[metric_full].idxmin()]
+    except ValueError:
+        logger.warning(f"No valid data found for metric '{metric_full}'. Cannot identify best run.")
+        return
 
     best_run_info = {
         "run_id": best_run["run_id"],
