@@ -206,3 +206,5 @@ reports/baseline*
 # Credentials
 .config/gcloud/application_default_credentials.json
 github-dvc-key.json
+*.onnx
+*.onnx.data

@@ -1,2 +1,6 @@
 T1_focal_loss_gamma2.0: 4 min
 T1_focal_loss_gamma2.5: 73 min
+T1_focal_loss_gamma3.0: 715 min
+T1_label_smoothing_0.1: 111 min
+T1_label_smoothing_0.15: 3 min
+T1_focal_plus_class_weights: 2 min

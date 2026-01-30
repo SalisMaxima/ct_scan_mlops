@@ -66,4 +66,4 @@ jobs:
             --startup-probe tcpSocket.port=8080,periodSeconds=10,failureThreshold=24 \
             --add-volume name=models,type=cloud-storage,bucket=${{ vars.GCS_BUCKET }} \
             --add-volume-mount volume=models,mount-path=/models \
-            --set-env-vars "CONFIG_PATH=/models/models/config.yaml,MODEL_PATH=/models/models/best_model.pt"
+            --set-env-vars "CONFIG_PATH=/models/configs/prod_config.yaml,MODEL_PATH=/models/models/model.pt,FEATURE_METADATA_PATH=/models/models/feature_metadata.json"
