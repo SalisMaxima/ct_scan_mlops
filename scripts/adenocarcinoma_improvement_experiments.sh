@@ -27,10 +27,10 @@ set -o pipefail  # Exit on pipe failure
 # Configuration
 ################################################################################
 
-PROJECT_DIR="/Users/dkMatHLu/Desktop/ct_scan_mlops"
+PROJECT_DIR="/media/salismaxima/41827d46-03ee-4c8d-9636-12e2cf1281c3/Projects/ct_scan_mlops"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 LOG_DIR="$PROJECT_DIR/logs/adeno_improvement_$TIMESTAMP"
-COOLDOWN=180  # 3 minutes between experiments to allow GPU to cool down
+COOLDOWN=10  # 10 seconds between experiments
 DRY_RUN=false  # Set to true to test script without actually running experiments
 
 ################################################################################
@@ -209,41 +209,9 @@ data.batch_size=16 train.max_epochs=25 train.profiling.enabled=false"
 # Expected runtime: 5-7 hours
 ################################################################################
 
-print_header "TIER 1: LOSS FUNCTION EXPERIMENTS (5-7 hours)"
-echo "Objective: Test different loss functions to:"
-echo "  - Better handle hard adenocarcinoma cases"
-echo "  - Reduce overconfidence (current: 83.3% on errors)"
-echo "  - Improve calibration"
-echo ""
-
-# Baseline with standard cross-entropy
-run_experiment "T1_baseline_crossentropy" \
-    "$BASE_CONFIG"
-
-# Focal Loss variants
-run_experiment "T1_focal_loss_gamma2.0" \
-    "$BASE_CONFIG train.loss.type=focal train.loss.gamma=2.0"
-
-run_experiment "T1_focal_loss_gamma2.5" \
-    "$BASE_CONFIG train.loss.type=focal train.loss.gamma=2.5"
-
-run_experiment "T1_focal_loss_gamma3.0" \
-    "$BASE_CONFIG train.loss.type=focal train.loss.gamma=3.0"
-
-# Label Smoothing variants
-run_experiment "T1_label_smoothing_0.1" \
-    "$BASE_CONFIG train.loss.type=label_smoothing train.loss.smoothing=0.1"
-
-run_experiment "T1_label_smoothing_0.15" \
-    "$BASE_CONFIG train.loss.type=label_smoothing train.loss.smoothing=0.15"
-
-# Combined approach: Focal + Class Weights
-run_experiment "T1_focal_plus_class_weights" \
-    "$BASE_CONFIG train.loss.type=focal train.loss.gamma=2.0 'train.loss.class_weights=[1.3,1.0,1.0,0.8]'"
-
-print_section "Tier 1 Complete"
-echo "Experiments: 7"
-echo "Check W&B dashboard to identify best loss function"
+# TIER 1: ALREADY COMPLETED - SKIPPING
+# Best result: T1_label_smoothing_0.1 at 92.70%
+echo "TIER 1: SKIPPED (already completed)"
 echo ""
 
 ################################################################################
@@ -252,32 +220,13 @@ echo ""
 # Expected runtime: 2-3 hours
 ################################################################################
 
-print_header "TIER 2: WEIGHTED SAMPLING EXPERIMENTS (2-3 hours)"
-echo "Objective: Balance class representation during training"
-echo "  - Oversample adenocarcinoma (class weight 1.5-2.0)"
-echo "  - Undersample normal (class weight 0.6-0.7)"
+# TIER 2: ALREADY COMPLETED - SKIPPING
+# Best result: T2_weighted_sampling_moderate at 92.38%
+echo "TIER 2: SKIPPED (already completed)"
 echo ""
 
-# Weighted sampling variants
-run_experiment "T2_weighted_sampling_moderate" \
-    "$BASE_CONFIG data.sampling.weighted=true 'data.sampling.class_weights=[1.5,1.0,1.0,0.7]'"
-
-run_experiment "T2_weighted_sampling_aggressive" \
-    "$BASE_CONFIG data.sampling.weighted=true 'data.sampling.class_weights=[2.0,1.0,1.0,0.6]'"
-
-# Combine best loss from Tier 1 with weighted sampling
-# NOTE: Update this after Tier 1 completes if a different loss performs best
-BEST_LOSS_T1="train.loss.type=focal train.loss.gamma=2.0"
-
-run_experiment "T2_focal_plus_weighted_moderate" \
-    "$BASE_CONFIG $BEST_LOSS_T1 data.sampling.weighted=true 'data.sampling.class_weights=[1.5,1.0,1.0,0.7]'"
-
-run_experiment "T2_focal_plus_weighted_aggressive" \
-    "$BASE_CONFIG $BEST_LOSS_T1 data.sampling.weighted=true 'data.sampling.class_weights=[2.0,1.0,1.0,0.6]'"
-
-print_section "Tier 2 Complete"
-echo "Experiments: 4"
-echo ""
+# Best loss from Tier 1: label_smoothing_0.1 (92.70%)
+BEST_LOSS_T1="train.loss.type=label_smoothing train.loss.smoothing=0.1"
 
 ################################################################################
 # TIER 3: Data Augmentation Experiments
@@ -285,57 +234,18 @@ echo ""
 # Expected runtime: 6-8 hours
 ################################################################################
 
-print_header "TIER 3: DATA AUGMENTATION EXPERIMENTS (6-8 hours)"
-echo "Objective: Improve robustness to shape variations"
-echo "  - Elastic transforms (distort tumor shapes)"
-echo "  - Grid distortion (local geometric perturbations)"
-echo "  - Coarse dropout (force distributed feature usage)"
+# TIER 3: PARTIALLY COMPLETED - SKIPPING DONE EXPERIMENTS
+echo "TIER 3: Skipping completed experiments (elastic, grid, coarse_dropout)"
 echo ""
 
-# Individual augmentation techniques
-run_experiment "T3_elastic_transform" \
-    "$BASE_CONFIG $BEST_LOSS_T1 \
-    data.augmentation.train.elastic_transform=true \
-    data.augmentation.train.elastic_alpha=120 \
-    data.augmentation.train.elastic_sigma=6 \
-    data.augmentation.train.elastic_p=0.3"
-
-run_experiment "T3_grid_distortion" \
-    "$BASE_CONFIG $BEST_LOSS_T1 \
-    data.augmentation.train.grid_distortion=true \
-    data.augmentation.train.grid_steps=5 \
-    data.augmentation.train.grid_distort_limit=0.3 \
-    data.augmentation.train.grid_p=0.3"
-
-run_experiment "T3_coarse_dropout" \
-    "$BASE_CONFIG $BEST_LOSS_T1 \
-    data.augmentation.train.coarse_dropout=true \
-    data.augmentation.train.dropout_max_holes=8 \
-    data.augmentation.train.dropout_max_height=32 \
-    data.augmentation.train.dropout_max_width=32 \
-    data.augmentation.train.dropout_p=0.3"
-
-run_experiment "T3_gaussian_noise" \
-    "$BASE_CONFIG $BEST_LOSS_T1 \
-    data.augmentation.train.gaussian_noise=true \
-    data.augmentation.train.noise_std=0.02"
-
-# Combined augmentations
+# Combined augmentations (not yet run)
 run_experiment "T3_combined_shape_aug" \
     "$BASE_CONFIG $BEST_LOSS_T1 \
     data.augmentation.train.elastic_transform=true \
     data.augmentation.train.grid_distortion=true \
     data.augmentation.train.coarse_dropout=true"
 
-run_experiment "T3_all_augmentations" \
-    "$BASE_CONFIG $BEST_LOSS_T1 \
-    data.augmentation.train.elastic_transform=true \
-    data.augmentation.train.grid_distortion=true \
-    data.augmentation.train.coarse_dropout=true \
-    data.augmentation.train.gaussian_noise=true"
-
 print_section "Tier 3 Complete"
-echo "Experiments: 6"
 echo ""
 
 ################################################################################
