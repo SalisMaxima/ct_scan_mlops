@@ -374,9 +374,10 @@ invoke sync-ai-config  # Sync CLAUDE.md -> copilot-instructions.md
 | Task | File | Command |
 |------|------|---------|
 | Training | `src/ct_scan_mlops/train.py` | `invoke train` |
-| Evaluation | `src/ct_scan_mlops/evaluate.py` | `uv run python -m ct_scan_mlops.evaluate` |
+| Evaluation | `src/ct_scan_mlops/analysis/cli.py` | `invoke evaluate` |
 | API Server | `src/ct_scan_mlops/api.py` | `invoke api` |
 | Sweeps | `src/ct_scan_mlops/sweep_train.py` | `invoke sweep` |
+| Analysis | `src/ct_scan_mlops/analysis/` | `invoke compare-models`, `invoke analyze-features` |
 
 ### Technology Stack
 

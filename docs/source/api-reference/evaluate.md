@@ -2,16 +2,20 @@
 
 Model evaluation and metrics.
 
+> **Note**: The evaluation module has been refactored into a modular analysis system.
+> The `ct_scan_mlops.evaluate` module now provides backward compatibility wrappers.
+> For new code, use the `ct_scan_mlops.analysis` package directly.
+
 ## Overview
 
-The evaluation module provides:
+The evaluation system provides:
 
-- **evaluate_model** - Core evaluation logic with metrics
-- **load_model_from_checkpoint** - Load models from various checkpoint formats
-- **CLI interface** - Command-line evaluation with Typer
-- **Hydra integration** - Automatic checkpoint discovery
+- **ModelDiagnostician** - Performance evaluation and error analysis
+- **ModelLoader** - Load models from various checkpoint formats
+- **InferenceEngine** - Unified inference pipeline
+- **CLI interface** - Command-line evaluation via `invoke evaluate`
 
-## Functions
+## Legacy Functions (Backward Compatibility)
 
 ::: ct_scan_mlops.evaluate.evaluate_model
     options:
@@ -21,15 +25,30 @@ The evaluation module provides:
     options:
       heading_level: 3
 
-## CLI Commands
+## Modern Analysis API
 
-::: ct_scan_mlops.evaluate.evaluate_cli
-    options:
-      heading_level: 3
+For new code, use the modular analysis system:
 
-::: ct_scan_mlops.evaluate.evaluate_hydra
-    options:
-      heading_level: 3
+```python
+from ct_scan_mlops.analysis.core import ModelLoader, InferenceEngine
+from ct_scan_mlops.analysis.diagnostics import ModelDiagnostician
+
+# Load model
+loader = ModelLoader(checkpoint_path="model.ckpt", device=device)
+loaded_model = loader.load()
+
+# Run inference
+engine = InferenceEngine(
+    model=loaded_model.model,
+    device=device,
+    uses_features=loaded_model.uses_features
+)
+results = engine.run_inference(test_loader)
+
+# Evaluate
+diagnostician = ModelDiagnostician(results=results, output_dir=Path("results"))
+metrics = diagnostician.evaluate_performance()
+```
 
 ## Metrics
 
@@ -69,7 +88,7 @@ invoke evaluate --checkpoint path/to/model.ckpt --wandb --wandb-entity YOUR_USER
 invoke evaluate --checkpoint path/to/model.ckpt --batch-size 64
 ```
 
-### Programmatic Evaluation
+### Programmatic Evaluation (Legacy)
 
 ```python
 from pathlib import Path
@@ -77,7 +96,7 @@ from ct_scan_mlops.evaluate import evaluate_model, load_model_from_checkpoint
 from ct_scan_mlops.data import create_dataloaders
 from ct_scan_mlops.utils import get_device
 
-# Load model
+# DEPRECATED: Use ct_scan_mlops.analysis instead
 device = get_device()
 model = load_model_from_checkpoint(Path("model.ckpt"), cfg, device)
 
@@ -96,10 +115,32 @@ metrics = evaluate_model(
 print(f"Test accuracy: {metrics['test_accuracy']:.4f}")
 ```
 
-### Hydra-based Evaluation
+### Modern Approach (Recommended)
 
-```bash
-uv run python -m ct_scan_mlops.evaluate
+```python
+from pathlib import Path
+from ct_scan_mlops.analysis.core import ModelLoader, InferenceEngine
+from ct_scan_mlops.analysis.diagnostics import ModelDiagnostician
+from ct_scan_mlops.data import create_dataloaders
+
+# Load model using new API
+loader = ModelLoader(checkpoint_path=Path("model.ckpt"), device=device)
+loaded = loader.load()
+
+# Create test dataloader
+_, _, test_loader = create_dataloaders(loaded.config)
+
+# Run inference
+engine = InferenceEngine(
+    model=loaded.model,
+    device=device,
+    uses_features=loaded.uses_features
+)
+results = engine.run_inference(test_loader)
+
+# Diagnose performance
+diagnostician = ModelDiagnostician(results=results, output_dir=Path("results"))
+metrics = diagnostician.evaluate_performance()
+
+print(f"Accuracy: {metrics['accuracy']:.4f}")
 ```
-
-This automatically finds the most recent checkpoint.
