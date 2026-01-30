@@ -400,7 +400,7 @@ invoke compare-baselines \
 invoke analyze-errors --checkpoint outputs/ct_scan_classifier/sweeps/<best_run_id>/best_model.ckpt
 
 # Get misclassified file paths
-uv run python get_misclassified_files.py > reports/error_analysis/remaining_errors.txt
+uv run python scripts/get_misclassified_files.py > reports/error_analysis/remaining_errors.txt
 
 # Visual inspection of remaining error cases
 ```
