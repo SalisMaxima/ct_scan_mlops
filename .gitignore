@@ -203,6 +203,20 @@ reports/**/*.png
 reports/**/*.json
 reports/**/*.txt
 reports/baseline*
+
+# Prevent analysis artifacts in project root (should be in reports/)
+/classification_report.txt
+/confusion_matrix.png
+/error_stats.json
+/confusion_pairs.png
+/error_confidence.png
+/error_grid.png
+/comparison_summary.json
+/accuracy_comparison.png
+/per_class_comparison.png
+/permutation_importance.json
+/gradient_attribution.json
+/feature_ranking.txt
 # Credentials
 .config/gcloud/application_default_credentials.json
 github-dvc-key.json
