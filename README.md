@@ -32,7 +32,13 @@ The dataset contains ~1000 images with somewhat balanced volume across 4 classif
 
 ## Models
 
-We create our own **CNN model** that takes images and performs multi-classification as output. The CNN model serves as a baseline for comparing performance with **ResNet18** through transfer learning.
+We provide three model architectures:
+
+1. **CNN model** - Custom baseline architecture for multi-classification (~91% test accuracy)
+2. **ResNet18** - Transfer learning with pre-trained backbone (~92% test accuracy)
+3. **Dual Pathway Model** ✨ - Combines CNN features with radiomics features (~96% test accuracy)
+
+The **Dual Pathway Model** (v2.0) fuses deep learning features from ResNet18 with 50+ engineered radiomics features (shape, texture, intensity, wavelet) for superior performance. See [MIGRATION_DUAL_PATHWAY.md](docs/MIGRATION_DUAL_PATHWAY.md) for details.
 
 ---
 
@@ -41,6 +47,12 @@ We create our own **CNN model** that takes images and performs multi-classificat
 See [GetStarted.md](docs/GetStarted.md) for setup instructions.
 
 For a complete list of all project dependencies, see [DEPENDENCIES.md](docs/DEPENDENCIES.md).
+
+**🆕 New to v2.0? Upgrading from v1.x?** See **[MIGRATION_DUAL_PATHWAY.md](docs/MIGRATION_DUAL_PATHWAY.md)** for:
+- What changed in the dual pathway release
+- How to adopt new features (or keep using old models)
+- Step-by-step migration scenarios
+- Troubleshooting common issues
 
 ---
 
