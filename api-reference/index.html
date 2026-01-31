@@ -868,6 +868,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Modules">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#analysis-package-new" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Package (New)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -916,10 +933,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#evaluation-module" class="md-nav__link">
+  <a href="#evaluation-module-legacy" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Evaluation Module
+        Evaluation Module (Legacy)
       
     </span>
   </a>
@@ -1293,6 +1310,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Modules">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#analysis-package-new" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Package (New)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1341,10 +1375,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#evaluation-module" class="md-nav__link">
+  <a href="#evaluation-module-legacy" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Evaluation Module
+        Evaluation Module (Legacy)
       
     </span>
   </a>
@@ -1401,7 +1435,7 @@
 </tr>
 <tr>
 <td><a href="evaluate/">Evaluation</a></td>
-<td>Model evaluation and metrics</td>
+<td>Model evaluation (legacy compatibility wrapper)</td>
 </tr>
 <tr>
 <td><a href="api/">FastAPI</a></td>
@@ -1413,6 +1447,13 @@
 </tr>
 </tbody>
 </table>
+<h3 id="analysis-package-new">Analysis Package (New)<a class="headerlink" href="#analysis-package-new" title="Permanent link">&para;</a></h3>
+<p>The modular analysis system:
+- <code>ct_scan_mlops.analysis.core</code> - Model loading and inference engine
+- <code>ct_scan_mlops.analysis.diagnostics</code> - Performance evaluation and error analysis
+- <code>ct_scan_mlops.analysis.explainability</code> - Feature importance methods
+- <code>ct_scan_mlops.analysis.comparison</code> - Model comparison utilities
+- <code>ct_scan_mlops.analysis.cli</code> - Unified command-line interface</p>
 <h2 id="quick-links">Quick Links<a class="headerlink" href="#quick-links" title="Permanent link">&para;</a></h2>
 <h3 id="data-module">Data Module<a class="headerlink" href="#data-module" title="Permanent link">&para;</a></h3>
 <ul>
@@ -1432,10 +1473,13 @@
 <li><a href="train/#ct_scan_mlops.train.LitModel"><code>LitModel</code></a> - Lightning module wrapper</li>
 <li><a href="train/#ct_scan_mlops.train.train_model"><code>train_model()</code></a> - Main training function</li>
 </ul>
-<h3 id="evaluation-module">Evaluation Module<a class="headerlink" href="#evaluation-module" title="Permanent link">&para;</a></h3>
+<h3 id="evaluation-module-legacy">Evaluation Module (Legacy)<a class="headerlink" href="#evaluation-module-legacy" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p><strong>Note</strong>: For new code, use <code>ct_scan_mlops.analysis</code> instead.</p>
+</blockquote>
 <ul>
-<li><a href="evaluate/#ct_scan_mlops.evaluate.evaluate_model"><code>evaluate_model()</code></a> - Evaluate a model</li>
-<li><a href="evaluate/#ct_scan_mlops.evaluate.load_model_from_checkpoint"><code>load_model_from_checkpoint()</code></a> - Load model from checkpoint</li>
+<li><a href="evaluate/#ct_scan_mlops.evaluate.evaluate_model"><code>evaluate_model()</code></a> - Evaluate a model (backward compatibility)</li>
+<li><a href="evaluate/#ct_scan_mlops.evaluate.load_model_from_checkpoint"><code>load_model_from_checkpoint()</code></a> - Load model from checkpoint (backward compatibility)</li>
 </ul>
 
 
