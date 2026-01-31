@@ -31,9 +31,9 @@ from ct_scan_mlops.model import DualPathwayModel, build_model
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 DEFAULT_CONFIG_PATH = Path("configs") / "config.yaml"  # change if your file name differs
-DEFAULT_CKPT_PATH = Path("models") / "best_model.ckpt"
-DEFAULT_PT_PATH = Path("models") / "model.pt"
-DEFAULT_FEATURE_METADATA_PATH = Path("models") / "feature_metadata.json"
+DEFAULT_CKPT_PATH = Path("outputs/checkpoints") / "best_model.ckpt"
+DEFAULT_PT_PATH = Path("outputs/checkpoints") / "model.pt"
+DEFAULT_FEATURE_METADATA_PATH = Path("outputs/checkpoints") / "feature_metadata.json"
 
 CONFIG_PATH = Path(os.environ.get("CONFIG_PATH", str(DEFAULT_CONFIG_PATH)))
 
@@ -322,10 +322,11 @@ async def predict(file: Annotated[UploadFile, File(...)]) -> dict:
     features_tensor = None
     if isinstance(model, DualPathwayModel) and feature_extractor is not None and norm_stats is not None:
         try:
-            # Extract features from raw numpy image
-            # Convert PIL to numpy (use L/grayscale as used in training typically)
-            img_np = np.array(img.convert("L"))
-            features = feature_extractor.extract(img_np)
+            # Extract features from preprocessed tensor (same as training)
+            # Training extracted features from preprocessed tensors [3, 224, 224] with normalized values
+            # Convert preprocessed tensor to numpy for feature extraction
+            img_preprocessed = x.squeeze(0).cpu().numpy()  # [3, 224, 224]
+            features = feature_extractor.extract(img_preprocessed)
 
             # Normalize
             mean = np.array(norm_stats["mean"], dtype=np.float32)
