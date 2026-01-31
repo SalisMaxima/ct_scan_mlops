@@ -48,11 +48,11 @@ See [GetStarted.md](docs/GetStarted.md) for setup instructions.
 
 For a complete list of all project dependencies, see [DEPENDENCIES.md](docs/DEPENDENCIES.md).
 
-**🆕 New to v2.0? Upgrading from v1.x?** See **[MIGRATION_DUAL_PATHWAY.md](docs/MIGRATION_DUAL_PATHWAY.md)** for:
-- What changed in the dual pathway release
-- How to adopt new features (or keep using old models)
-- Step-by-step migration scenarios
-- Troubleshooting common issues
+**🆕 New to v2.0? Upgrading from v1.x?**
+- **[MIGRATION_DUAL_PATHWAY.md](docs/MIGRATION_DUAL_PATHWAY.md)** - Complete migration guide
+- **[MIGRATION_QUICK_REFERENCE.md](docs/MIGRATION_QUICK_REFERENCE.md)** - Quick reference card
+- **[DOCKER_GUIDE.md](docs/DOCKER_GUIDE.md)** - Docker usage with dual pathway models
+- **[CHANGELOG.md](CHANGELOG.md)** - Full version history
 
 ---
 

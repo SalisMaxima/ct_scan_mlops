@@ -24,5 +24,8 @@ COPY configs/ configs/
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen
 
+# Create output directories
+RUN mkdir -p outputs/checkpoints outputs/logs outputs/reports outputs/profiling outputs/sweeps
+
 ENTRYPOINT ["uv", "run", "python", "-m", "ct_scan_mlops.train"]
 CMD []

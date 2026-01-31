@@ -47,13 +47,17 @@ COPY --from=builder /app/.venv /app/.venv
 COPY --from=builder /app/src /app/src
 COPY --from=builder /app/configs /app/configs
 
+# Create directories for runtime data
+RUN mkdir -p /app/data/processed /app/outputs/checkpoints
+
 # Set PATH to use the virtual environment
 ENV PATH="/app/.venv/bin:$PATH"
 
 # Default paths - these should be overridden at runtime or provided via volume/GCS mounts
 ENV CONFIG_PATH="/app/configs/config.yaml"
 ENV MODEL_PATH="/app/outputs/checkpoints/model.pt"
-ENV FEATURE_METADATA_PATH="/app/outputs/checkpoints/feature_metadata.json"
+# For dual pathway models, features must be provided at runtime
+ENV FEATURES_PATH="/app/data/processed/features_top_features.pkl"
 
 # Expose port 8080 (Cloud Run default) and allow Vertex AI port override
 EXPOSE 8080
