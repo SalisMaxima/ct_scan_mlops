@@ -537,9 +537,9 @@ If accuracy improvements are achieved:
 
 ## 📚 References
 
-- Error analysis report: `reports/error_analysis/error_summary.txt`
-- Confusion matrix: `models/confusion_matrix.png`
-- Error cases: `reports/error_analysis/error_cases.json`
+- Error analysis report: `outputs/reports/error_analysis/error_summary.txt`
+- Confusion matrix: `outputs/reports/diagnostics/confusion_matrix.png`
+- Error cases: `outputs/reports/error_analysis/error_cases.json`
 - Baseline model: `models/dual_pathway_bn_finetune_kygevxv0.pt`
 - W&B project: `mathiashl-danmarks-tekniske-universitet-dtu/CT_Scan_MLOps`
 

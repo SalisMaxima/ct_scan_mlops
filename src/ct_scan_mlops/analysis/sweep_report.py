@@ -157,7 +157,7 @@ def generate_wandb_report(sweep: Any, metric: str, top_params: list[str]) -> str
 
 def report(
     sweep_id: Annotated[str, typer.Argument(help="Sweep ID (entity/project/sweep_id)")],
-    output_dir: Annotated[Path, typer.Option(help="Output directory")] = Path("reports/sweep_analysis"),
+    output_dir: Annotated[Path, typer.Option(help="Output directory")] = Path("outputs/reports/sweep_analysis"),
     metric: Annotated[str, typer.Option(help="Target metric to analyze")] = "test_acc",
     goal: Annotated[str, typer.Option(help="Optimization goal (maximize/minimize)")] = "maximize",
     native: Annotated[bool, typer.Option(help="Generate native W&B report")] = True,

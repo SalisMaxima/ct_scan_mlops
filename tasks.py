@@ -210,7 +210,7 @@ def sweep_best(ctx: Context, sweep_id: str, metric: str = "val_acc", goal: str =
 def sweep_report(
     ctx: Context,
     sweep_id: str,
-    output_dir: str = "reports/sweep_analysis",
+    output_dir: str = "outputs/reports/sweep_analysis",
     metric: str = "test_acc",
     goal: str = "maximize",
 ) -> None:
@@ -244,7 +244,7 @@ def evaluate(ctx: Context, checkpoint: str = "", config: str = "", wandb: bool =
 
     Examples:
         invoke evaluate --checkpoint outputs/.../best_model.ckpt
-        invoke evaluate --checkpoint models/model.pt --config configs/custom.yaml
+        invoke evaluate --checkpoint outputs/checkpoints/model.pt --config configs/custom.yaml
     """
     if not checkpoint:
         print("ERROR: --checkpoint is required")
@@ -279,7 +279,7 @@ def analyze_features(
     config: str = "",
     method: str = "both",
     n_repeats: int = 10,
-    output_dir: str = "reports/feature_importance",
+    output_dir: str = "outputs/reports/feature_importance",
 ) -> None:
     """Analyze radiomics feature importance.
 
@@ -308,7 +308,7 @@ def compare_models(
     ctx: Context,
     baseline: str = "",
     improved: str = "",
-    output_dir: str = "reports/comparison",
+    output_dir: str = "outputs/reports/comparison",
 ) -> None:
     """Compare two models.
 
@@ -471,7 +471,7 @@ def docker_api_frontend(
         f"-p {api_port}:8000 "
         f"-v {model_mount} "
         f"-v {config_mount} "
-        f"-e MODEL_PATH=/app/models/model.pt "
+        f"-e MODEL_PATH=/app/outputs/checkpoints/model.pt "
         f"-e CONFIG_PATH=/app/configs/{config_host.name} "
         "ct-scan-api",
         echo=True,

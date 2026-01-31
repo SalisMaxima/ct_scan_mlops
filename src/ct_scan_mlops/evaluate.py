@@ -72,8 +72,8 @@ def evaluate_model(
         stacklevel=2,
     )
 
-    # Set output directory - default to reports/diagnostics to avoid root pollution
-    output_dir = Path("reports/diagnostics") if output_dir is None else Path(output_dir)
+    # Set output directory - default to outputs/reports/diagnostics to avoid root pollution
+    output_dir = Path("outputs/reports/diagnostics") if output_dir is None else Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # Create a pseudo LoadedModel for compatibility

@@ -36,7 +36,7 @@ COPY --from=builder /app/configs/config_production.yaml /app/configs/config.yaml
 
 # Set default config and model paths (can be overridden at runtime)
 ENV CONFIG_PATH="/app/configs/config.yaml"
-ENV MODEL_PATH="/app/models/model.pt"
+ENV MODEL_PATH="/app/outputs/checkpoints/model.pt"
 
 # Set PATH to use the virtual environment
 ENV PATH="/app/.venv/bin:$PATH"
@@ -45,10 +45,10 @@ ENV PYTHONUNBUFFERED=1
 # NOTE: Models are no longer baked into this image.
 # Mount model weights at runtime and optionally override config/model paths:
 #   docker run --rm -p 8000:8000 \
-#     -v /host/path/to/models:/app/models \
+#     -v /host/path/to/outputs/checkpoints:/app/outputs/checkpoints \
 #     -v /host/path/to/configs:/app/configs \
 #     your-image-name
-# Ensure /host/path/to/models contains model.pt (or set MODEL_PATH accordingly).
+# Ensure /host/path/to/outputs/checkpoints contains model.pt (or set MODEL_PATH accordingly).
 
 EXPOSE 8000
 

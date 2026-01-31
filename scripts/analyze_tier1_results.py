@@ -362,7 +362,7 @@ def main():
     parser.add_argument(
         "--output",
         type=Path,
-        default=Path("logs/tier1_analysis.txt"),
+        default=Path("outputs/reports/tier1_analysis.txt"),
         help="Output file for detailed report",
     )
 

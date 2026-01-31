@@ -195,16 +195,10 @@ log/
 # Wandb experiment tracking
 wandb/
 
-# Hydra outputs
+# Hydra outputs and generated reports (all outputs consolidated here)
 outputs/
 
-# Generated analysis reports (regenerate with invoke commands)
-reports/**/*.png
-reports/**/*.json
-reports/**/*.txt
-reports/baseline*
-
-# Prevent analysis artifacts in project root (should be in reports/)
+# Prevent analysis artifacts in project root (should be in outputs/reports/)
 /classification_report.txt
 /confusion_matrix.png
 /error_stats.json

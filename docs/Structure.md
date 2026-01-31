@@ -252,20 +252,27 @@ data/
     └── test/
 ```
 
-### Models Directory (`models/`)
+### Outputs Directory (`outputs/`)
+
+All training outputs, model checkpoints, analysis reports, and profiling data are consolidated here.
 
 ```
-models/
-└── .gitkeep                # Placeholder for trained models
-```
-
-### Artifacts Directory (`artifacts/`)
-
-```
-artifacts/
-├── .gitignore
-├── profiling.dvc           # DVC tracking for profiling data
-└── profiling/              # Performance profiling results
+outputs/
+├── runs/                   # Hydra training runs (timestamped)
+│   └── YYYY-MM-DD/
+│       └── HH-MM-SS/
+│           ├── .hydra/     # Hydra config files
+│           └── wandb/      # W&B run files
+├── checkpoints/            # Trained model files (.pt, .ckpt, .onnx)
+├── reports/                # Generated analysis reports
+│   ├── confusion_analysis/
+│   ├── diagnostics/
+│   ├── error_analysis/
+│   ├── feature_importance/
+│   └── sweep_analysis/
+├── profiling/              # Performance profiling data
+├── sweeps/                 # W&B sweep results
+└── logs/                   # Training logs
 ```
 
 ---
@@ -315,35 +322,24 @@ AI assistant configuration and commands.
 
 ## Output Directories
 
-### Training Outputs (`outputs/`)
-
-Hydra-generated output directories organized by date/time.
-
-```
-outputs/
-└── YYYY-MM-DD/
-    └── HH-MM-SS/
-        ├── .hydra/
-        │   ├── config.yaml
-        │   ├── hydra.yaml
-        │   └── overrides.yaml
-        └── wandb/          # W&B run files
-```
+All training outputs, analysis reports, and artifacts are consolidated under `outputs/` (see [Data & Models](#data--models) section above).
 
 ### W&B Directory (`wandb/`)
 
-Weights & Biases run data and artifacts.
+Weights & Biases run data and artifacts (project-level).
 
 ### Reports (`reports/`)
 
+Exam submission template (static content, not generated outputs).
+
 ```
 reports/
-└── figures/                # Generated visualizations
+├── README.md               # Exam template
+├── report.py               # Exam report generator
+└── figures/                # Static exam figures (architecture diagrams, etc.)
 ```
 
-### TensorBoard (`tb_profiler/`)
-
-TensorBoard profiling logs.
+**Note**: Generated analysis reports are now in `outputs/reports/`, not here.
 
 ---
 

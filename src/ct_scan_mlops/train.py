@@ -24,7 +24,7 @@ from ct_scan_mlops.utils import get_device
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 _CONFIG_PATH = str(_PROJECT_ROOT / "configs")
 
-profiling_dir = _PROJECT_ROOT / "artifacts" / "profiling"
+profiling_dir = _PROJECT_ROOT / "outputs" / "profiling"
 profiling_dir.mkdir(parents=True, exist_ok=True)
 
 
@@ -44,6 +44,15 @@ class LitModel(pl.LightningModule):
         self.best_val_misclassified: list[dict] = []
         self.best_val_acc: float = -1.0
         self.test_misclassified: list[dict] = []
+
+        # Training history for tracking metrics
+        self.training_history: dict[str, list] = {
+            "train_loss": [],
+            "train_acc": [],
+            "val_loss": [],
+            "val_acc": [],
+            "lr": [],
+        }
 
         # Cache profiling config (parsed once, not every training step)
         profiling_cfg = cfg.get("train", {}).get("profiling", {})

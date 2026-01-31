@@ -87,7 +87,7 @@ def dataset_statistics(datadir: str = "data/raw", show_images: bool = False, sav
         sample_image, _ = dataset[0]
         print(f"Image shape: {sample_image.shape}\n")
 
-    output_dir = Path("reports/figures")
+    output_dir = Path("outputs/reports/data_diagnostics")
     if save_images:
         output_dir.mkdir(parents=True, exist_ok=True)
 

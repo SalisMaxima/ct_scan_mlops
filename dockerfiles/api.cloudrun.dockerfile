@@ -52,8 +52,8 @@ ENV PATH="/app/.venv/bin:$PATH"
 
 # Default paths - these should be overridden at runtime or provided via volume/GCS mounts
 ENV CONFIG_PATH="/app/configs/config.yaml"
-ENV MODEL_PATH="/app/models/model.pt"
-ENV FEATURE_METADATA_PATH="/app/models/feature_metadata.json"
+ENV MODEL_PATH="/app/outputs/checkpoints/model.pt"
+ENV FEATURE_METADATA_PATH="/app/outputs/checkpoints/feature_metadata.json"
 
 # Expose port 8080 (Cloud Run default) and allow Vertex AI port override
 EXPOSE 8080

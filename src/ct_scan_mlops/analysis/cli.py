@@ -23,7 +23,7 @@ app = typer.Typer(help="CT Scan Analysis CLI")
 def diagnose(
     checkpoint: str = typer.Option(..., help="Path to model checkpoint"),
     config: str | None = typer.Option(None, "--config", "-c", help="Path to config file"),
-    output_dir: str = typer.Option("reports/diagnostics", "--output", "-o", help="Output directory"),
+    output_dir: str = typer.Option("outputs/reports/diagnostics", "--output", "-o", help="Output directory"),
     use_wandb: bool = typer.Option(False, "--wandb", help="Log results to W&B"),
     project: str = typer.Option("CT_Scan_MLOps", help="W&B project name"),
     max_images: int = typer.Option(50, help="Max images for error grids"),
@@ -75,7 +75,7 @@ def diagnose(
 def explain(
     checkpoint: str = typer.Option(..., help="Path to model checkpoint"),
     config: str | None = typer.Option(None, "--config", "-c", help="Path to config file"),
-    output_dir: str = typer.Option("reports/feature_importance", "--output", "-o", help="Output directory"),
+    output_dir: str = typer.Option("outputs/reports/feature_importance", "--output", "-o", help="Output directory"),
     method: str = typer.Option("both", help="Method: permutation, gradient, or both"),
     n_repeats: int = typer.Option(10, help="Repeats for permutation"),
 ):
@@ -109,7 +109,7 @@ def explain(
 def compare(
     baseline: str = typer.Option(..., help="Baseline checkpoint"),
     improved: str = typer.Option(..., help="Improved checkpoint"),
-    output_dir: str = typer.Option("reports/comparison", "--output", "-o", help="Output directory"),
+    output_dir: str = typer.Option("outputs/reports/comparison", "--output", "-o", help="Output directory"),
 ):
     """Compare two models."""
     comparator = ModelComparator(Path(baseline), Path(improved), Path(output_dir))

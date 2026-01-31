@@ -32,10 +32,10 @@ def _infer_label_from_folder(folder_name):
 def main():
     # 1. Load error cases
     try:
-        with Path("reports/error_analysis/error_cases.json").open() as f:
+        with Path("outputs/reports/error_analysis/error_cases.json").open() as f:
             error_cases = json.load(f)
     except FileNotFoundError:
-        print("Error: reports/error_analysis/error_cases.json not found.")
+        print("Error: outputs/reports/error_analysis/error_cases.json not found.")
         return
 
     # 2. Replicate file collection logic

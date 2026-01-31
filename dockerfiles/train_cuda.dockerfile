@@ -62,10 +62,10 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 # Copy DVC metadata
 COPY .dvc/ .dvc/
-# Copy data and artifacts directories (including any .dvc files)
-RUN mkdir -p data artifacts
+# Copy data and outputs directories (including any .dvc files)
+RUN mkdir -p data outputs/checkpoints outputs/logs outputs/reports outputs/profiling
 COPY data/ data/
-COPY artifacts/ artifacts/
+COPY outputs/ outputs/
 
 # === Stage 3: Runtime (inherits from python-base, no build tools) ===
 FROM python-base AS runtime
@@ -76,7 +76,7 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 WORKDIR /app
 
 # Create directories for DVC files
-RUN mkdir -p data artifacts
+RUN mkdir -p data outputs/checkpoints outputs/logs outputs/reports outputs/profiling
 
 # Copy virtual environment and source from builder
 COPY --from=builder /app/.venv /app/.venv
@@ -84,7 +84,7 @@ COPY --from=builder /app/src /app/src
 COPY --from=builder /app/configs /app/configs
 COPY --from=builder /app/.dvc /app/.dvc
 COPY --from=builder /app/data/ /app/data/
-COPY --from=builder /app/artifacts/ /app/artifacts/
+COPY --from=builder /app/outputs/ /app/outputs/
 
 # Set PATH to use the virtual environment
 ENV PATH="/app/.venv/bin:$PATH"
