@@ -185,6 +185,9 @@ cython_debug/
 *.pth
 *.ckpt
 
+# Model run directories (W&B artifacts, checkpoints, metadata)
+models/*/
+
 # Profiling files
 *.prof
 profile.txt
@@ -195,14 +198,24 @@ log/
 # Wandb experiment tracking
 wandb/
 
-# Hydra outputs
+# Hydra outputs and generated reports (all outputs consolidated here)
 outputs/
 
-# Generated analysis reports (regenerate with invoke commands)
-reports/**/*.png
-reports/**/*.json
-reports/**/*.txt
-reports/baseline*
+# Prevent analysis artifacts in project root (should be in outputs/reports/)
+/classification_report.txt
+/confusion_matrix.png
+/error_stats.json
+/confusion_pairs.png
+/error_confidence.png
+/error_grid.png
+/comparison_summary.json
+/accuracy_comparison.png
+/per_class_comparison.png
+/permutation_importance.json
+/gradient_attribution.json
+/feature_ranking.txt
 # Credentials
 .config/gcloud/application_default_credentials.json
 github-dvc-key.json
+*.onnx
+*.onnx.data

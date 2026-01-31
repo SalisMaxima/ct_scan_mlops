@@ -1,0 +1,46 @@
+# Model Architecture Comparison Sweep
+# Compares CNN-only vs dual pathway approaches
+#
+# Prerequisites:
+#   invoke extract-features --features top_features
+#
+# Run with:
+#   uv run wandb sweep configs/sweeps/model_comparison_sweep.yaml
+#   uv run wandb agent <ENTITY>/<PROJECT>/<SWEEP_ID>
+
+name: model-comparison-sweep
+method: grid
+
+run_cap: 12
+
+metric:
+  name: test_acc
+  goal: maximize
+
+parameters:
+  model:
+    values: [cnn, resnet18, dual_pathway_top_features]
+
+  features:
+    value: top_features
+
+  lr:
+    value: 0.001
+
+  weight_decay:
+    value: 0.0001
+
+  batch_size:
+    value: 16
+
+  max_epochs:
+    value: 20
+
+command:
+  - ${env}
+  - uv
+  - run
+  - python
+  - -m
+  - ct_scan_mlops.sweep_train
+  - ${args}

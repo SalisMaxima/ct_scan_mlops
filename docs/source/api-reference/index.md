@@ -9,9 +9,18 @@ Auto-generated documentation from source code docstrings.
 | [Data](data.md) | Data loading and preprocessing |
 | [Model](model.md) | Neural network architectures |
 | [Training](train.md) | Training pipeline and Lightning module |
-| [Evaluation](evaluate.md) | Model evaluation and metrics |
+| [Evaluation](evaluate.md) | Model evaluation (legacy compatibility wrapper) |
 | [FastAPI](api.md) | Inference API endpoints |
 | [Utilities](utils.md) | Shared utility functions |
+
+### Analysis Package (New)
+
+The modular analysis system:
+- `ct_scan_mlops.analysis.core` - Model loading and inference engine
+- `ct_scan_mlops.analysis.diagnostics` - Performance evaluation and error analysis
+- `ct_scan_mlops.analysis.explainability` - Feature importance methods
+- `ct_scan_mlops.analysis.comparison` - Model comparison utilities
+- `ct_scan_mlops.analysis.cli` - Unified command-line interface
 
 ## Quick Links
 
@@ -33,7 +42,9 @@ Auto-generated documentation from source code docstrings.
 - [`LitModel`](train.md#ct_scan_mlops.train.LitModel) - Lightning module wrapper
 - [`train_model()`](train.md#ct_scan_mlops.train.train_model) - Main training function
 
-### Evaluation Module
+### Evaluation Module (Legacy)
 
-- [`evaluate_model()`](evaluate.md#ct_scan_mlops.evaluate.evaluate_model) - Evaluate a model
-- [`load_model_from_checkpoint()`](evaluate.md#ct_scan_mlops.evaluate.load_model_from_checkpoint) - Load model from checkpoint
+> **Note**: For new code, use `ct_scan_mlops.analysis` instead.
+
+- [`evaluate_model()`](evaluate.md#ct_scan_mlops.evaluate.evaluate_model) - Evaluate a model (backward compatibility)
+- [`load_model_from_checkpoint()`](evaluate.md#ct_scan_mlops.evaluate.load_model_from_checkpoint) - Load model from checkpoint (backward compatibility)

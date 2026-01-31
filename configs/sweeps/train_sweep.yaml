@@ -5,6 +5,10 @@
 #
 # This sweep calls: python -m ct_scan_mlops.sweep_train ${args}
 # so parameters must match the CLI options in src/ct_scan_mlops/sweep_train.py
+#
+# IMPORTANT: Before running sweeps with dual_pathway models:
+# - For dual_pathway: invoke extract-features
+# - For dual_pathway_top_features: invoke extract-features --features top_features
 
 name: ct-scan-hparam-sweep
 method: bayes
@@ -13,7 +17,7 @@ method: bayes
 run_cap: 50
 
 metric:
-  name: val_acc
+  name: test_acc
   goal: maximize
 
 # Early termination using Hyperband
@@ -35,7 +39,7 @@ parameters:
   batch_size:
     values: [8, 16, 32]
   model:
-    values: [cnn, resnet18]
+    values: [cnn, resnet18, dual_pathway, dual_pathway_top_features]
   max_epochs:
     values: [10, 20]
 

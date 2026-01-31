@@ -85,14 +85,43 @@ Logged metrics include:
 
 ## Programmatic Evaluation
 
-Use the evaluation functions in your own code:
+### Using the Modern Analysis API (Recommended)
+
+```python
+from pathlib import Path
+from ct_scan_mlops.analysis.core import ModelLoader, InferenceEngine
+from ct_scan_mlops.analysis.diagnostics import ModelDiagnostician
+from ct_scan_mlops.data import create_dataloaders
+
+# Load model using new modular API
+loader = ModelLoader(checkpoint_path=Path("model.ckpt"), device=device)
+loaded = loader.load()
+
+# Create test dataloader
+_, _, test_loader = create_dataloaders(loaded.config)
+
+# Run inference
+engine = InferenceEngine(
+    model=loaded.model,
+    device=device,
+    uses_features=loaded.uses_features
+)
+results = engine.run_inference(test_loader)
+
+# Evaluate performance
+diagnostician = ModelDiagnostician(results=results, output_dir=Path("results"))
+metrics = diagnostician.evaluate_performance()
+print(f"Accuracy: {metrics['accuracy']:.4f}")
+```
+
+### Using Legacy API (Backward Compatibility)
 
 ```python
 from ct_scan_mlops.evaluate import evaluate_model, load_model_from_checkpoint
 from ct_scan_mlops.data import create_dataloaders
 from ct_scan_mlops.utils import get_device
 
-# Load config and model
+# DEPRECATED: Use ct_scan_mlops.analysis instead
 model = load_model_from_checkpoint(checkpoint_path, cfg, device)
 
 # Create test dataloader

@@ -1,0 +1,79 @@
+# Dual Pathway Model Hyperparameter Sweep (Comprehensive)
+# Optimizes CNN+Radiomics fusion architecture with BatchNorm
+#
+# Prerequisites:
+#   invoke extract-features --features top_features
+#
+# Run with:
+#   uv run wandb sweep configs/sweeps/dual_pathway_sweep.yaml
+#   uv run wandb agent <ENTITY>/<PROJECT>/<SWEEP_ID>
+
+name: dual-pathway-hparam-sweep-comprehensive
+method: bayes
+
+run_cap: 100  # Increased for a more thorough search
+
+metric:
+  name: test_acc
+  goal: maximize
+
+early_terminate:
+  type: hyperband
+  min_iter: 5
+  eta: 3
+
+parameters:
+  model:
+    value: dual_pathway_top_features
+
+  features:
+    value: top_features
+
+  lr:
+    distribution: log_uniform_values
+    min: 1e-5
+    max: 3e-3
+
+  weight_decay:
+    distribution: log_uniform_values
+    min: 1e-6
+    max: 1e-2
+
+  # Added 64 for better BatchNorm statistics
+  batch_size:
+    values: [8, 16, 32, 64]
+
+  max_epochs:
+    values: [15, 25]
+
+  # Changed to continuous uniform distribution for better Bayesian exploration
+  dropout:
+    distribution: uniform
+    min: 0.0
+    max: 0.6
+
+  # Added 64 based on negative correlation findings
+  fusion_hidden:
+    values: [64, 128, 256, 512]
+
+  # Added 512 based on positive correlation findings
+  radiomics_hidden:
+    values: [64, 128, 256, 512]
+
+  # Hardcoded to false based on previous sweep results
+  freeze_backbone:
+    value: false
+
+  eta_min:
+    distribution: log_uniform_values
+    min: 1e-7
+    max: 1e-4
+
+command:
+  - ${env}
+  - uv
+  - run
+  - python
+  - -m
+  - ct_scan_mlops.sweep_train
+  - ${args}

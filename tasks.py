@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 
 from invoke import Context, task
+from loguru import logger
 
 WINDOWS = os.name == "nt"
 PROJECT_NAME = "ct_scan_mlops"
@@ -69,6 +70,33 @@ def extract_features(ctx: Context, n_jobs: int = -1, args: str = "") -> None:
 
 
 @task
+def prepare_sweep_features(ctx: Context, n_jobs: int = -1) -> None:
+    """Extract all feature configurations needed for sweeps.
+
+    Extracts both default (50 features) and top_features (16 features)
+    to ensure all sweep configurations can run.
+
+    Args:
+        n_jobs: Number of parallel jobs (-1 = all CPUs)
+
+    Examples:
+        invoke prepare-sweep-features
+        invoke prepare-sweep-features --n-jobs 4
+    """
+    print("Extracting default features (50 features)...")
+    ctx.run(f"uv run python -m {PROJECT_NAME}.features.extract_radiomics +n_jobs={n_jobs}", echo=True, pty=not WINDOWS)
+
+    print("Extracting top features (16 features)...")
+    ctx.run(
+        f"uv run python -m {PROJECT_NAME}.features.extract_radiomics features=top_features +n_jobs={n_jobs}",
+        echo=True,
+        pty=not WINDOWS,
+    )
+
+    print("✓ Feature extraction complete. Ready for dual_pathway sweeps.")
+
+
+@task
 def train(ctx: Context, entity: str = "", args: str = "") -> None:
     """Train model with wandb logging.
 
@@ -88,6 +116,38 @@ def train(ctx: Context, entity: str = "", args: str = "") -> None:
     entity_override = f"wandb.entity={entity}" if entity else ""
     full_args = f"{entity_override} {args}".strip()
 
+    ctx.run(f"uv run python -m {PROJECT_NAME}.train {full_args}", echo=True, pty=not WINDOWS)
+
+
+@task
+def train_dual(ctx: Context, top_features: bool = False, entity: str = "", args: str = "") -> None:
+    """Train dual pathway model (CNN + radiomics features).
+
+    Args:
+        top_features: Use only top 16 features (default: False, uses all 50)
+        entity: Wandb entity (optional)
+        args: Additional Hydra config overrides
+
+    Examples:
+        invoke train-dual                    # Train with all 50 features
+        invoke train-dual --top-features     # Train with top 16 features
+        invoke train-dual --args "train.max_epochs=100"
+    """
+    model = "dual_pathway_top_features" if top_features else "dual_pathway"
+
+    # Verify config file exists
+    config_path = Path(f"configs/model/{model}.yaml")
+    if not config_path.exists():
+        logger.error(
+            f"Required model configuration file not found: {config_path}. "
+            "Please ensure the file exists or specify a different model configuration."
+        )
+        return
+
+    features = "features=top_features" if top_features else ""
+    entity_override = f"wandb.entity={entity}" if entity else ""
+
+    full_args = f"model={model} {features} {entity_override} {args}".strip()
     ctx.run(f"uv run python -m {PROJECT_NAME}.train {full_args}", echo=True, pty=not WINDOWS)
 
 
@@ -147,71 +207,67 @@ def sweep_best(ctx: Context, sweep_id: str, metric: str = "val_acc", goal: str =
 
 
 @task
-def evaluate(ctx: Context, checkpoint: str = "", wandb: bool = False, entity: str = "") -> None:
-    """Evaluate model on test set.
+def sweep_report(
+    ctx: Context,
+    sweep_id: str,
+    output_dir: str = "outputs/reports/sweep_analysis",
+    metric: str = "test_acc",
+    goal: str = "maximize",
+) -> None:
+    """Generate a comprehensive analysis report for a W&B sweep.
+
+    Args:
+        sweep_id: The full sweep id, e.g. ENTITY/PROJECT/SWEEP_ID
+        output_dir: Output directory for the report
+        metric: Metric to analyze (default: test_acc)
+        goal: maximize | minimize
+
+    Example:
+        invoke sweep-report --sweep-id ENTITY/PROJECT/SWEEP_ID
+    """
+    ctx.run(
+        f"uv run python -m {PROJECT_NAME}.analysis.sweep_report {sweep_id} --output-dir {output_dir} --metric {metric} --goal {goal}",
+        echo=True,
+        pty=not WINDOWS,
+    )
+
+
+@task
+def evaluate(ctx: Context, checkpoint: str = "", config: str = "", wandb: bool = False, entity: str = "") -> None:
+    """Evaluate model and run full diagnostics (metrics, errors, confusion).
 
     Args:
         checkpoint: Path to model checkpoint (.ckpt or .pt)
+        config: Path to custom config file
         wandb: Log results to W&B
         entity: Your wandb username (for W&B logging)
 
     Examples:
-        invoke evaluate --checkpoint outputs/ct_scan_classifier/2026-01-14/12-34-56/best_model.ckpt
-        invoke evaluate --checkpoint outputs/.../model.pt --wandb --entity your-username
+        invoke evaluate --checkpoint outputs/.../best_model.ckpt
+        invoke evaluate --checkpoint outputs/checkpoints/model.pt --config configs/custom.yaml
     """
     if not checkpoint:
         print("ERROR: --checkpoint is required")
-        print("Usage: invoke evaluate --checkpoint path/to/best_model.ckpt")
-        print("Example: invoke evaluate --checkpoint outputs/ct_scan_classifier/2026-01-14/12-34-56/best_model.ckpt")
         return
 
-    # Check if .hydra/config.yaml exists in checkpoint's parent directory
-    checkpoint_path = Path(checkpoint)
-    hydra_config = checkpoint_path.parent / ".hydra" / "config.yaml"
+    # Map 'evaluate' to the new 'diagnose' command which covers everything
+    cmd = f"uv run python -m {PROJECT_NAME}.analysis.cli diagnose --checkpoint {checkpoint}"
 
-    cmd = f"uv run python -m {PROJECT_NAME}.evaluate {checkpoint}"
-
-    # Use saved config if available (important for dual-pathway models)
-    if hydra_config.exists():
-        cmd += f" --config {hydra_config}"
-        print(f"Using saved config from {hydra_config}")
+    if config:
+        cmd += f" --config {config}"
+    else:
+        # Check for saved config
+        checkpoint_path = Path(checkpoint)
+        hydra_config = checkpoint_path.parent / ".hydra" / "config.yaml"
+        if hydra_config.exists():
+            cmd += f" --config {hydra_config}"
+            print(f"Using saved config from {hydra_config}")
 
     if wandb:
         cmd += " --wandb"
         if entity:
-            cmd += f" --wandb-entity {entity}"
-    ctx.run(cmd, echo=True, pty=not WINDOWS)
-
-
-@task
-def compare_baselines(
-    ctx: Context,
-    baseline: str = "",
-    improved: str = "",
-    output_dir: str = "reports/baseline_comparison",
-    wandb: bool = False,
-) -> None:
-    """Compare baseline CNN vs improved DualPathway model.
-
-    Args:
-        baseline: Path to baseline model checkpoint (.ckpt)
-        improved: Path to improved model checkpoint (.ckpt)
-        output_dir: Output directory for comparison reports
-        wandb: Log results to W&B
-
-    Examples:
-        invoke compare-baselines --baseline outputs/.../baseline.ckpt --improved outputs/.../improved.ckpt
-        invoke compare-baselines --baseline path/to/baseline.ckpt --improved path/to/improved.ckpt --wandb
-    """
-    if not baseline or not improved:
-        print("ERROR: Both --baseline and --improved checkpoints are required")
-        print("Usage: invoke compare-baselines --baseline path/to/baseline.ckpt --improved path/to/improved.ckpt")
-        return
-
-    cmd = f"uv run python -m {PROJECT_NAME}.analysis.baseline_comparison {baseline} {improved}"
-    cmd += f" --output-dir {output_dir}"
-    if wandb:
-        cmd += " --wandb"
+            # Note: cli.py uses --project, setting entity via env var is safer or add to cli
+            os.environ["WANDB_ENTITY"] = entity
 
     ctx.run(cmd, echo=True, pty=not WINDOWS)
 
@@ -220,106 +276,53 @@ def compare_baselines(
 def analyze_features(
     ctx: Context,
     checkpoint: str = "",
-    method: str = "permutation",
+    config: str = "",
+    method: str = "both",
     n_repeats: int = 10,
-    output_dir: str = "reports/feature_importance",
-    wandb: bool = False,
+    output_dir: str = "outputs/reports/feature_importance",
 ) -> None:
-    """Analyze radiomics feature importance for DualPathway model.
+    """Analyze radiomics feature importance.
 
     Args:
-        checkpoint: Path to DualPathway model checkpoint (.ckpt)
+        checkpoint: Path to DualPathway model checkpoint
+        config: Path to custom config file
         method: Analysis method (permutation, gradient, both)
-        n_repeats: Number of permutation repeats for variance estimation
-        output_dir: Output directory for analysis reports
-        wandb: Log results to W&B
-
-    Examples:
-        invoke analyze-features --checkpoint outputs/.../best_model.ckpt
-        invoke analyze-features --checkpoint path/to/model.ckpt --method both --wandb
+        n_repeats: Number of repeats for permutation
+        output_dir: Output directory
     """
     if not checkpoint:
         print("ERROR: --checkpoint is required")
-        print("Usage: invoke analyze-features --checkpoint path/to/model.ckpt")
         return
 
-    cmd = f"uv run python -m {PROJECT_NAME}.analysis.feature_importance {checkpoint}"
-    cmd += f" --method {method} --n-repeats {n_repeats} --output-dir {output_dir}"
-    if wandb:
-        cmd += " --wandb"
+    cmd = f"uv run python -m {PROJECT_NAME}.analysis.cli explain --checkpoint {checkpoint}"
+    cmd += f" --method {method} --n-repeats {n_repeats} --output {output_dir}"
+
+    if config:
+        cmd += f" --config {config}"
 
     ctx.run(cmd, echo=True, pty=not WINDOWS)
 
 
 @task
-def analyze_errors(
+def compare_models(
     ctx: Context,
-    checkpoint: str = "",
-    class_filter: str = "",
-    output_dir: str = "reports/error_analysis",
-    wandb: bool = False,
+    baseline: str = "",
+    improved: str = "",
+    output_dir: str = "outputs/reports/comparison",
 ) -> None:
-    """Analyze misclassified samples.
+    """Compare two models.
 
     Args:
-        checkpoint: Path to model checkpoint (.ckpt)
-        class_filter: Filter errors for specific class (e.g., adenocarcinoma)
-        output_dir: Output directory for analysis reports
-        wandb: Log results to W&B
-
-    Examples:
-        invoke analyze-errors --checkpoint outputs/.../best_model.ckpt
-        invoke analyze-errors --checkpoint path/to/model.ckpt --class-filter adenocarcinoma --wandb
+        baseline: Path to baseline checkpoint
+        improved: Path to improved checkpoint
+        output_dir: Output directory
     """
-    if not checkpoint:
-        print("ERROR: --checkpoint is required")
-        print("Usage: invoke analyze-errors --checkpoint path/to/model.ckpt")
+    if not baseline or not improved:
+        print("ERROR: Both --baseline and --improved are required")
         return
 
-    cmd = f"uv run python -m {PROJECT_NAME}.analysis.error_analysis {checkpoint}"
-    cmd += f" --output-dir {output_dir}"
-    if class_filter:
-        cmd += f" --class-filter {class_filter}"
-    if wandb:
-        cmd += " --wandb"
-
-    ctx.run(cmd, echo=True, pty=not WINDOWS)
-
-
-@task
-def analyze_confusion(
-    ctx: Context,
-    checkpoint: str = "",
-    output_dir: str = "reports/confusion_analysis",
-    wandb: bool = False,
-    max_images: int = 20,
-) -> None:
-    """Analyze adenocarcinoma-squamous confusion patterns.
-
-    This performs deep analysis of the specific confusion between adenocarcinoma
-    and squamous cell carcinoma, including logit margin analysis, feature
-    comparison, and t-SNE visualization.
-
-    Args:
-        checkpoint: Path to model checkpoint (.ckpt)
-        output_dir: Output directory for analysis reports
-        wandb: Log results to W&B
-        max_images: Maximum images per confusion grid
-
-    Examples:
-        invoke analyze-confusion --checkpoint outputs/.../best_model.ckpt
-        invoke analyze-confusion --checkpoint path/to/model.ckpt --wandb
-    """
-    if not checkpoint:
-        print("ERROR: --checkpoint is required")
-        print("Usage: invoke analyze-confusion --checkpoint path/to/model.ckpt")
-        return
-
-    cmd = f"uv run python -m {PROJECT_NAME}.analysis.confusion_analysis {checkpoint}"
-    cmd += f" --output-dir {output_dir}"
-    cmd += f" --max-images {max_images}"
-    if wandb:
-        cmd += " --wandb"
+    cmd = f"uv run python -m {PROJECT_NAME}.analysis.cli compare --baseline {baseline} --improved {improved}"
+    cmd += f" --output {output_dir}"
 
     ctx.run(cmd, echo=True, pty=not WINDOWS)
 
@@ -468,7 +471,7 @@ def docker_api_frontend(
         f"-p {api_port}:8000 "
         f"-v {model_mount} "
         f"-v {config_mount} "
-        f"-e MODEL_PATH=/app/models/model.pt "
+        f"-e MODEL_PATH=/app/outputs/checkpoints/model.pt "
         f"-e CONFIG_PATH=/app/configs/{config_host.name} "
         "ct-scan-api",
         echo=True,

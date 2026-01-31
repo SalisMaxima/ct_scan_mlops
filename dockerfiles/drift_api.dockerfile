@@ -56,4 +56,4 @@ ENV PATH="/app/.venv/bin:$PATH"
 
 EXPOSE 8080
 
-CMD ["bash", "-c", "uvicorn ct_scan_mlops.drift_api:app --host 0.0.0.0 --port ${PORT}"]
+CMD ["bash", "-c", "uvicorn ct_scan_mlops.monitoring.drift_api:app --host 0.0.0.0 --port ${PORT}"]

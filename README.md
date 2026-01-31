@@ -32,7 +32,13 @@ The dataset contains ~1000 images with somewhat balanced volume across 4 classif
 
 ## Models
 
-We create our own **CNN model** that takes images and performs multi-classification as output. The CNN model serves as a baseline for comparing performance with **ResNet18** through transfer learning.
+We provide three model architectures:
+
+1. **CNN model** - Custom baseline architecture for multi-classification (~91% test accuracy)
+2. **ResNet18** - Transfer learning with pre-trained backbone (~92% test accuracy)
+3. **Dual Pathway Model** ✨ - Combines CNN features with radiomics features (~96% test accuracy)
+
+The **Dual Pathway Model** (v2.0) fuses deep learning features from ResNet18 with 50+ engineered radiomics features (shape, texture, intensity, wavelet) for superior performance. See [MIGRATION_DUAL_PATHWAY.md](docs/MIGRATION_DUAL_PATHWAY.md) for details.
 
 ---
 
@@ -41,6 +47,12 @@ We create our own **CNN model** that takes images and performs multi-classificat
 See [GetStarted.md](docs/GetStarted.md) for setup instructions.
 
 For a complete list of all project dependencies, see [DEPENDENCIES.md](docs/DEPENDENCIES.md).
+
+**🆕 New to v2.0? Upgrading from v1.x?**
+- **[MIGRATION_DUAL_PATHWAY.md](docs/MIGRATION_DUAL_PATHWAY.md)** - Complete migration guide
+- **[MIGRATION_QUICK_REFERENCE.md](docs/MIGRATION_QUICK_REFERENCE.md)** - Quick reference card
+- **[DOCKER_GUIDE.md](docs/DOCKER_GUIDE.md)** - Docker usage with dual pathway models
+- **[CHANGELOG.md](CHANGELOG.md)** - Full version history
 
 ---
 
@@ -153,16 +165,57 @@ invoke sweep
 
 - Sweeps disable the one-time PyTorch profiling run by default (the `ct_scan_mlops.sweep_train` entrypoint sets
   `train.profiling.enabled=false`) because it slows down hyperparameter search.
-- The metric used by the sweep is `val_acc` (logged by Lightning).
+- The metric used by the sweep is `test_acc` (evaluated on test set after training completes).
 
 **How to find the best parameters**
 
-- In the W&B UI: open the sweep → sort runs by `val_acc`.
+- In the W&B UI: open the sweep → sort runs by `test_acc`.
 - From the terminal (prints best run + config as JSON):
 
 ```bash
 invoke sweep-best --sweep-id ENTITY/PROJECT/SWEEP_ID
 ```
+
+**Running Sweeps with Dual Pathway Models**
+
+The sweep system now supports the dual pathway model (CNN + Radiomics). Before starting sweeps with dual pathway models, you must extract features.
+
+Prerequisites:
+
+```bash
+# Extract top 16 features (recommended for sweeps)
+invoke extract-features --features top_features
+
+# Or extract all 50 features
+invoke extract-features
+
+# Or prepare all feature configs at once
+invoke prepare-sweep-features
+```
+
+Available sweep configurations:
+
+- `configs/sweeps/train_sweep.yaml` - General sweep (all models including dual_pathway)
+- `configs/sweeps/dual_pathway_sweep.yaml` - Optimized for dual pathway only (Bayesian optimization)
+- `configs/sweeps/model_comparison_sweep.yaml` - Compare CNN vs ResNet18 vs dual pathway (Grid search)
+
+Examples:
+
+```bash
+# Create sweep with dual pathway optimization
+invoke sweep --sweep-config configs/sweeps/dual_pathway_sweep.yaml
+
+# Or use the default sweep (includes all models)
+invoke sweep
+
+# Run agents
+invoke sweep-agent --sweep-id <SWEEP_ID>
+```
+
+Troubleshooting:
+
+- **Error: "Features not found"** - Run `invoke extract-features --features top_features` first
+- **Error: "Dimension mismatch"** - Re-extract features with correct config matching your model
 
 ### Code Quality
 

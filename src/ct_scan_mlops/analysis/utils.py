@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -11,176 +10,30 @@ import numpy as np
 import torch
 import wandb
 from loguru import logger
-from omegaconf import DictConfig, OmegaConf
-from torch import nn
 
-from ct_scan_mlops.evaluate import load_model_from_checkpoint
+# Import core logic from the new core module
+# This ensures backward compatibility while migrating to the new architecture
+from ct_scan_mlops.analysis.core import (
+    DUAL_PATHWAY_MODEL_NAMES,
+    LoadedModel,
+    ModelLoader,
+    model_forward,
+    unpack_batch,
+)
 
-# Model names that use radiomics features
-DUAL_PATHWAY_MODEL_NAMES = frozenset({"dual_pathway", "dualpathway", "hybrid"})
-
-
-@dataclass
-class LoadedModel:
-    """Container for loaded model with metadata."""
-
-    model: nn.Module
-    config: DictConfig
-    uses_features: bool
-    model_name: str
-    checkpoint_path: Path
-
-
-class ModelLoader:
-    """Centralized model loading with automatic config detection.
-
-    Handles:
-    - Finding config from checkpoint directory (.hydra/config.yaml)
-    - Fallback to CLI-provided config path
-    - Auto-detecting model type and feature requirements
-    - Consistent model loading interface
-    """
-
-    @staticmethod
-    def detect_uses_features(cfg: DictConfig) -> bool:
-        """Detect if model uses radiomics features based on config.
-
-        Args:
-            cfg: Model configuration
-
-        Returns:
-            True if model uses radiomics features
-        """
-        model_name = cfg.model.name.lower()
-        return model_name in DUAL_PATHWAY_MODEL_NAMES
-
-    @staticmethod
-    def find_config(
-        checkpoint_path: Path,
-        config_override: Path | str | None = None,
-    ) -> DictConfig:
-        """Find and load config for a checkpoint.
-
-        Search order:
-        1. CLI-provided config override
-        2. .hydra/config.yaml in checkpoint's parent directory
-        3. Raise FileNotFoundError with helpful message
-
-        Args:
-            checkpoint_path: Path to model checkpoint
-            config_override: Optional path to config file
-
-        Returns:
-            Loaded OmegaConf DictConfig
-
-        Raises:
-            FileNotFoundError: If no config found
-        """
-        if config_override is not None:
-            config_path = Path(config_override)
-            if not config_path.exists():
-                raise FileNotFoundError(f"Config override not found: {config_path}")
-            return OmegaConf.load(config_path)
-
-        # Try .hydra/config.yaml in checkpoint directory
-        hydra_config = checkpoint_path.parent / ".hydra" / "config.yaml"
-        if hydra_config.exists():
-            return OmegaConf.load(hydra_config)
-
-        raise FileNotFoundError(
-            f"Config not found for checkpoint {checkpoint_path}. "
-            f"Searched: {hydra_config}\n"
-            f"Provide config via --config/-c option."
-        )
-
-    @classmethod
-    def load(
-        cls,
-        checkpoint_path: Path | str,
-        device: torch.device,
-        config_override: Path | str | None = None,
-    ) -> LoadedModel:
-        """Load model from checkpoint with automatic config detection.
-
-        Args:
-            checkpoint_path: Path to checkpoint file
-            device: Device to load model on
-            config_override: Optional config path override
-
-        Returns:
-            LoadedModel with model, config, and metadata
-        """
-        checkpoint_path = Path(checkpoint_path)
-        if not checkpoint_path.exists():
-            raise FileNotFoundError(f"Checkpoint not found: {checkpoint_path}")
-
-        cfg = cls.find_config(checkpoint_path, config_override)
-        uses_features = cls.detect_uses_features(cfg)
-        model_name = cfg.model.name.lower()
-
-        model = load_model_from_checkpoint(checkpoint_path, cfg, device)
-
-        logger.info(f"Loaded {model_name} model (uses_features={uses_features}) from {checkpoint_path}")
-
-        return LoadedModel(
-            model=model,
-            config=cfg,
-            uses_features=uses_features,
-            model_name=model_name,
-            checkpoint_path=checkpoint_path,
-        )
-
-
-def unpack_batch(
-    batch: tuple,
-    device: torch.device,
-    use_features: bool = False,
-) -> tuple[torch.Tensor, torch.Tensor | None, torch.Tensor]:
-    """Unpack a batch from dataloader handling both 2-tuple and 3-tuple formats.
-
-    Args:
-        batch: Batch from dataloader (2-tuple or 3-tuple)
-        device: Device to move tensors to
-        use_features: Whether to expect and use features
-
-    Returns:
-        Tuple of (images, features, targets)
-        features is None if batch is 2-tuple or use_features is False
-    """
-    if len(batch) == 3:
-        images, features, targets = batch
-        images = images.to(device)
-        features = features.to(device) if use_features else None
-        targets = targets.to(device)
-    else:
-        images, targets = batch
-        images = images.to(device)
-        targets = targets.to(device)
-        features = None
-
-    return images, features, targets
-
-
-def model_forward(
-    model: nn.Module,
-    images: torch.Tensor,
-    features: torch.Tensor | None,
-    use_features: bool,
-) -> torch.Tensor:
-    """Run model forward pass handling feature/no-feature cases.
-
-    Args:
-        model: Model to run
-        images: Input images
-        features: Radiomics features (can be None)
-        use_features: Whether model expects features
-
-    Returns:
-        Model outputs
-    """
-    if use_features and features is not None:
-        return model(images, features)
-    return model(images)
+# Re-export for compatibility
+__all__ = [
+    "DUAL_PATHWAY_MODEL_NAMES",
+    "LoadedModel",
+    "ModelLoader",
+    "model_forward",
+    "unpack_batch",
+    "load_feature_metadata",
+    "denormalize_features",
+    "save_image_grid",
+    "compute_calibration_error",
+    "log_to_wandb",
+]
 
 
 def load_feature_metadata(processed_dir: Path = Path("data/processed")) -> dict:

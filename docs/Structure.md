@@ -27,13 +27,19 @@ ct_scan_mlops/
 │
 ├── README.md               # Main project documentation
 ├── CLAUDE.md               # AI assistant instructions (source of truth)
+├── GEMINI.md               # Gemini CLI integration guide
+├── CHANGELOG.md            # Version history and release notes
+├── ToDo.md                 # Architecture improvement roadmap
 │
 ├── docs/                   # Documentation (see below)
 │   ├── GetStarted.md       # Setup guide
 │   ├── COLLABORATION.md    # W&B team workflow guide
 │   ├── DEPENDENCIES.md     # Dependency documentation
 │   ├── TEAM_SETUP.md       # Team configuration guide
-│   └── PROJECT_OVERVIEW.md # MLOps checklist mapping
+│   ├── PROJECT_OVERVIEW.md # MLOps checklist mapping
+│   ├── MIGRATION_DUAL_PATHWAY.md      # ⭐ v2.0 migration guide
+│   ├── MIGRATION_QUICK_REFERENCE.md   # Quick reference card
+│   └── ...                 # See Documentation section below
 │
 ├── .pre-commit-config.yaml # Pre-commit hook configuration
 ├── .gitignore              # Git ignore rules
@@ -192,14 +198,30 @@ Project and course documentation.
 
 ```
 docs/
-├── README.md               # Docs index
-├── Structure.md            # This file
-├── Feature_Extraction.md   # Feature extraction guide
-├── Pre_Commit_Hooks.md     # Pre-commit setup guide
-├── mkdocs.yaml             # MkDocs configuration
+├── README.md                      # Docs index
+├── Structure.md                   # This file
+│
+├── GetStarted.md                  # Setup guide
+├── COLLABORATION.md               # W&B team workflow
+├── DEPENDENCIES.md                # Dependency documentation
+├── TEAM_SETUP.md                  # Team configuration
+├── PROJECT_OVERVIEW.md            # MLOps checklist mapping
+│
+├── MIGRATION_DUAL_PATHWAY.md      # ⭐ Dual pathway migration guide (v2.0)
+├── MIGRATION_QUICK_REFERENCE.md   # Quick reference card for migration
+├── CHANGELOG.md                   # Version history and changes
+│
+├── ExperimentPlan_Phase2.md       # Phase 2 experiment methodology
+├── ExperimentAnalysis_20260129.md # Detailed results analysis
+├── AdenocarcinomaImprovementPlan.md # Improvement strategy
+│
+├── Feature_Extraction.md          # Feature extraction guide
+├── Pre_Commit_Hooks.md            # Pre-commit setup guide
+│
+├── mkdocs.yaml                    # MkDocs configuration
 ├── source/
-│   └── index.md            # API documentation index
-└── course/                 # DTU MLOps course materials
+│   └── index.md                   # API documentation index
+└── course/                        # DTU MLOps course materials
     ├── apis.md
     ├── boilerplate.md
     ├── cli.md
@@ -252,20 +274,27 @@ data/
     └── test/
 ```
 
-### Models Directory (`models/`)
+### Outputs Directory (`outputs/`)
+
+All training outputs, model checkpoints, analysis reports, and profiling data are consolidated here.
 
 ```
-models/
-└── .gitkeep                # Placeholder for trained models
-```
-
-### Artifacts Directory (`artifacts/`)
-
-```
-artifacts/
-├── .gitignore
-├── profiling.dvc           # DVC tracking for profiling data
-└── profiling/              # Performance profiling results
+outputs/
+├── runs/                   # Hydra training runs (timestamped)
+│   └── YYYY-MM-DD/
+│       └── HH-MM-SS/
+│           ├── .hydra/     # Hydra config files
+│           └── wandb/      # W&B run files
+├── checkpoints/            # Trained model files (.pt, .ckpt, .onnx)
+├── reports/                # Generated analysis reports
+│   ├── confusion_analysis/
+│   ├── diagnostics/
+│   ├── error_analysis/
+│   ├── feature_importance/
+│   └── sweep_analysis/
+├── profiling/              # Performance profiling data
+├── sweeps/                 # W&B sweep results
+└── logs/                   # Training logs
 ```
 
 ---
@@ -315,35 +344,24 @@ AI assistant configuration and commands.
 
 ## Output Directories
 
-### Training Outputs (`outputs/`)
-
-Hydra-generated output directories organized by date/time.
-
-```
-outputs/
-└── YYYY-MM-DD/
-    └── HH-MM-SS/
-        ├── .hydra/
-        │   ├── config.yaml
-        │   ├── hydra.yaml
-        │   └── overrides.yaml
-        └── wandb/          # W&B run files
-```
+All training outputs, analysis reports, and artifacts are consolidated under `outputs/` (see [Data & Models](#data--models) section above).
 
 ### W&B Directory (`wandb/`)
 
-Weights & Biases run data and artifacts.
+Weights & Biases run data and artifacts (project-level).
 
 ### Reports (`reports/`)
 
+Exam submission template (static content, not generated outputs).
+
 ```
 reports/
-└── figures/                # Generated visualizations
+├── README.md               # Exam template
+├── report.py               # Exam report generator
+└── figures/                # Static exam figures (architecture diagrams, etc.)
 ```
 
-### TensorBoard (`tb_profiler/`)
-
-TensorBoard profiling logs.
+**Note**: Generated analysis reports are now in `outputs/reports/`, not here.
 
 ---
 
@@ -374,9 +392,10 @@ invoke sync-ai-config  # Sync CLAUDE.md -> copilot-instructions.md
 | Task | File | Command |
 |------|------|---------|
 | Training | `src/ct_scan_mlops/train.py` | `invoke train` |
-| Evaluation | `src/ct_scan_mlops/evaluate.py` | `uv run python -m ct_scan_mlops.evaluate` |
+| Evaluation | `src/ct_scan_mlops/analysis/cli.py` | `invoke evaluate` |
 | API Server | `src/ct_scan_mlops/api.py` | `invoke api` |
 | Sweeps | `src/ct_scan_mlops/sweep_train.py` | `invoke sweep` |
+| Analysis | `src/ct_scan_mlops/analysis/` | `invoke compare-models`, `invoke analyze-features` |
 
 ### Technology Stack
 

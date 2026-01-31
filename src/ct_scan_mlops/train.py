@@ -5,7 +5,6 @@ import sys
 from pathlib import Path
 
 import hydra
-import matplotlib.pyplot as plt
 import numpy as np
 import pytorch_lightning as pl
 import torch
@@ -25,7 +24,7 @@ from ct_scan_mlops.utils import get_device
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 _CONFIG_PATH = str(_PROJECT_ROOT / "configs")
 
-profiling_dir = _PROJECT_ROOT / "artifacts" / "profiling"
+profiling_dir = _PROJECT_ROOT / "outputs" / "profiling"
 profiling_dir.mkdir(parents=True, exist_ok=True)
 
 
@@ -40,8 +39,14 @@ class LitModel(pl.LightningModule):
         self.use_features = use_features
         self.save_hyperparameters(ignore=["model"])
 
-        # Track training history for plotting
-        self.training_history: dict[str, list[float]] = {
+        # Track misclassified images for logging
+        self.validation_misclassified: list[dict] = []
+        self.best_val_misclassified: list[dict] = []
+        self.best_val_acc: float = -1.0
+        self.test_misclassified: list[dict] = []
+
+        # Training history for tracking metrics
+        self.training_history: dict[str, list] = {
             "train_loss": [],
             "train_acc": [],
             "val_loss": [],
@@ -117,7 +122,50 @@ class LitModel(pl.LightningModule):
         self.log("val_loss", loss, on_step=False, on_epoch=True, prog_bar=True)
         self.log("val_acc", acc, on_step=False, on_epoch=True, prog_bar=True)
 
+        # Track misclassified images (up to 3 for current epoch)
+        if len(self.validation_misclassified) < 3:
+            preds = torch.argmax(y_hat, dim=1)
+            misclassified_mask = preds != y
+            if misclassified_mask.any():
+                indices = torch.where(misclassified_mask)[0]
+                for idx in indices:
+                    if len(self.validation_misclassified) >= 3:
+                        break
+                    self.validation_misclassified.append(
+                        {"image": x[idx].cpu(), "pred": preds[idx].item(), "target": y[idx].item()}
+                    )
+
         return loss
+
+    def on_validation_epoch_end(self):
+        """Update best validation misclassified images."""
+        metrics = self.trainer.callback_metrics
+        val_acc = metrics.get("val_acc")
+
+        if val_acc is not None:
+            val_acc_val = val_acc.item() if torch.is_tensor(val_acc) else val_acc
+            if val_acc_val > self.best_val_acc:
+                self.best_val_acc = val_acc_val
+                # Store a copy of current epoch errors as the best ones found so far
+                self.best_val_misclassified = list(self.validation_misclassified)
+
+        self.validation_misclassified.clear()  # Clear for next epoch
+
+    def on_fit_end(self):
+        """Log best validation misclassified images at end of training."""
+        if not self.best_val_misclassified or self.logger is None:
+            return
+
+        if not isinstance(self.logger, WandbLogger):
+            return
+
+        class_names = self.cfg.data.classes
+        images = []
+        for item in self.best_val_misclassified:
+            caption = f"Best Val Error - Pred: {class_names[item['pred']]}, Target: {class_names[item['target']]}"
+            images.append(wandb.Image(item["image"], caption=caption))
+
+        self.logger.experiment.log({"best_val_misclassified": images})
 
     def test_step(self, batch, batch_idx: int):
         """Test step for model evaluation."""
@@ -129,49 +177,37 @@ class LitModel(pl.LightningModule):
         self.log("test_loss", loss, on_step=False, on_epoch=True)
         self.log("test_acc", acc, on_step=False, on_epoch=True)
 
+        # Track misclassified images (up to 3)
+        if len(self.test_misclassified) < 3:
+            preds = torch.argmax(y_hat, dim=1)
+            misclassified_mask = preds != y
+            if misclassified_mask.any():
+                indices = torch.where(misclassified_mask)[0]
+                for idx in indices:
+                    if len(self.test_misclassified) >= 3:
+                        break
+                    self.test_misclassified.append(
+                        {"image": x[idx].cpu(), "pred": preds[idx].item(), "target": y[idx].item()}
+                    )
+
         return loss
 
-    def on_train_start(self):
-        """Log sample images at training start."""
-        if self.trainer.train_dataloader is None or self.logger is None:
+    def on_test_end(self):
+        """Log misclassified test images to W&B at the end of testing."""
+        if not self.test_misclassified or self.logger is None:
             return
 
-        # Only log images if using WandbLogger
         if not isinstance(self.logger, WandbLogger):
             return
 
-        batch = next(iter(self.trainer.train_dataloader))
-        x, _features, _y = self._unpack_batch(batch)
-        self.logger.experiment.log({"examples": [wandb.Image(x[j].cpu()) for j in range(min(8, len(x)))]})
+        class_names = self.cfg.data.classes
+        images = []
+        for item in self.test_misclassified:
+            caption = f"Test Error - Pred: {class_names[item['pred']]}, Target: {class_names[item['target']]}"
+            images.append(wandb.Image(item["image"], caption=caption))
 
-    def on_train_epoch_end(self):
-        """Track metrics at end of each epoch for plotting."""
-        metrics = self.trainer.callback_metrics
-        self.training_history["train_loss"].append(
-            metrics.get("train_loss", 0).item()
-            if torch.is_tensor(metrics.get("train_loss", 0))
-            else metrics.get("train_loss", 0)
-        )
-        self.training_history["train_acc"].append(
-            metrics.get("train_acc", 0).item()
-            if torch.is_tensor(metrics.get("train_acc", 0))
-            else metrics.get("train_acc", 0)
-        )
-        self.training_history["val_loss"].append(
-            metrics.get("val_loss", 0).item()
-            if torch.is_tensor(metrics.get("val_loss", 0))
-            else metrics.get("val_loss", 0)
-        )
-        self.training_history["val_acc"].append(
-            metrics.get("val_acc", 0).item()
-            if torch.is_tensor(metrics.get("val_acc", 0))
-            else metrics.get("val_acc", 0)
-        )
-
-        # Get current LR from optimizer
-        if self.trainer.optimizers:
-            current_lr = self.trainer.optimizers[0].param_groups[0]["lr"]
-            self.training_history["lr"].append(current_lr)
+        self.logger.experiment.log({"test_misclassified": images})
+        self.test_misclassified.clear()
 
     def configure_optimizers(self):
         opt_cfg = self.cfg.train.optimizer
@@ -287,8 +323,6 @@ def train_model(
             )
 
     # Data - using LightningDataModule for best practices
-    # Note: Trainer.fit() calls datamodule.setup() automatically, but we call it here
-    # to log dataset sizes before training starts
     datamodule = ChestCTDataModule(cfg, use_features=use_features)
     datamodule.setup(stage="fit")
     logger.info(f"Train batches: {len(datamodule.train_dataloader())}, Val batches: {len(datamodule.val_dataloader())}")
@@ -353,18 +387,27 @@ def train_model(
     # ---- Train ----
     trainer.fit(lit_model, datamodule=datamodule)
 
-    # ---- Save final model weights (pure PyTorch format for easy loading) ----
+    # ---- Test on best checkpoint ----
+    best_ckpt_path = output_path / "best_model.ckpt"
+    if best_ckpt_path.exists():
+        logger.info(f"Evaluating best model on test set: {best_ckpt_path}")
+        test_results = trainer.test(ckpt_path=str(best_ckpt_path), datamodule=datamodule, weights_only=False)
+        test_acc = test_results[0].get("test_acc") if test_results else None
+    else:
+        logger.warning("Best checkpoint not found, skipping test evaluation")
+        test_acc = None
+
+    # ---- Save final model weights ----
     final_model_path = output_path / "model.pt"
     torch.save(lit_model.model.state_dict(), final_model_path)
     logger.info(f"Final model saved to {final_model_path}")
 
-    # ---- Generate training curves ----
-    if lit_model.training_history["train_loss"]:
-        _save_training_curves(lit_model.training_history, output_path, cfg, wandb_logger)
-
-    # ---- Log model artifact with rich metadata ----
+    # ---- Log model artifact ----
     best_val_acc = checkpoint_callback.best_model_score
     best_val_acc_value = best_val_acc.item() if best_val_acc is not None else None
+
+    # Get final metrics from trainer
+    final_metrics = trainer.callback_metrics
 
     artifact = wandb.Artifact(
         name=f"{cfg.experiment_name}_model",
@@ -373,12 +416,9 @@ def train_model(
         metadata={
             "epochs_trained": trainer.current_epoch,
             "best_val_acc": best_val_acc_value,
-            "final_train_loss": lit_model.training_history["train_loss"][-1]
-            if lit_model.training_history["train_loss"]
-            else None,
-            "final_val_loss": lit_model.training_history["val_loss"][-1]
-            if lit_model.training_history["val_loss"]
-            else None,
+            "test_acc": test_acc,
+            "final_train_loss": final_metrics.get("train_loss", 0).item() if "train_loss" in final_metrics else None,
+            "final_val_loss": final_metrics.get("val_loss", 0).item() if "val_loss" in final_metrics else None,
             "model_name": cfg.model.name,
             "num_params": total_params,
             "trainable_params": trainable_params,
@@ -387,13 +427,10 @@ def train_model(
         },
     )
 
-    # Add best model checkpoint if it exists
-    best_ckpt_path = output_path / "best_model.ckpt"
     if best_ckpt_path.exists():
         artifact.add_file(str(best_ckpt_path))
     artifact.add_file(str(final_model_path))
 
-    # Add the composed Hydra config if available
     hydra_cfg_path = output_path / ".hydra" / "config.yaml"
     if hydra_cfg_path.exists():
         artifact.add_file(str(hydra_cfg_path))
@@ -404,76 +441,16 @@ def train_model(
     return str(final_model_path)
 
 
-def _save_training_curves(
-    history: dict,
-    output_path: Path,
-    cfg: DictConfig,
-    wandb_logger: WandbLogger | None,
-) -> None:
-    """Generate and save training curves plot."""
-    fig, axes = plt.subplots(2, 2, figsize=(12, 10))
-
-    epochs = range(1, len(history["train_loss"]) + 1)
-
-    # Loss plot
-    axes[0, 0].plot(epochs, history["train_loss"], label="Train")
-    axes[0, 0].plot(epochs, history["val_loss"], label="Validation")
-    axes[0, 0].set_title("Loss")
-    axes[0, 0].set_xlabel("Epoch")
-    axes[0, 0].legend()
-    axes[0, 0].grid(True)
-
-    # Accuracy plot
-    axes[0, 1].plot(epochs, history["train_acc"], label="Train")
-    axes[0, 1].plot(epochs, history["val_acc"], label="Validation")
-    axes[0, 1].set_title("Accuracy")
-    axes[0, 1].set_xlabel("Epoch")
-    axes[0, 1].legend()
-    axes[0, 1].grid(True)
-
-    # Learning rate plot
-    if history["lr"]:
-        axes[1, 0].plot(epochs, history["lr"])
-        axes[1, 0].set_title("Learning Rate")
-        axes[1, 0].set_xlabel("Epoch")
-        axes[1, 0].grid(True)
-
-    # Summary text
-    axes[1, 1].axis("off")
-    best_val_acc = max(history["val_acc"]) if history["val_acc"] else 0
-    summary_text = (
-        f"Training Summary\n"
-        f"================\n"
-        f"Model: {cfg.model.name}\n"
-        f"Epochs: {len(history['train_loss'])}\n"
-        f"Best Val Acc: {best_val_acc:.4f}\n"
-        f"Final Train Loss: {history['train_loss'][-1]:.4f}\n"
-        f"Final Val Loss: {history['val_loss'][-1]:.4f}\n"
-        f"Seed: {cfg.seed}"
-    )
-    axes[1, 1].text(0.1, 0.5, summary_text, fontsize=12, family="monospace", verticalalignment="center")
-
-    plt.tight_layout()
-    fig_path = output_path / "training_curves.png"
-    fig.savefig(fig_path, dpi=150)
-    plt.close(fig)
-
-    if wandb_logger:
-        wandb_logger.experiment.log({"training_curves": wandb.Image(str(fig_path))})
-    logger.info(f"Training curves saved to {fig_path}")
-
-
 @hydra.main(config_path=_CONFIG_PATH, config_name="config", version_base="1.3")
 def train(cfg: DictConfig) -> None:
     """Train a model (Hydra entry point)."""
-    # Get Hydra's output directory
     output_dir = hydra.core.hydra_config.HydraConfig.get().runtime.output_dir
     configure_logging(output_dir)
 
     device = get_device()
     logger.info(f"Training on {device}")
 
-    # Initialize W&B Logger for Lightning integration
+    # Initialize W&B Logger
     wandb_cfg = cfg.wandb
     wandb_logger = WandbLogger(
         project=wandb_cfg.project,

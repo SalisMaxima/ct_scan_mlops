@@ -1,4 +1,4 @@
-# API dockerfile for Cloud Run deployment
+# API dockerfile for Cloud Run & Vertex AI deployment
 # Multi-stage build for smaller final image
 FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim AS builder
 
@@ -47,18 +47,20 @@ COPY --from=builder /app/.venv /app/.venv
 COPY --from=builder /app/src /app/src
 COPY --from=builder /app/configs /app/configs
 
+# Create directories for runtime data
+RUN mkdir -p /app/data/processed /app/outputs/checkpoints
+
 # Set PATH to use the virtual environment
 ENV PATH="/app/.venv/bin:$PATH"
 
-# Set default config and model paths (can be overridden at runtime)
+# Default paths - these should be overridden at runtime or provided via volume/GCS mounts
 ENV CONFIG_PATH="/app/configs/config.yaml"
-ENV MODEL_PATH="/app/models/model.pt"
+ENV MODEL_PATH="/app/outputs/checkpoints/model.pt"
+# For dual pathway models, features must be provided at runtime
+ENV FEATURES_PATH="/app/data/processed/features_top_features.pkl"
 
-# Expose port 8080 for Cloud Run
+# Expose port 8080 (Cloud Run default) and allow Vertex AI port override
 EXPOSE 8080
 
-# NOTE: Models are no longer baked into this image.
-# They must be mounted at runtime, e.g. via Cloud Run volumes or GCS FUSE
-# Override CONFIG_PATH and MODEL_PATH env vars as needed for your deployment.
-# Cloud Run will provide PORT environment variable (default: 8080)
-CMD ["bash", "-c", "uvicorn ct_scan_mlops.api:app --host 0.0.0.0 --port ${PORT}"]
+# Start uvicorn, respecting Vertex AI's AIP_HTTP_PORT or falling back to PORT
+CMD ["bash", "-c", "uvicorn ct_scan_mlops.api:app --host 0.0.0.0 --port ${AIP_HTTP_PORT:-${PORT:-8080}}"]

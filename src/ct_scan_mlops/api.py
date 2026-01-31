@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import io
+import json
 import logging
 import os
 import uuid
@@ -9,7 +10,7 @@ from contextlib import asynccontextmanager, suppress
 from datetime import UTC, datetime
 from pathlib import Path
 from threading import Lock
-from typing import Annotated
+from typing import Annotated, Any
 
 import numpy as np
 import pandas as pd
@@ -24,17 +25,20 @@ from prometheus_fastapi_instrumentator import Instrumentator
 from torchvision import transforms
 
 from ct_scan_mlops.data import CLASSES, IMAGENET_MEAN, IMAGENET_STD
-from ct_scan_mlops.model import build_model
+from ct_scan_mlops.features.extractor import FeatureConfig, FeatureExtractor
+from ct_scan_mlops.model import DualPathwayModel, build_model
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 DEFAULT_CONFIG_PATH = Path("configs") / "config.yaml"  # change if your file name differs
-DEFAULT_CKPT_PATH = Path("models") / "best_model.ckpt"
-DEFAULT_PT_PATH = Path("models") / "model.pt"
+DEFAULT_CKPT_PATH = Path("outputs/checkpoints") / "best_model.ckpt"
+DEFAULT_PT_PATH = Path("outputs/checkpoints") / "model.pt"
+DEFAULT_FEATURE_METADATA_PATH = Path("outputs/checkpoints") / "feature_metadata.json"
 
 CONFIG_PATH = Path(os.environ.get("CONFIG_PATH", str(DEFAULT_CONFIG_PATH)))
 
 MODEL_PATH = Path(os.environ.get("MODEL_PATH", str(DEFAULT_PT_PATH)))
+FEATURE_METADATA_PATH = Path(os.environ.get("FEATURE_METADATA_PATH", str(DEFAULT_FEATURE_METADATA_PATH)))
 FEEDBACK_DIR = Path(os.environ.get("FEEDBACK_DIR", "feedback"))
 MODEL_PATH_ENV = os.environ.get("MODEL_PATH")
 
@@ -92,6 +96,9 @@ LOAD_MODEL = os.environ.get("LOAD_MODEL", "1") == "1"
 
 
 model: torch.nn.Module | None = None
+feature_extractor: FeatureExtractor | None = None
+norm_stats: dict[str, Any] | None = None
+
 tfm = transforms.Compose(
     [
         transforms.Resize((224, 224)),
@@ -163,13 +170,14 @@ def _append_row_csv(path: Path, row: dict) -> None:
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
-    global model
+    global model, feature_extractor, norm_stats
 
     logger.info("Startup config_path=%s model_path_env=%s", CONFIG_PATH, MODEL_PATH_ENV)
     logger.info("Startup cwd=%s", Path.cwd())
     logger.info("Config exists=%s", CONFIG_PATH.exists())
     logger.info("Mount /models exists=%s is_dir=%s", Path("/models").exists(), Path("/models").is_dir())
     logger.info("Mount /gcs exists=%s is_dir=%s", Path("/gcs").exists(), Path("/gcs").is_dir())
+
     models_path = Path("/models")
     try:
         models_entries = [p.name for p in models_path.glob("*")] if models_path.is_dir() else []
@@ -177,6 +185,7 @@ async def lifespan(_app: FastAPI):
         logger.warning("Unable to list /models entries: %s", exc)
         models_entries = []
     logger.info("/models entries=%s", models_entries)
+
     model_path = resolve_model_path()
     logger.info("Resolved model_path=%s exists=%s", model_path, model_path.exists())
 
@@ -184,6 +193,43 @@ async def lifespan(_app: FastAPI):
         raise RuntimeError(f"Missing config: {CONFIG_PATH}. Set CONFIG_PATH or add the default file.")
     if not model_path.exists():
         raise RuntimeError(f"Missing model weights: {model_path}. Set MODEL_PATH or include weights in the image.")
+
+    # Load feature metadata if available
+    metadata_path = FEATURE_METADATA_PATH
+    if not metadata_path.exists():
+        # Fallback to local processed data path for development
+        fallback_path = Path("data/processed/feature_metadata.json")
+        if fallback_path.exists():
+            logger.info("Feature metadata not found at %s, using fallback: %s", metadata_path, fallback_path)
+            metadata_path = fallback_path
+
+    if metadata_path.exists():
+        logger.info("Loading feature metadata from %s", metadata_path)
+        try:
+            with metadata_path.open("r") as f:
+                metadata = json.load(f)
+
+            # Initialize feature extractor with config from metadata
+            if "config" in metadata:
+                # Use from_dict which handles validation and defaults
+                feature_config = FeatureConfig.from_dict(metadata["config"])
+                # If selected_features is in metadata (top-level) or config, ensure it's set
+                # The metadata['feature_names'] is the ground truth of what was trained on
+                if "feature_names" in metadata:
+                    feature_config.selected_features = metadata["feature_names"]
+
+                feature_extractor = FeatureExtractor(config=feature_config)
+                logger.info("Initialized FeatureExtractor with %d features", feature_extractor.feature_dim)
+
+            if "normalization" in metadata:
+                norm_stats = metadata["normalization"]
+                logger.info("Loaded normalization stats")
+        except Exception as e:
+            logger.error("Failed to load feature metadata: %s", e)
+    else:
+        logger.warning(
+            "Feature metadata not found at %s. Radiomics features will not be available.", FEATURE_METADATA_PATH
+        )
 
     cfg = load_config(CONFIG_PATH)
     model = build_model(cfg)
@@ -229,6 +275,8 @@ async def lifespan(_app: FastAPI):
         await task
 
     model = None
+    feature_extractor = None
+    norm_stats = None
 
 
 error_counter = Counter("prediction_error", "Number of prediction errors")
@@ -247,6 +295,7 @@ def health() -> dict:
         "ok": True,
         "device": str(DEVICE),
         "model_loaded": model is not None,
+        "features_loaded": feature_extractor is not None,
         "config_path": str(CONFIG_PATH),
         "model_path": str(resolve_model_path()),
     }
@@ -269,8 +318,36 @@ async def predict(file: Annotated[UploadFile, File(...)]) -> dict:
 
     x = tfm(img).unsqueeze(0).to(DEVICE)
 
+    # Radiomics feature extraction (if enabled/required)
+    features_tensor = None
+    if isinstance(model, DualPathwayModel) and feature_extractor is not None and norm_stats is not None:
+        try:
+            # Extract features from preprocessed tensor (same as training)
+            # Training extracted features from preprocessed tensors [3, 224, 224] with normalized values
+            # Convert preprocessed tensor to numpy for feature extraction
+            img_preprocessed = x.squeeze(0).cpu().numpy()  # [3, 224, 224]
+            features = feature_extractor.extract(img_preprocessed)
+
+            # Normalize
+            mean = np.array(norm_stats["mean"], dtype=np.float32)
+            std = np.array(norm_stats["std"], dtype=np.float32)
+            # Avoid division by zero if std is 0 (should be handled in training/extraction)
+            std = np.where(std > 1e-8, std, 1.0)
+
+            features = (features - mean) / std
+
+            # Prepare tensor
+            features_tensor = torch.tensor(features, dtype=torch.float32).unsqueeze(0).to(DEVICE)
+        except Exception as e:
+            logger.error("Feature extraction failed: %s", e)
+            raise HTTPException(status_code=500, detail=f"Feature extraction failed: {e}") from e
+
     with torch.no_grad():
-        logits = model(x)
+        if features_tensor is not None and isinstance(model, DualPathwayModel):
+            logits = model(x, features=features_tensor)
+        else:
+            logits = model(x)
+
         probs = torch.softmax(logits, dim=1).squeeze(0)
         pred = int(torch.argmax(probs).item())
         pred_conf = float(probs[pred].item())

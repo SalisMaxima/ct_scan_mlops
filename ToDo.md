@@ -45,10 +45,26 @@
 
 ---
 
+## 3. Training Stability (Batch Normalization)
+
+**Problem**: Training loss steps are oscillating significantly. The `DualPathwayModel` currently lacks normalization in its projection and fusion pathways, making training sensitive to initialization and learning rates.
+
+**Implementation Tasks**:
+- [x] Add `BatchNorm1d` to `DualPathwayModel` pathways in `src/ct_scan_mlops/model.py`
+  - [x] Update `cnn_projection` to include `BatchNorm1d(cnn_feature_dim)`
+  - [x] Update `radiomics_projection` to include `BatchNorm1d(radiomics_hidden)` for both linear layers
+- [x] Verify model forward pass with batch size > 1
+- [ ] Monitor training loss curves for smoother convergence in the next sweep
+
+**Expected Impact**: Reduced oscillation in training loss, faster convergence, and potentially higher final accuracy due to better gradient flow.
+
+---
+
 ## Priority Order
 
-1. **Attention-Based Fusion** - Lower complexity, direct improvement to existing architecture
-2. **Hierarchical Classification** - Requires more changes but addresses root cause of confusion
+1. **Training Stability** - Immediate fix for training dynamics
+2. **Attention-Based Fusion** - Lower complexity, direct improvement to existing architecture
+3. **Hierarchical Classification** - Requires more changes but addresses root cause of confusion
 
 ## Notes
 
