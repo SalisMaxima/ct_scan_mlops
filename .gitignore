@@ -185,6 +185,9 @@ cython_debug/
 *.pth
 *.ckpt
 
+# Model run directories (W&B artifacts, checkpoints, metadata)
+models/*/
+
 # Profiling files
 *.prof
 profile.txt
