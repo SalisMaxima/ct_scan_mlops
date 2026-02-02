@@ -219,3 +219,6 @@ outputs/
 github-dvc-key.json
 *.onnx
 *.onnx.data
+
+# Full Auto mode session context (session-specific, not for version control)
+FULLAUTO_CONTEXT.md
