@@ -1,0 +1,35 @@
+# Production Environment Configuration
+# Copy this file to terraform.tfvars and fill in the values
+
+project_id     = "dtu-mlops-data-482907"
+project_number = "123456789012" # Get with: gcloud projects describe dtu-mlops-data-482907 --format="value(projectNumber)"
+region         = "europe-west1"
+
+# Billing (required for budget module)
+billing_account = "XXXXXX-XXXXXX-XXXXXX" # Get with: gcloud billing accounts list
+
+# Storage buckets (these already exist and will be imported)
+terraform_state_bucket_name = "dtu-mlops-terraform-state-482907"
+dvc_bucket_name             = "dtu-mlops-dvc-storage-482907"
+models_bucket_name          = "dtu-mlops-data-482907_cloudbuild"
+drift_logs_bucket_name      = "ct-scan-drift-logs-482907"
+
+# Artifact Registry
+artifact_registry_repository_id = "ct-scan-mlops"
+
+# Cloud Run
+cloud_run_service_name = "ct-scan-api"
+container_image        = "europe-west1-docker.pkg.dev/dtu-mlops-data-482907/ct-scan-mlops/api:latest"
+
+# GitHub (for Workload Identity)
+github_repository = "owner/ct_scan_mlops" # Replace with your GitHub repo
+
+# Budget
+monthly_budget_amount = 500 # USD
+
+# Monitoring
+alert_email = "team@example.com" # Replace with your team email
+
+# Optional: Slack and PagerDuty (leave commented if not using)
+# slack_webhook_url = "https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
+# pagerduty_key     = "your-pagerduty-integration-key"

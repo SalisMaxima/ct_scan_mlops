@@ -2,18 +2,19 @@
 Invoke tasks for CT Scan MLOps project.
 
 Tasks are organized into namespaces for better organization:
-- core:    Environment setup and maintenance (bootstrap, sync, setup-dev)
-- data:    Data management (download, preprocess, extract-features, stats, validate)
-- train:   Training and sweeps (train, train-dual, sweep, sweep-agent)
-- eval:    Model evaluation (analyze, benchmark, profile, model-info)
-- quality: Code quality (ruff, test, ci, security-check)
-- deploy:  Deployment (promote-model, export-onnx, api, frontend)
-- docker:  Docker operations (build, train, api, clean)
-- monitor: Monitoring (extract-stats, check-drift)
-- git:     Git operations (status, commit, branch)
-- dvc:     DVC operations (pull, push, add)
-- docs:    Documentation (build, serve)
-- utils:   Utilities (clean-all, env-info, check-gpu, port-check)
+- core:      Environment setup and maintenance (bootstrap, sync, setup-dev)
+- data:      Data management (download, preprocess, extract-features, stats, validate)
+- train:     Training and sweeps (train, train-dual, sweep, sweep-agent)
+- eval:      Model evaluation (analyze, benchmark, profile, model-info)
+- quality:   Code quality (ruff, test, ci, security-check)
+- deploy:    Deployment (promote-model, export-onnx, api, frontend)
+- docker:    Docker operations (build, train, api, clean)
+- monitor:   Monitoring (extract-stats, check-drift)
+- git:       Git operations (status, commit, branch)
+- dvc:       DVC operations (pull, push, add)
+- terraform: Infrastructure as code (init, plan, apply, import-all)
+- docs:      Documentation (build, serve)
+- utils:     Utilities (clean-all, env-info, check-gpu, port-check)
 
 Usage:
     invoke <namespace>.<task> [options]
@@ -59,6 +60,7 @@ git_tasks = load_module_from_file("git_tasks", tasks_dir / "git_tasks.py")
 dvc_tasks = load_module_from_file("dvc_tasks", tasks_dir / "dvc_tasks.py")
 docs = load_module_from_file("docs", tasks_dir / "docs.py")
 utils = load_module_from_file("utils", tasks_dir / "utils.py")
+terraform = load_module_from_file("terraform", tasks_dir / "terraform.py")
 
 # Create the root namespace
 namespace = Collection()
@@ -76,3 +78,4 @@ namespace.add_collection(Collection.from_module(git_tasks), name="git")
 namespace.add_collection(Collection.from_module(dvc_tasks), name="dvc")
 namespace.add_collection(Collection.from_module(docs), name="docs")
 namespace.add_collection(Collection.from_module(utils), name="utils")
+namespace.add_collection(Collection.from_module(terraform), name="terraform")
