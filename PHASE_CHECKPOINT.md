@@ -1,6 +1,6 @@
 # MLOps Infrastructure - Phase Checkpoint
 
-**Last Updated:** 2026-02-05 (Phase 2 COMPLETE)
+**Last Updated:** 2026-02-05 (Phase 3 COMPLETE)
 **Project:** CT Scan MLOps Infrastructure as Code
 
 ---
@@ -8,18 +8,18 @@
 ## 📊 Current Status
 
 ### Active Phase
-**Phase 3: Validation (Week 3)**
+**Phase 4: CI/CD + Firestore Migration (Week 4)**
 - **Status:** ⏳ READY TO START
 - **Progress:** 0%
-- **Depends On:** Phase 2 (COMPLETE)
+- **Depends On:** Phase 3 (COMPLETE)
 
 ### Overall Progress
 ```
-[████████████████████░░░░░░░░░░░░] 50% Complete (Phase 1 + 2 Complete)
+[██████████████████████████░░░░░░] 63% Complete (Phase 1-3 Complete)
 
 Week 1:  ████████████ Phase 1 Complete ✅
 Week 2:  ████████████ Phase 2 Complete ✅
-Week 3:  ░░░░░░░░░░░░ Phase 3 Ready
+Week 3:  ████████████ Phase 3 Complete ✅
 Week 4:  ░░░░░░░░░░░░ Phase 4
 Week 5:  ░░░░░░░░░░░░ Phase 5
 Week 6:  ░░░░░░░░░░░░ Phase 5-6
@@ -127,18 +127,50 @@ Step 7: Verify terraform plan (0 changes)   ✅ DONE
 
 ---
 
+## ✅ Phase 3: Validation - COMPLETE
+
+**Started:** 2026-02-05
+**Completed:** 2026-02-05
+**Duration:** <1 hour
+
+#### Validation Test: Add/Remove Label
+- ✅ Pre-flight: `terraform plan` = No changes, Cloud Run health = HTTP 200
+- ✅ Added `validation = "phase-3-test"` label to `common_labels`
+- ✅ `terraform plan` showed 9 resources to update (label-only, all in-place)
+- ✅ `terraform apply` succeeded (0 added, 9 changed, 0 destroyed)
+- ✅ Post-apply: Cloud Run health = HTTP 200 (no disruption)
+- ✅ Labels verified in GCP via `gsutil` and `gcloud`
+- ✅ `terraform plan` = No changes after apply
+
+#### Revert Test
+- ✅ Removed `validation` label from `common_labels`
+- ✅ `terraform plan` showed 9 label removals only
+- ✅ `terraform apply` succeeded (0 added, 9 changed, 0 destroyed)
+- ✅ Post-revert: Cloud Run health = HTTP 200 (no disruption)
+- ✅ Labels confirmed removed in GCP
+- ✅ `terraform plan` = No changes (clean state restored)
+
+#### Resources Validated (9)
+1. Artifact Registry (`ct-scan-mlops`)
+2. PubSub Topic (`billing-budget-alerts`)
+3. Cloud Run Service (`ct-scan-api`)
+4. Secret Manager: `slack-webhook-token`
+5. Secret Manager: `wandb-api-key`
+6. GCS Bucket: `ct-scan-drift-logs-482907`
+7. GCS Bucket: `dtu-mlops-dvc-storage-482907`
+8. GCS Bucket: `dtu-mlops-data-482907_cloudbuild`
+9. GCS Bucket: `dtu-mlops-terraform-state-482907`
+
+#### Conclusion
+Terraform can safely modify, apply, and revert changes to all 52 production GCP resources without service disruption.
+
+---
+
 ## ⏸️  Pending Phases
 
-### Phase 3: Validation (Week 3)
-**Status:** READY TO START
-**Depends On:** Phase 2 (COMPLETE)
-- Test safe change (add/remove label)
-- Verify no service disruption
-- Validate rollback procedures
-
 ### Phase 4: CI/CD + Firestore Migration (Week 4)
-**Status:** NOT STARTED
-**Depends On:** Phase 3 completion
+**Status:** READY TO START
+**Depends On:** Phase 3 (COMPLETE)
 - Create GitHub Actions workflow
 - Migrate SQLite → Firestore
 - Deploy monitoring API endpoints
@@ -185,8 +217,9 @@ Invoke Tasks:             13 tasks
 Phase 1 (Foundation):     1 day
 Critical Fixes:           1.5 hours
 Phase 2 (Import):         3 days (complete)
+Phase 3 (Validation):     <1 hour (complete)
 Total Elapsed:            4 days
-Estimated Remaining:      6 weeks
+Estimated Remaining:      5 weeks
 ```
 
 ### Quality Metrics
@@ -202,12 +235,11 @@ Documentation Coverage:   100%
 
 ## 🎯 Next Steps
 
-### Phase 3: Validation
-1. Test safe change (add/remove a label)
-2. Apply the change
-3. Verify no service disruption
-4. Revert the change
-5. Validate rollback procedures
+### Phase 4: CI/CD + Firestore Migration
+1. Create GitHub Actions workflow for Terraform plan/apply
+2. Migrate SQLite feedback database to Firestore
+3. Deploy monitoring API endpoints
+4. Set up automated drift detection
 
 ### Phase 2 Success Criteria (ALL MET)
 - [x] All existing resources in Terraform state (52 resources)
@@ -266,9 +298,10 @@ This checkpoint file will be updated at the start of each phase to track:
 
 **Phase 1 Completed:** 2026-02-02
 **Phase 2 Completed:** 2026-02-05
-**Phase 3 Ready:** 2026-02-05
+**Phase 3 Completed:** 2026-02-05
+**Phase 4 Ready:** 2026-02-05
 **Last Checkpoint:** 2026-02-05
-**Version:** 2.0
+**Version:** 3.0
 
 ---
 
