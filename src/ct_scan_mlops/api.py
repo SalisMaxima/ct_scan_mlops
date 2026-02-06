@@ -6,7 +6,6 @@ import io
 import json
 import logging
 import os
-import sqlite3
 import uuid
 from contextlib import asynccontextmanager, suppress
 from datetime import UTC, datetime
@@ -29,6 +28,7 @@ from torchvision import transforms
 
 from ct_scan_mlops.data import CLASSES, IMAGENET_MEAN, IMAGENET_STD
 from ct_scan_mlops.features.extractor import FeatureConfig, FeatureExtractor
+from ct_scan_mlops.feedback_store import create_feedback_store
 from ct_scan_mlops.model import DualPathwayModel, build_model
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -43,7 +43,6 @@ CONFIG_PATH = Path(os.environ.get("CONFIG_PATH", str(DEFAULT_CONFIG_PATH)))
 MODEL_PATH = Path(os.environ.get("MODEL_PATH", str(DEFAULT_PT_PATH)))
 FEATURE_METADATA_PATH = Path(os.environ.get("FEATURE_METADATA_PATH", str(DEFAULT_FEATURE_METADATA_PATH)))
 FEEDBACK_DIR = Path(os.environ.get("FEEDBACK_DIR", "feedback"))
-FEEDBACK_DB = Path(os.environ.get("FEEDBACK_DB", "feedback/feedback.db"))
 MODEL_PATH_ENV = os.environ.get("MODEL_PATH")
 
 
@@ -102,6 +101,7 @@ LOAD_MODEL = os.environ.get("LOAD_MODEL", "1") == "1"
 model: torch.nn.Module | None = None
 feature_extractor: FeatureExtractor | None = None
 norm_stats: dict[str, Any] | None = None
+feedback_store = None
 
 tfm = transforms.Compose(
     [
@@ -170,29 +170,6 @@ def _append_row_csv(path: Path, row: dict) -> None:
             df.to_csv(path, index=False)
         else:
             df.to_csv(path, mode="a", header=False, index=False)
-
-
-def init_feedback_db() -> None:
-    """Initialize feedback database on startup."""
-    FEEDBACK_DB.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(FEEDBACK_DB)
-    conn.execute("""
-        CREATE TABLE IF NOT EXISTS feedback (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            timestamp TEXT NOT NULL,
-            image_path TEXT NOT NULL,
-            predicted_class TEXT NOT NULL,
-            predicted_confidence REAL NOT NULL,
-            is_correct BOOLEAN NOT NULL,
-            correct_class TEXT,
-            user_note TEXT,
-            confidence_rating TEXT,
-            image_stats TEXT
-        )
-    """)
-    conn.commit()
-    conn.close()
-    logger.info("Feedback database initialized at %s", FEEDBACK_DB)
 
 
 def validate_medical_image(img: Image.Image) -> tuple[bool, str | None]:
@@ -333,7 +310,7 @@ def generate_gradcam_heatmap(
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
-    global model, feature_extractor, norm_stats
+    global model, feature_extractor, norm_stats, feedback_store
 
     logger.info("Startup config_path=%s model_path_env=%s", CONFIG_PATH, MODEL_PATH_ENV)
     logger.info("Startup cwd=%s", Path.cwd())
@@ -357,8 +334,13 @@ async def lifespan(_app: FastAPI):
     if not model_path.exists():
         raise RuntimeError(f"Missing model weights: {model_path}. Set MODEL_PATH or include weights in the image.")
 
-    # Initialize feedback database
-    init_feedback_db()
+    # Initialize feedback store (Firestore or SQLite)
+    try:
+        feedback_store = create_feedback_store()
+        logger.info("Feedback store initialized: %s", type(feedback_store).__name__)
+    except Exception as exc:
+        logger.warning("Failed to initialize feedback store: %s (feedback will be unavailable)", exc)
+        feedback_store = None
 
     # Load feature metadata if available
     metadata_path = FEATURE_METADATA_PATH
@@ -484,6 +466,15 @@ app.mount("/metrics", make_asgi_app())
 
 # HTTP metrics + /metrics endpoint (Prometheus)
 Instrumentator().instrument(app).expose(app, endpoint="/metrics")
+
+# Mount drift detection API (optional — requires evidently)
+try:
+    from ct_scan_mlops.monitoring.drift_api import app as drift_app
+
+    app.mount("/monitoring", drift_app)
+    logger.info("Drift API mounted at /monitoring")
+except ImportError:
+    logger.warning("Drift API not available (evidently not installed)")
 
 
 @app.get("/health")
@@ -813,38 +804,32 @@ async def feedback(
     save_path = target_dir / filename
     img.save(save_path, format="PNG")
 
-    # Log to database
+    # Log to feedback store
+    feedback_id = None
+    db_logged = False
     try:
-        conn = sqlite3.connect(FEEDBACK_DB)
-        conn.execute(
-            """INSERT INTO feedback
-               (timestamp, image_path, predicted_class, predicted_confidence,
-                is_correct, correct_class, user_note, confidence_rating, image_stats)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-            (
-                datetime.now(UTC).isoformat(),
-                str(save_path),
-                predicted_class,
-                predicted_confidence,
-                is_correct,
-                correct_class,
-                user_note,
-                confidence_rating,
-                json.dumps(stats),
-            ),
-        )
-        conn.commit()
-        conn.close()
-        db_logged = True
+        if feedback_store is not None:
+            feedback_id = feedback_store.save_feedback(
+                image_path=str(save_path),
+                predicted_class=predicted_class,
+                predicted_confidence=predicted_confidence,
+                is_correct=is_correct,
+                correct_class=correct_class,
+                user_note=user_note,
+                confidence_rating=confidence_rating,
+                image_stats=stats,
+            )
+            db_logged = True
+        else:
+            logger.warning("Feedback store not available; skipping database logging")
     except Exception as e:
-        logger.error("Failed to log feedback to database: %s", e)
-        db_logged = False
+        logger.error("Failed to log feedback to store: %s", e)
 
     return {
         "saved_to": str(save_path),
         "class": target_class,
         "logged_to_db": db_logged,
-        "feedback_id": None,  # Could return last_insert_rowid if needed
+        "feedback_id": feedback_id,
         "timestamp": datetime.now(UTC).isoformat(),
     }
 
@@ -856,39 +841,10 @@ def feedback_stats() -> dict:
     Returns summary of feedback data including total count, accuracy metrics,
     and class distribution.
     """
+    if feedback_store is None:
+        raise HTTPException(status_code=503, detail="Feedback store not available")
     try:
-        conn = sqlite3.connect(FEEDBACK_DB)
-        cursor = conn.cursor()
-
-        # Total feedback count
-        cursor.execute("SELECT COUNT(*) FROM feedback")
-        total_count = cursor.fetchone()[0]
-
-        # Correct vs incorrect
-        cursor.execute("SELECT COUNT(*) FROM feedback WHERE is_correct = 1")
-        correct_count = cursor.fetchone()[0]
-
-        # Class distribution
-        cursor.execute("SELECT predicted_class, COUNT(*) FROM feedback GROUP BY predicted_class")
-        class_distribution = dict(cursor.fetchall())
-
-        # Recent feedback
-        cursor.execute("SELECT timestamp, predicted_class, is_correct FROM feedback ORDER BY timestamp DESC LIMIT 10")
-        recent_feedback = [
-            {"timestamp": row[0], "predicted_class": row[1], "is_correct": bool(row[2])} for row in cursor.fetchall()
-        ]
-
-        conn.close()
-
-        return {
-            "total_feedback": total_count,
-            "correct_predictions": correct_count,
-            "incorrect_predictions": total_count - correct_count,
-            "accuracy": correct_count / total_count if total_count > 0 else 0.0,
-            "class_distribution": class_distribution,
-            "recent_feedback": recent_feedback,
-            "timestamp": datetime.now(UTC).isoformat(),
-        }
+        return feedback_store.get_stats()
     except Exception as e:
         logger.error("Failed to retrieve feedback stats: %s", e)
         raise HTTPException(status_code=500, detail=f"Failed to retrieve feedback stats: {e}") from e

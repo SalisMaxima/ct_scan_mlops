@@ -2,19 +2,20 @@
 
 **PURPOSE:** This document allows you to resume the MLOps infrastructure implementation in a new session without reading the entire conversation history.
 
-**LAST SESSION END:** 2026-02-05
-**CURRENT PHASE:** Phase 3 - Validation
-**PROGRESS:** 100% COMPLETE
-**STATUS:** ✅ COMPLETED - Terraform can safely modify, apply, and revert production resources
+**LAST SESSION END:** 2026-02-06
+**CURRENT PHASE:** Phase 4 - CI/CD + Firestore Migration
+**PROGRESS:** Code complete (80%), deploy pending
+**STATUS:** 🔄 IN PROGRESS - All code written, needs terraform apply + Cloud Run deploy
 
 ---
 
 ## 🎯 TL;DR - What to Do Next
 
-1. **Read `TERRAFORM_FIX_PLAN.md`** for the 7 issues and their fixes
-2. **Execute fixes in order** (Issues 6,7 → 3 → 5 → 1 → 4 → 2)
-3. **Run:** `terraform plan` after each fix to track progress
-4. **Iterate** until `terraform plan` shows "No changes"
+1. **Apply IAM changes:** `cd infrastructure/terraform/environments/prod && terraform apply`
+2. **Deploy updated API:** Rebuild Docker image and deploy to Cloud Run
+3. **Test endpoints:** `/health`, `/feedback`, `/feedback/stats`, `/monitoring/health`
+4. **Verify Terraform CI/CD:** Create a test PR touching `infrastructure/`
+5. **Trigger drift detection:** Manually run the drift detection workflow
 
 ### Completed Steps
 - ✅ User provided 4 configuration values (billing, GitHub, email, image)
@@ -399,14 +400,24 @@ When resuming this session, follow this checklist:
 
 ## 📝 Session Notes
 
-**Session Ended:** 2026-02-05
-**Milestone:** Phase 3 COMPLETE - Terraform validated on production (add label, verify, revert, verify)
-**Next Session:** Phase 4 - CI/CD + Firestore Migration
+**Session Ended:** 2026-02-06
+**Milestone:** Phase 4 code complete — IAM expansion, Terraform CI/CD workflow, Firestore migration, drift API mount, drift detection workflow
+**Next Session:** Deploy Phase 4 changes, then Phase 5 (Monitoring Shadow Mode)
 **Blockers:** None
+
+### Phase 4 Changes Made (2026-02-06)
+- **New files:**
+  - `.github/workflows/terraform.yml` — Terraform CI/CD (fmt check, validate, plan on PR, apply on merge)
+  - `.github/workflows/drift_detection.yml` — Scheduled drift monitoring (every 6 hours)
+  - `src/ct_scan_mlops/feedback_store.py` — Firestore/SQLite feedback store abstraction with factory
+- **Modified files:**
+  - `infrastructure/terraform/environments/prod/main.tf` — 7 new IAM roles, 5 new Cloud Run env vars
+  - `src/ct_scan_mlops/api.py` — SQLite removed, feedback_store used, drift API mounted at `/monitoring`
+- **Dependency added:** `google-cloud-firestore==2.23.0`
 
 ---
 
-**Last Updated:** 2026-02-05
-**Document Version:** 4.0
+**Last Updated:** 2026-02-06
+**Document Version:** 5.0
 **Purpose:** Enable seamless session resumption
-**Next Update:** After Phase 4 completion (CI/CD + Firestore)
+**Next Update:** After Phase 4 deploy + verification

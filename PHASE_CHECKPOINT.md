@@ -1,6 +1,6 @@
 # MLOps Infrastructure - Phase Checkpoint
 
-**Last Updated:** 2026-02-05 (Phase 3 COMPLETE)
+**Last Updated:** 2026-02-06 (Phase 4 IN PROGRESS)
 **Project:** CT Scan MLOps Infrastructure as Code
 
 ---
@@ -9,18 +9,18 @@
 
 ### Active Phase
 **Phase 4: CI/CD + Firestore Migration (Week 4)**
-- **Status:** ⏳ READY TO START
-- **Progress:** 0%
+- **Status:** 🔄 IN PROGRESS (code complete, pending terraform apply + deploy)
+- **Progress:** 80%
 - **Depends On:** Phase 3 (COMPLETE)
 
 ### Overall Progress
 ```
-[██████████████████████████░░░░░░] 63% Complete (Phase 1-3 Complete)
+[████████████████████████████████] 75% Complete (Phase 1-3 Complete, Phase 4 code done)
 
 Week 1:  ████████████ Phase 1 Complete ✅
 Week 2:  ████████████ Phase 2 Complete ✅
 Week 3:  ████████████ Phase 3 Complete ✅
-Week 4:  ░░░░░░░░░░░░ Phase 4
+Week 4:  ████████░░░░ Phase 4 (code complete, deploy pending)
 Week 5:  ░░░░░░░░░░░░ Phase 5
 Week 6:  ░░░░░░░░░░░░ Phase 5-6
 Week 7:  ░░░░░░░░░░░░ Phase 7
@@ -166,14 +166,42 @@ Terraform can safely modify, apply, and revert changes to all 52 production GCP 
 
 ---
 
-## ⏸️  Pending Phases
+## 🔄 Phase 4: CI/CD + Firestore Migration (Week 4) — IN PROGRESS
 
-### Phase 4: CI/CD + Firestore Migration (Week 4)
-**Status:** READY TO START
+**Started:** 2026-02-06
+**Status:** Code complete, pending terraform apply + Cloud Run deploy
 **Depends On:** Phase 3 (COMPLETE)
-- Create GitHub Actions workflow
-- Migrate SQLite → Firestore
-- Deploy monitoring API endpoints
+
+#### Deliverables (Code Complete)
+- ✅ Expanded IAM roles for github-actions SA (7 new roles for Terraform CI/CD)
+- ✅ Terraform CI/CD workflow (`.github/workflows/terraform.yml`) — fmt, validate, plan on PR, apply on merge
+- ✅ SQLite → Firestore migration (`src/ct_scan_mlops/feedback_store.py` + `api.py` updated)
+- ✅ Drift API mounted in main API at `/monitoring`
+- ✅ Drift detection workflow (`.github/workflows/drift_detection.yml`) — every 6 hours + manual
+- ✅ Cloud Run env vars added (GCP_PROJECT_ID, USE_FIRESTORE, DRIFT_* paths)
+
+#### Files Created (3)
+| File | Purpose |
+|------|---------|
+| `.github/workflows/terraform.yml` | Terraform CI/CD (plan on PR, apply on merge) |
+| `.github/workflows/drift_detection.yml` | Scheduled drift monitoring (every 6 hours) |
+| `src/ct_scan_mlops/feedback_store.py` | Firestore/SQLite feedback storage abstraction |
+
+#### Files Modified (2)
+| File | Changes |
+|------|---------|
+| `src/ct_scan_mlops/api.py` | Replace SQLite with feedback store, mount drift API |
+| `infrastructure/terraform/environments/prod/main.tf` | Expand IAM roles, add env vars |
+
+#### Remaining Steps
+- [ ] `terraform apply` to expand IAM roles (manual one-time bootstrap)
+- [ ] Deploy updated API to Cloud Run (rebuild Docker image)
+- [ ] Test all endpoints end-to-end
+- [ ] Verify Terraform CI/CD with a test PR
+
+---
+
+## ⏸️  Pending Phases
 
 ### Phase 5-6: Monitoring Shadow Mode (Weeks 5-6)
 **Status:** NOT STARTED
@@ -235,11 +263,12 @@ Documentation Coverage:   100%
 
 ## 🎯 Next Steps
 
-### Phase 4: CI/CD + Firestore Migration
-1. Create GitHub Actions workflow for Terraform plan/apply
-2. Migrate SQLite feedback database to Firestore
-3. Deploy monitoring API endpoints
-4. Set up automated drift detection
+### Phase 4: Remaining (Deploy + Verify)
+1. Run `terraform apply` to grant new IAM roles
+2. Deploy updated API to Cloud Run (rebuild + deploy)
+3. Test endpoints: `/health`, `/feedback`, `/feedback/stats`, `/monitoring/health`, `/monitoring/drift`
+4. Create test PR touching `infrastructure/` to verify Terraform CI/CD plan comment
+5. Manually trigger drift detection workflow
 
 ### Phase 2 Success Criteria (ALL MET)
 - [x] All existing resources in Terraform state (52 resources)
@@ -299,9 +328,9 @@ This checkpoint file will be updated at the start of each phase to track:
 **Phase 1 Completed:** 2026-02-02
 **Phase 2 Completed:** 2026-02-05
 **Phase 3 Completed:** 2026-02-05
-**Phase 4 Ready:** 2026-02-05
-**Last Checkpoint:** 2026-02-05
-**Version:** 3.0
+**Phase 4 Started:** 2026-02-06 (code complete)
+**Last Checkpoint:** 2026-02-06
+**Version:** 4.0
 
 ---
 

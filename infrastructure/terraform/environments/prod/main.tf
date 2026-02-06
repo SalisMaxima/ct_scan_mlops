@@ -44,7 +44,7 @@ module "storage" {
   terraform_state_bucket_name = var.terraform_state_bucket_name
   dvc_bucket_name             = var.dvc_bucket_name
   models_bucket_name          = var.models_bucket_name
-  models_bucket_location      = "US"  # Existing bucket is in US multi-region
+  models_bucket_location      = "US" # Existing bucket is in US multi-region
   drift_logs_bucket_name      = var.drift_logs_bucket_name
 
   dvc_bucket_admins = [
@@ -101,27 +101,33 @@ module "iam" {
 
   # Explicitly configure IAM roles (reviewed and approved)
   github_actions_roles = [
-    "roles/storage.admin",              # DVC and model bucket access
-    "roles/artifactregistry.writer",    # Push Docker images
-    "roles/run.admin",                  # Deploy Cloud Run services
-    "roles/iam.serviceAccountUser",     # Impersonate service accounts
+    "roles/storage.admin",                   # DVC and model bucket access
+    "roles/artifactregistry.writer",         # Push Docker images
+    "roles/run.admin",                       # Deploy Cloud Run services
+    "roles/iam.serviceAccountUser",          # Impersonate service accounts
+    "roles/secretmanager.admin",             # Manage secrets (Terraform CI/CD)
+    "roles/monitoring.admin",                # Manage alert policies (Terraform CI/CD)
+    "roles/datastore.owner",                 # Manage Firestore (Terraform CI/CD)
+    "roles/iam.serviceAccountAdmin",         # Manage service accounts (Terraform CI/CD)
+    "roles/resourcemanager.projectIamAdmin", # Manage IAM bindings (Terraform CI/CD)
+    "roles/pubsub.admin",                    # Manage PubSub topics (Terraform CI/CD)
   ]
 
   cloud_run_roles = [
-    "roles/storage.objectViewer",       # Read models bucket
+    "roles/storage.objectViewer",         # Read models bucket
     "roles/secretmanager.secretAccessor", # Access W&B API key
-    "roles/datastore.user",             # Read/write Firestore
+    "roles/datastore.user",               # Read/write Firestore
   ]
 
   drift_detection_roles = [
-    "roles/storage.objectAdmin",        # Write drift logs
-    "roles/monitoring.metricWriter",    # Publish custom metrics
-    "roles/datastore.viewer",           # Read Firestore for analysis
+    "roles/storage.objectAdmin",     # Write drift logs
+    "roles/monitoring.metricWriter", # Publish custom metrics
+    "roles/datastore.viewer",        # Read Firestore for analysis
   ]
 
   monitoring_roles = [
-    "roles/monitoring.metricWriter",    # Publish monitoring metrics
-    "roles/logging.logWriter",          # Write logs
+    "roles/monitoring.metricWriter",      # Publish monitoring metrics
+    "roles/logging.logWriter",            # Write logs
     "roles/secretmanager.secretAccessor", # Access Slack/PagerDuty secrets
   ]
 }
@@ -158,9 +164,9 @@ module "workload_identity" {
   github_repository  = var.github_repository
   repository_filter  = var.github_repository
 
-  pool_id              = "github-pool"
-  provider_id          = "github-provider"
-  pool_display_name    = "GitHub Actions Pool"
+  pool_id               = "github-pool"
+  provider_id           = "github-provider"
+  pool_display_name     = "GitHub Actions Pool"
   provider_display_name = "GitHub OIDC Provider"
 }
 
@@ -168,24 +174,24 @@ module "workload_identity" {
 module "firestore" {
   source = "../../modules/firestore"
 
-  project_id   = var.project_id
-  database_id  = "(default)"
-  location_id  = "eur3" # Europe multi-region
-  enable_pitr  = true
+  project_id  = var.project_id
+  database_id = "(default)"
+  location_id = "eur3" # Europe multi-region
+  enable_pitr = true
 }
 
 # Budget Module
 module "budget" {
   source = "../../modules/budget"
 
-  billing_account        = var.billing_account
-  project_id             = var.project_id
-  project_number         = var.project_number
-  monthly_budget_amount  = var.monthly_budget_amount
-  currency_code          = "USD"
+  billing_account       = var.billing_account
+  project_id            = var.project_id
+  project_number        = var.project_number
+  monthly_budget_amount = var.monthly_budget_amount
+  currency_code         = "USD"
 
   disable_default_email_recipients = false
-  create_pubsub_subscription      = false
+  create_pubsub_subscription       = false
 
   common_labels = local.common_labels
 }
@@ -197,10 +203,10 @@ module "budget" {
 module "cloud_run" {
   source = "../../modules/cloud-run"
 
-  project_id            = var.project_id
-  region                = var.region
-  service_name          = var.cloud_run_service_name
-  container_image       = var.container_image
+  project_id      = var.project_id
+  region          = var.region
+  service_name    = var.cloud_run_service_name
+  container_image = var.container_image
   # Using default compute SA to match existing service (Phase 2 import)
   service_account_email = "${var.project_number}-compute@developer.gserviceaccount.com"
 
@@ -215,6 +221,11 @@ module "cloud_run" {
     DEPLOYMENT_ID         = "20260131-102227"
     RELOAD_TIME           = "1769851883"
     FEATURES_UPDATED      = "1769852116"
+    GCP_PROJECT_ID        = var.project_id
+    USE_FIRESTORE         = "1"
+    DRIFT_REFERENCE_PATH  = "/gcs/drift/reference.csv"
+    DRIFT_CURRENT_PATH    = "/gcs/drift/current.csv"
+    DRIFT_REPORT_PATH     = "/gcs/drift/drift_report.html"
   }
 
   # Disabled for Phase 2 - existing service doesn't use secrets from Secret Manager
@@ -233,11 +244,11 @@ module "cloud_run" {
     read_only  = false
   }
 
-  min_instances        = 0  # Actual service config
-  max_instances        = 20 # Actual service config
-  concurrency          = 80 # Actual service config
-  timeout_seconds      = 300
-  allow_public_access  = true
+  min_instances       = 0  # Actual service config
+  max_instances       = 20 # Actual service config
+  concurrency         = 80 # Actual service config
+  timeout_seconds     = 300
+  allow_public_access = true
 
   common_labels = local.common_labels
 }
