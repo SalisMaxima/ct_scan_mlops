@@ -9,6 +9,9 @@ logger = logging.getLogger(__name__)
 
 TTL_DAYS = 90
 
+# CT scan classification classes (used for per-class aggregation queries)
+_KNOWN_CLASSES = ("adenocarcinoma", "large_cell_carcinoma", "squamous_cell_carcinoma", "normal")
+
 
 class FirestoreFeedbackStore:
     """Feedback store backed by Google Cloud Firestore."""
@@ -16,6 +19,7 @@ class FirestoreFeedbackStore:
     def __init__(self, project_id: str | None = None, collection: str = "feedback"):
         from google.cloud import firestore
 
+        self._firestore = firestore
         self.client = firestore.Client(project=project_id)
         self.collection = collection
 
@@ -49,32 +53,36 @@ class FirestoreFeedbackStore:
         return doc_ref.id
 
     def get_stats(self) -> dict:
-        """Aggregate feedback statistics from Firestore."""
-        docs = self.client.collection(self.collection).stream()
+        """Aggregate feedback statistics using server-side queries.
 
-        total = 0
-        correct = 0
+        Uses Firestore COUNT aggregation for totals and per-class counts,
+        and order_by + limit for recent items.  Avoids streaming the entire
+        collection into memory.
+        """
+        col = self.client.collection(self.collection)
+
+        # Server-side COUNT aggregation (O(1) client-side)
+        total = col.count(alias="total").get()[0][0].value
+        correct = col.where("is_correct", "==", True).count(alias="correct").get()[0][0].value
+
+        # Per-class COUNT queries (one round-trip each)
         class_distribution: dict[str, int] = {}
-        recent: list[dict] = []
+        for class_name in _KNOWN_CLASSES:
+            count = col.where("predicted_class", "==", class_name).count(alias="c").get()[0][0].value
+            if count > 0:
+                class_distribution[class_name] = count
 
-        for doc in docs:
+        # Recent 10 via server-side sort + limit
+        recent: list[dict] = []
+        for doc in col.order_by("timestamp", direction=self._firestore.Query.DESCENDING).limit(10).stream():
             data = doc.to_dict()
-            total += 1
-            if data.get("is_correct"):
-                correct += 1
-            pred_class = data.get("predicted_class", "unknown")
-            class_distribution[pred_class] = class_distribution.get(pred_class, 0) + 1
             recent.append(
                 {
                     "timestamp": data.get("timestamp"),
-                    "predicted_class": pred_class,
+                    "predicted_class": data.get("predicted_class", "unknown"),
                     "is_correct": data.get("is_correct", False),
                 }
             )
-
-        # Sort by timestamp descending and keep 10 most recent
-        recent.sort(key=lambda x: x.get("timestamp") or "", reverse=True)
-        recent = recent[:10]
 
         return {
             "total_feedback": total,
