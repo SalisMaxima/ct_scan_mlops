@@ -42,10 +42,16 @@ jobs:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
       - name: Pull data via DVC
-        run: uv run dvc pull
+        run: |
+          uv run dvc pull
+          echo "Data directory contents:"
+          ls -la data/raw/ 2>/dev/null | head -20 || echo "data/raw/ not found"
 
       - name: Generate dataset samples
-        run: uv run python -m ct_scan_mlops.analysis.diagnose_data --save-images
+        run: |
+          uv run python -m ct_scan_mlops.analysis.diagnose_data --save-images
+          echo "Generated files:"
+          ls -la outputs/reports/data_diagnostics/ 2>/dev/null || echo "Output directory not created"
 
       - name: Add sample image to summary
         run: |
