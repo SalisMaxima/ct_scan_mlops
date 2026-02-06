@@ -27,7 +27,7 @@ def main(cfg: DictConfig):
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--checkpoint", type=str, required=True, help="Path to model checkpoint")
-    args = parser.parse_args()
+    args, _ = parser.parse_known_args()
 
     checkpoint_path = Path(args.checkpoint)
     if not checkpoint_path.exists():

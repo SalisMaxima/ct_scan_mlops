@@ -22,7 +22,7 @@ def main(cfg: DictConfig):
     parser.add_argument("--dataset", type=str, default="test", choices=["train", "val", "test"])
     parser.add_argument("--batch-size", type=int, default=32, help="Batch size for inference")
     parser.add_argument("--num-batches", type=int, default=10, help="Number of batches to benchmark")
-    args = parser.parse_args()
+    args, _ = parser.parse_known_args()
 
     checkpoint_path = Path(args.checkpoint)
     if not checkpoint_path.exists():
@@ -40,10 +40,11 @@ def main(cfg: DictConfig):
     model = loaded_model.model
     model.eval()
 
-    # Load data
+    # Load data — use correct Lightning stage for the requested split
+    stage = "fit" if args.dataset in ("train", "val") else "test"
     logger.info(f"Loading {args.dataset} dataset...")
     datamodule = ChestCTDataModule(cfg.data)
-    datamodule.setup("test")
+    datamodule.setup(stage)
 
     if args.dataset == "train":
         dataloader = datamodule.train_dataloader()

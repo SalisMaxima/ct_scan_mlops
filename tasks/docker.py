@@ -171,7 +171,7 @@ def api_frontend(
         f"-p {api_port}:8000 "
         f"-v {model_mount} "
         f"-v {config_mount} "
-        f"-e MODEL_PATH=/app/outputs/checkpoints/model.pt "
+        f"-e MODEL_PATH=/app/models/model.pt "
         f"-e CONFIG_PATH=/app/configs/{config_host.name} "
         "ct-scan-api",
         echo=True,

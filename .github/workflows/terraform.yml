@@ -67,8 +67,8 @@ jobs:
         id: plan
         working-directory: infrastructure/terraform/environments/prod
         run: |
+          set -o pipefail
           terraform plan -no-color -out=tfplan 2>&1 | tee plan_output.txt
-          echo "exit_code=$?" >> "$GITHUB_OUTPUT"
         continue-on-error: true
 
       - name: Post plan to PR
@@ -92,7 +92,7 @@ jobs:
             ${planOutput}
             \`\`\`
 
-            *Plan exit code: ${{ steps.plan.outcome }}*
+            *Plan status: ${{ steps.plan.outcome }}*
             `;
 
             // Find existing comment to update

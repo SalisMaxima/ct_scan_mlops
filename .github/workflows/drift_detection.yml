@@ -43,7 +43,11 @@ jobs:
         id: drift
         run: |
           RESPONSE=$(curl -sf "${{ steps.service.outputs.url }}/monitoring/drift?write_html=true" || echo '{}')
-          echo "response=$RESPONSE" >> "$GITHUB_OUTPUT"
+          {
+            echo 'response<<EOF'
+            echo "$RESPONSE"
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
 
           DATASET_DRIFT=$(echo "$RESPONSE" | jq -r '.dataset_drift // "null"')
           SHARE_DRIFTED=$(echo "$RESPONSE" | jq -r '.share_drifted_columns // "0"')

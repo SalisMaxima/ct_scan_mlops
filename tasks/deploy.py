@@ -104,8 +104,6 @@ def frontend(ctx: Context, port: int = 8501, api_url: str = "http://localhost:80
         invoke deploy.frontend
         invoke deploy.frontend --port 8080 --api-url http://localhost:5000
     """
-    import os
-
     os.environ["API_URL"] = api_url
     ctx.run(
         f"uv run streamlit run src/{PROJECT_NAME}/frontend/pages/home.py --server.port {port}",

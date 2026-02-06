@@ -75,7 +75,7 @@ def test_watch(ctx: Context) -> None:
         raise
 
 
-@task(pre=[ruff])
+@task
 def ci(ctx: Context) -> None:
     """Run full CI pipeline locally (lint + format check + tests).
 

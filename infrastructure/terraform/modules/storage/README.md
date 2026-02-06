@@ -61,7 +61,6 @@ terraform import module.storage.google_storage_bucket.models dtu-mlops-data-4829
 
 ## Notes
 
-- `force_destroy = false` on state, DVC, and models buckets to prevent accidental deletion
-- `force_destroy = true` on drift logs bucket (logs can be recreated)
+- `force_destroy = false` on all buckets (state, DVC, models, drift logs) to prevent accidental deletion
 - Lifecycle rules prevent unbounded storage costs
 - Versioning provides disaster recovery capability

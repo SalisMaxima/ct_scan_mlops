@@ -5,7 +5,6 @@ import os
 from invoke import Context, task
 
 WINDOWS = os.name == "nt"
-PROJECT_NAME = "ct_scan_mlops"
 
 
 @task
@@ -82,7 +81,7 @@ def env_info(ctx: Context) -> None:
     print("=" * 60)
 
     print("\nPython:")
-    ctx.run("python --version", echo=True, pty=not WINDOWS)
+    ctx.run("uv run python --version", echo=True, pty=not WINDOWS)
 
     print("\nuv:")
     ctx.run("uv --version", echo=True, pty=not WINDOWS)
