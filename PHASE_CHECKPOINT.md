@@ -9,8 +9,8 @@
 
 ### Active Phase
 **Phase 4: CI/CD + Firestore Migration (Week 4)**
-- **Status:** 🔄 IN PROGRESS (code complete, pending terraform apply + deploy)
-- **Progress:** 80%
+- **Status:** 🔄 IN PROGRESS (deployed + verified, pending merge to master for CI/CD workflows)
+- **Progress:** 95%
 - **Depends On:** Phase 3 (COMPLETE)
 
 ### Overall Progress
@@ -193,11 +193,20 @@ Terraform can safely modify, apply, and revert changes to all 52 production GCP 
 | `src/ct_scan_mlops/api.py` | Replace SQLite with feedback store, mount drift API |
 | `infrastructure/terraform/environments/prod/main.tf` | Expand IAM roles, add env vars |
 
-#### Remaining Steps
-- [ ] `terraform apply` to expand IAM roles (manual one-time bootstrap)
-- [ ] Deploy updated API to Cloud Run (rebuild Docker image)
-- [ ] Test all endpoints end-to-end
-- [ ] Verify Terraform CI/CD with a test PR
+#### Completed Deployment Steps
+- [x] `terraform apply` — 6 IAM roles created, Cloud Run env vars updated (roles/billing.user removed — not project-level)
+- [x] Docker image built and pushed (tag: dd0e952899be4521714d9d78b6f197e88f9dd507)
+- [x] Cloud Run deployed via Terraform (revision ct-scan-api-00060-ltf, traffic routed to latest)
+- [x] `/health` — 200 OK, dual_pathway model loaded, 16 features
+- [x] `/monitoring/health` — drift config with /gcs/drift/ paths
+- [x] `/feedback` — Firestore doc created (ID: YiQPUslvmBoewAsyJ4bK)
+- [x] `/feedback/stats` — returns aggregated Firestore data
+- [x] `terraform plan` = No changes
+
+#### Remaining
+- [ ] Merge feature branch to master (enables Terraform CI/CD and drift detection workflows)
+- [ ] Verify Terraform CI/CD with a test PR after merge
+- [ ] Manually trigger drift detection workflow after merge
 
 ---
 

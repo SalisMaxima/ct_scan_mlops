@@ -234,9 +234,9 @@ class TestFeedbackStatsEndpoint:
 
     def test_feedback_stats_returns_summary(self, client, tmp_path):
         """Test feedback stats endpoint returns summary."""
-        # Initialize feedback database in temp location
-        api.FEEDBACK_DB = tmp_path / "feedback.db"
-        api.init_feedback_db()
+        from ct_scan_mlops.feedback_store import SqliteFeedbackStore
+
+        api.feedback_store = SqliteFeedbackStore(db_path=str(tmp_path / "feedback.db"))
 
         response = client.get("/feedback/stats")
         assert response.status_code == 200
@@ -253,9 +253,10 @@ class TestFeedbackEndpoint:
     """Tests for /feedback endpoint."""
 
     def test_feedback_saves_correct_prediction(self, client, sample_image, tmp_path):
+        from ct_scan_mlops.feedback_store import SqliteFeedbackStore
+
         api.FEEDBACK_DIR = tmp_path / "feedback"
-        api.FEEDBACK_DB = tmp_path / "feedback.db"
-        api.init_feedback_db()
+        api.feedback_store = SqliteFeedbackStore(db_path=str(tmp_path / "feedback.db"))
 
         response = client.post(
             "/feedback",
@@ -276,9 +277,10 @@ class TestFeedbackEndpoint:
         assert saved_path.parent.name == "normal"
 
     def test_feedback_saves_in_correct_class(self, client, sample_image, tmp_path):
+        from ct_scan_mlops.feedback_store import SqliteFeedbackStore
+
         api.FEEDBACK_DIR = tmp_path / "feedback"
-        api.FEEDBACK_DB = tmp_path / "feedback.db"
-        api.init_feedback_db()
+        api.feedback_store = SqliteFeedbackStore(db_path=str(tmp_path / "feedback.db"))
 
         response = client.post(
             "/feedback",
