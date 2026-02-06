@@ -6,8 +6,6 @@ import hydra
 from loguru import logger
 from omegaconf import DictConfig
 
-from ct_scan_mlops.models import load_model
-
 
 def count_parameters(model):
     """Count model parameters."""
@@ -41,8 +39,12 @@ def main(cfg: DictConfig):
     logger.info("=" * 60)
 
     # Load model
+    from ct_scan_mlops.analysis.core import load_model_from_checkpoint
+    from ct_scan_mlops.utils import get_device
+
     logger.info(f"Loading model from {checkpoint_path}...")
-    model = load_model(cfg.model, checkpoint_path)
+    device = get_device()
+    model = load_model_from_checkpoint(checkpoint_path, cfg.model, device)
 
     # Count parameters
     total_params, trainable_params = count_parameters(model)

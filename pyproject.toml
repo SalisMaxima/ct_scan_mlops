@@ -175,6 +175,5 @@ omit = [
 [project.scripts]
 train = "ct_scan_mlops.train:train"
 sweep-train = "ct_scan_mlops.sweep_train:main"
-evaluate = "ct_scan_mlops.evaluate:evaluate"
-visualize = "ct_scan_mlops.visualize:visualize"
+evaluate = "ct_scan_mlops.evaluate:evaluate_model"
 api = "ct_scan_mlops.api:app"

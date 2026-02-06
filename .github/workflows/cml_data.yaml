@@ -53,7 +53,7 @@ jobs:
         run: uv run dvc pull
 
       - name: Generate dataset samples
-        run: uv run python -m ct_scan_mlops.dataset --save-images
+        run: uv run python -m ct_scan_mlops.analysis.diagnose_data --save-images
 
       - name: Add sample image to summary
         run: |
