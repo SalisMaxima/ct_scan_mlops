@@ -36,14 +36,6 @@ jobs:
           uv sync --all-extras --dev
           uv pip list
 
-      - name: Authenticate to Google Cloud
-
-        uses: google-github-actions/auth@v3
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
-      - name: Pull data with DVC
-        run: uv run dvc pull
-
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v3
         with:
@@ -57,7 +49,7 @@ jobs:
 
       - name: Add sample image to summary
         run: |
-          image_path="reports/figures/ct_scan_images.png"
+          image_path="outputs/reports/data_diagnostics/ct_scan_images.png"
 
           {
             echo "## CT Scan Sample Images"
@@ -79,7 +71,7 @@ jobs:
         env:
           REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          image_path="reports/figures/ct_scan_images.png"
+          image_path="outputs/reports/data_diagnostics/ct_scan_images.png"
 
           {
             echo "## CT Scan Sample Images"
