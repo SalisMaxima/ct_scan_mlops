@@ -90,9 +90,9 @@ resource "google_monitoring_alert_policy" "high_error_rate" {
   conditions {
     display_name = "Error rate > 5% over 5 minutes"
     condition_threshold {
-      filter     = "resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"${var.cloud_run_service_name}\" AND metric.type=\"run.googleapis.com/request_count\""
-      duration   = "300s"
-      comparison = "COMPARISON_GT"
+      filter          = "resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"${var.cloud_run_service_name}\" AND metric.type=\"run.googleapis.com/request_count\""
+      duration        = "300s"
+      comparison      = "COMPARISON_GT"
       threshold_value = var.high_error_rate_threshold
       aggregations {
         alignment_period     = "60s"

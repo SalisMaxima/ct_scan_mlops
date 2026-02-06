@@ -43,7 +43,7 @@ def main():
             first_class = next(iter(classes.keys()))
             sample_files = list((split_dir / first_class).glob("*.pt"))
             if sample_files:
-                sample = torch.load(sample_files[0])
+                sample = torch.load(sample_files[0], weights_only=True)
                 logger.info(f"  Sample shape: {sample.shape}")
                 logger.info(f"  Data type: {sample.dtype}")
 

@@ -50,7 +50,7 @@ def main():
             samples_to_check = min(5, len(tensor_files))
             for tensor_file in tensor_files[:samples_to_check]:
                 try:
-                    tensor = torch.load(tensor_file)
+                    tensor = torch.load(tensor_file, weights_only=True)
 
                     # Check shape
                     if len(tensor.shape) != 3:

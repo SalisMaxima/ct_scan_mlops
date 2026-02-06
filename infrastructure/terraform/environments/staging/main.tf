@@ -79,7 +79,7 @@ module "artifact_registry" {
   ]
 
   enable_cloud_build_access = true
-  image_retention_days      = 60  # Between dev and prod
+  image_retention_days      = 60 # Between dev and prod
   minimum_versions_to_keep  = 4
 
   common_labels = local.common_labels
@@ -136,12 +136,12 @@ module "secret_manager" {
     "serviceAccount:${module.iam.cloud_run_sa_email}",
   ]
 
-  create_slack_webhook_secret = true  # Test notifications in staging
+  create_slack_webhook_secret = true # Test notifications in staging
   slack_webhook_accessors = [
     "serviceAccount:${module.iam.monitoring_sa_email}",
   ]
 
-  create_pagerduty_secret = false  # Not needed for staging
+  create_pagerduty_secret = false # Not needed for staging
 
   common_labels = local.common_labels
 }
@@ -157,9 +157,9 @@ module "workload_identity" {
   github_repository  = var.github_repository
   repository_filter  = var.github_repository
 
-  pool_id              = "github-pool-staging"
-  provider_id          = "github-provider-staging"
-  pool_display_name    = "GitHub Actions Pool (Staging)"
+  pool_id               = "github-pool-staging"
+  provider_id           = "github-provider-staging"
+  pool_display_name     = "GitHub Actions Pool (Staging)"
   provider_display_name = "GitHub OIDC Provider (Staging)"
 }
 
@@ -167,10 +167,10 @@ module "workload_identity" {
 module "firestore" {
   source = "../../modules/firestore"
 
-  project_id   = var.project_id
-  database_id  = "staging"
-  location_id  = "eur3"
-  enable_pitr  = true  # Production-like
+  project_id  = var.project_id
+  database_id = "staging"
+  location_id = "eur3"
+  enable_pitr = true # Production-like
 }
 
 # Budget Module
@@ -180,13 +180,13 @@ module "budget" {
   billing_account       = var.billing_account
   project_id            = var.project_id
   project_number        = var.project_number
-  monthly_budget_amount = 250  # Between dev and prod
+  monthly_budget_amount = 250 # Between dev and prod
   currency_code         = "USD"
 
   budget_display_name = "CT Scan MLOps Staging Budget"
 
   disable_default_email_recipients = false
-  create_pubsub_subscription      = false
+  create_pubsub_subscription       = false
 
   common_labels = local.common_labels
 }
@@ -201,8 +201,8 @@ module "cloud_run" {
   container_image       = var.container_image
   service_account_email = module.iam.cloud_run_sa_email
 
-  cpu_limit    = "2000m"  # Same as prod
-  memory_limit = "4Gi"    # Same as prod
+  cpu_limit    = "2000m" # Same as prod
+  memory_limit = "4Gi"   # Same as prod
 
   environment_variables = {
     PROJECT_ID  = var.project_id
@@ -224,10 +224,10 @@ module "cloud_run" {
     read_only  = true
   }
 
-  min_instances        = 1  # Keep warm like prod
-  max_instances        = 5  # Lower max than prod
-  timeout_seconds      = 300
-  allow_public_access  = true
+  min_instances       = 1 # Keep warm like prod
+  max_instances       = 5 # Lower max than prod
+  timeout_seconds     = 300
+  allow_public_access = true
 
   common_labels = local.common_labels
 }
@@ -248,7 +248,7 @@ module "monitoring" {
   # Production-like thresholds
   high_error_rate_threshold     = 0.05
   elevated_error_rate_threshold = 0.02
-  memory_exhaustion_threshold   = 0.85  # Use recommended 85%
+  memory_exhaustion_threshold   = 0.85 # Use recommended 85%
   high_cpu_threshold            = 0.80
   high_latency_threshold_ms     = 2000
   crash_loop_restart_threshold  = 3

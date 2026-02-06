@@ -79,8 +79,8 @@ module "artifact_registry" {
   ]
 
   enable_cloud_build_access = true
-  image_retention_days      = 30  # Shorter retention for dev
-  minimum_versions_to_keep  = 3   # Fewer versions for dev
+  image_retention_days      = 30 # Shorter retention for dev
+  minimum_versions_to_keep  = 3  # Fewer versions for dev
 
   common_labels = local.common_labels
 }
@@ -136,8 +136,8 @@ module "secret_manager" {
     "serviceAccount:${module.iam.cloud_run_sa_email}",
   ]
 
-  create_slack_webhook_secret = false  # Not needed for dev
-  create_pagerduty_secret     = false  # Not needed for dev
+  create_slack_webhook_secret = false # Not needed for dev
+  create_pagerduty_secret     = false # Not needed for dev
 
   common_labels = local.common_labels
 }
@@ -153,9 +153,9 @@ module "workload_identity" {
   github_repository  = var.github_repository
   repository_filter  = var.github_repository
 
-  pool_id              = "github-pool-dev"
-  provider_id          = "github-provider-dev"
-  pool_display_name    = "GitHub Actions Pool (Dev)"
+  pool_id               = "github-pool-dev"
+  provider_id           = "github-provider-dev"
+  pool_display_name     = "GitHub Actions Pool (Dev)"
   provider_display_name = "GitHub OIDC Provider (Dev)"
 }
 
@@ -180,13 +180,13 @@ module "budget" {
   billing_account       = var.billing_account
   project_id            = var.project_id
   project_number        = var.project_number
-  monthly_budget_amount = 100  # Lower budget for dev
+  monthly_budget_amount = 100 # Lower budget for dev
   currency_code         = "USD"
 
   budget_display_name = "CT Scan MLOps Dev Budget"
 
   disable_default_email_recipients = false
-  create_pubsub_subscription      = false
+  create_pubsub_subscription       = false
 
   common_labels = local.common_labels
 }
@@ -201,8 +201,8 @@ module "cloud_run" {
   container_image       = var.container_image
   service_account_email = module.iam.cloud_run_sa_email
 
-  cpu_limit    = "1000m"  # Smaller for dev
-  memory_limit = "2Gi"    # Smaller for dev
+  cpu_limit    = "1000m" # Smaller for dev
+  memory_limit = "2Gi"   # Smaller for dev
 
   environment_variables = {
     PROJECT_ID  = var.project_id
@@ -224,10 +224,10 @@ module "cloud_run" {
     read_only  = true
   }
 
-  min_instances        = 0  # Scale to zero in dev
-  max_instances        = 3  # Lower max for dev
-  timeout_seconds      = 300
-  allow_public_access  = true
+  min_instances       = 0 # Scale to zero in dev
+  max_instances       = 3 # Lower max for dev
+  timeout_seconds     = 300
+  allow_public_access = true
 
   common_labels = local.common_labels
 }
