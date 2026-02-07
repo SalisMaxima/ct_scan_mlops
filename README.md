@@ -21,6 +21,8 @@ We use **PyTorch** as the deep learning framework since it is one of the most fl
 
 ## Data
 
+> **Data Quality Disclaimer:** This is an academic course project focused on learning MLOps practices, not on producing a reliable clinical model. The underlying Kaggle dataset has known quality issues: the `normal` class contains Windows-style copy-paste duplicates (`5 - Copy (2).png`, etc.) that leak across the train/test/valid splits (22 duplicate groups, 120 images). The `normal` class also carries text overlays, colored annotations, and watermarks not present in the other classes, which the model could exploit as shortcuts. Reported accuracy figures (especially for the `normal` class) should be interpreted with this in mind.
+
 **Source:** [Chest CT-Scan Images Dataset](https://www.kaggle.com/datasets/mohamedhanyyy/chest-ctscan-images) from Kaggle
 
 The dataset contains ~1000 images with somewhat balanced volume across 4 classifications. We apply data augmentation with rotations and translations to make our model more robust to variations in scan positioning.
@@ -28,7 +30,7 @@ The dataset contains ~1000 images with somewhat balanced volume across 4 classif
 **Preprocessing:**
 
 1. Standardize data to the correct file format (nearly all images are PNG while 12 images are JPEG - these are converted to PNG)
-2. Data is pre-split into training (70%), validation (20%), and test (10%) sets to minimize data leakage
+2. Data is pre-split into training (70%), validation (20%), and test (10%) sets by the original dataset authors (note: the `normal` class contains cross-split duplicates — see disclaimer above)
 
 ## Models
 
