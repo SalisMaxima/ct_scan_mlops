@@ -160,6 +160,7 @@ jobs:
         run: |
           # Submit the job using the securely configured job.yaml from previous step
           JOB_NAME=$(gcloud ai custom-jobs create \
+            --project=${{ vars.GCP_PROJECT_ID }} \
             --region=${{ vars.GAR_LOCATION }} \
             --display-name="ct-scan-train-$(date +%Y%m%d-%H%M%S)" \
             --config=job.yaml \

@@ -166,6 +166,7 @@ jobs:
       - name: Verify Cloud Run health
         run: |
           SERVICE_URL=$(gcloud run services describe ct-scan-api \
+            --project=${{ vars.GCP_PROJECT_ID }} \
             --region=europe-west1 \
             --format='value(status.url)')
           echo "Checking health at $SERVICE_URL/health..."

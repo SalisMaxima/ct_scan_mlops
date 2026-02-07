@@ -60,6 +60,7 @@ jobs:
         # Terraform-managed vars and break the service.
         run: |
           gcloud run deploy ct-scan-api \
+            --project "${{ vars.GCP_PROJECT_ID }}" \
             --image "$IMAGE_URI" \
             --region "${{ vars.GAR_LOCATION }}" \
             --platform managed

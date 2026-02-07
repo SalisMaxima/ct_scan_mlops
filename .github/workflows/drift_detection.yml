@@ -1,8 +1,6 @@
 name: Drift Detection
 
 on:
-  schedule:
-    - cron: "0 */6 * * *"  # Every 6 hours
   workflow_dispatch:
 
 permissions:
@@ -31,6 +29,7 @@ jobs:
         id: service
         run: |
           SERVICE_URL=$(gcloud run services describe ct-scan-api \
+            --project=${{ vars.GCP_PROJECT_ID }} \
             --region=europe-west1 \
             --format='value(status.url)')
           echo "url=$SERVICE_URL" >> "$GITHUB_OUTPUT"

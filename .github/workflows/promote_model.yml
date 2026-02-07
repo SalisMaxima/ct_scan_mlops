@@ -142,8 +142,9 @@ jobs:
           # Force a new revision by redeploying with the same image
           # This causes the service to restart and load the new model from GCS
           gcloud run deploy "${{ inputs.cloud_run_service }}" \
+            --project="${{ vars.GCP_PROJECT_ID }}" \
             --region="${{ inputs.cloud_run_region }}" \
-            --image="$(gcloud run services describe ${{ inputs.cloud_run_service }} --region=${{ inputs.cloud_run_region }} --format='value(spec.template.spec.containers[0].image)')"
+            --image="$(gcloud run services describe ${{ inputs.cloud_run_service }} --project=${{ vars.GCP_PROJECT_ID }} --region=${{ inputs.cloud_run_region }} --format='value(spec.template.spec.containers[0].image)')"
           echo "✓ Cloud Run service updated"
 
       - name: Promote in W&B Registry
