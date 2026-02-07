@@ -115,7 +115,7 @@ def env_export(ctx: Context, output: str = "environment.txt") -> None:
         invoke utils.env-export
         invoke utils.env-export --output requirements.txt
     """
-    ctx.run(f"uv pip freeze > {output}", echo=True, pty=not WINDOWS)
+    ctx.run(f'uv pip freeze > "{output}"', echo=True, pty=not WINDOWS)
     print(f"✓ Environment exported to {output}")
 
 

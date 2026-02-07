@@ -1,10 +1,11 @@
 """Display model information (size, parameters, architecture)."""
 
+import argparse
+import sys
 from pathlib import Path
 
-import hydra
 from loguru import logger
-from omegaconf import DictConfig
+from omegaconf import OmegaConf
 
 
 def count_parameters(model):
@@ -20,19 +21,19 @@ def get_model_size(checkpoint_path):
     return size_bytes / (1024 * 1024)
 
 
-@hydra.main(config_path="../../configs", config_name="config", version_base=None)
-def main(cfg: DictConfig):
+def main():
     """Show model information."""
-    import argparse
-
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description="Display model information")
     parser.add_argument("--checkpoint", type=str, required=True, help="Path to model checkpoint")
-    args, _ = parser.parse_known_args()
+    parser.add_argument("--config", type=str, default="configs/config.yaml", help="Path to Hydra config")
+    args = parser.parse_args()
 
     checkpoint_path = Path(args.checkpoint)
     if not checkpoint_path.exists():
         logger.error(f"Checkpoint not found: {checkpoint_path}")
-        return
+        sys.exit(1)
+
+    cfg = OmegaConf.load(args.config)
 
     logger.info("=" * 60)
     logger.info("Model Information")
@@ -44,7 +45,7 @@ def main(cfg: DictConfig):
 
     logger.info(f"Loading model from {checkpoint_path}...")
     device = get_device()
-    model = load_model_from_checkpoint(checkpoint_path, cfg.model, device)
+    model = load_model_from_checkpoint(checkpoint_path, cfg, device)
 
     # Count parameters
     total_params, trainable_params = count_parameters(model)
@@ -53,7 +54,7 @@ def main(cfg: DictConfig):
     file_size = get_model_size(checkpoint_path)
 
     # Print information
-    logger.info(f"\nModel: {cfg.model._target_}")
+    logger.info(f"\nModel: {cfg.model.name}")
     logger.info(f"Checkpoint: {checkpoint_path}")
     logger.info("\nParameters:")
     logger.info(f"  Total: {total_params:,}")

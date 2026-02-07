@@ -55,7 +55,7 @@ jobs:
           echo "Skipping automated testing — manual validation required before promotion."
 
       - name: Promote to production
-        if: success()
+        if: false  # Disabled: automated testing not yet implemented (see TODO above)
         env:
           WANDB_API_KEY: ${{ secrets.WANDB_API_KEY }}
         run: |

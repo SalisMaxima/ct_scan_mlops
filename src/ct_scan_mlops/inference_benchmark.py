@@ -1,33 +1,34 @@
 """Benchmark model inference speed and throughput."""
 
+import argparse
+import sys
 import time
 from pathlib import Path
 
-import hydra
 import torch
 from loguru import logger
-from omegaconf import DictConfig
+from omegaconf import OmegaConf
 
 from ct_scan_mlops.analysis.core import load_model_from_checkpoint
 from ct_scan_mlops.data import ChestCTDataModule
 
 
-@hydra.main(config_path="../../configs", config_name="config", version_base=None)
-def main(cfg: DictConfig):
+def main():
     """Benchmark model inference."""
-    import argparse
-
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description="Benchmark model inference speed")
     parser.add_argument("--checkpoint", type=str, required=True, help="Path to model checkpoint")
+    parser.add_argument("--config", type=str, default="configs/config.yaml", help="Path to Hydra config")
     parser.add_argument("--dataset", type=str, default="test", choices=["train", "val", "test"])
     parser.add_argument("--batch-size", type=int, default=32, help="Batch size for inference")
     parser.add_argument("--num-batches", type=int, default=10, help="Number of batches to benchmark")
-    args, _ = parser.parse_known_args()
+    args = parser.parse_args()
 
     checkpoint_path = Path(args.checkpoint)
     if not checkpoint_path.exists():
         logger.error(f"Checkpoint not found: {checkpoint_path}")
-        return
+        sys.exit(1)
+
+    cfg = OmegaConf.load(args.config)
 
     logger.info("=" * 60)
     logger.info("Model Inference Benchmark")
@@ -36,8 +37,7 @@ def main(cfg: DictConfig):
     # Load model
     logger.info(f"Loading model from {checkpoint_path}...")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    loaded_model = load_model_from_checkpoint(checkpoint_path, cfg, device)
-    model = loaded_model.model
+    model = load_model_from_checkpoint(checkpoint_path, cfg, device)
     model.eval()
 
     # Load data — use correct Lightning stage for the requested split

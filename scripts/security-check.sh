@@ -165,7 +165,7 @@ fi
 
 # --- Python/Pip Dangers ---
 # Block pip install from untrusted sources
-if echo "$COMMAND" | grep -qE "pip\s+install\s+.*--index-url\s+(?!https://(pypi\.org|files\.pythonhosted\.org))"; then
+if echo "$COMMAND" | grep -qE "pip\s+install\s+.*--index-url" && ! echo "$COMMAND" | grep -qE "--index-url\s+https://(pypi\.org|files\.pythonhosted\.org)"; then
     echo "⚠️  WARNING: pip install from non-PyPI source"
 fi
 

@@ -93,7 +93,7 @@
 
 **Common Commands**:
 ```bash
-invoke ruff      # Lint + format
-invoke test      # Run tests
-invoke train     # Train model
+invoke quality.ruff   # Lint + format
+invoke quality.test   # Run tests
+invoke train.train    # Train model
 ```
