@@ -10,6 +10,10 @@ on:
     paths:
       - "infrastructure/terraform/**"
 
+concurrency:
+  group: terraform-state
+  cancel-in-progress: false
+
 permissions:
   contents: read
   id-token: write
