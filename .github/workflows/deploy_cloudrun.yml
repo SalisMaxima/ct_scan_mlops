@@ -54,16 +54,12 @@ jobs:
           echo "IMAGE_URI=${{ vars.GAR_LOCATION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GAR_REPO }}/ct-scan-api:${{ github.sha }}" >> $GITHUB_ENV
 
       - name: Deploy to Cloud Run
+        # Only update the image — all other config (env vars, volumes, memory,
+        # CPU, IAM) is managed by Terraform and inherited from the current
+        # serving revision.  Using --set-env-vars here would REPLACE
+        # Terraform-managed vars and break the service.
         run: |
           gcloud run deploy ct-scan-api \
             --image "$IMAGE_URI" \
             --region "${{ vars.GAR_LOCATION }}" \
-            --platform managed \
-            --allow-unauthenticated \
-            --memory 4Gi \
-            --cpu 2 \
-            --cpu-boost \
-            --startup-probe tcpSocket.port=8080,periodSeconds=10,failureThreshold=24 \
-            --add-volume name=models,type=cloud-storage,bucket=${{ vars.GCS_BUCKET }} \
-            --add-volume-mount volume=models,mount-path=/models \
-            --set-env-vars "CONFIG_PATH=/models/configs/prod_config.yaml,MODEL_PATH=/models/models/model.pt,FEATURE_METADATA_PATH=/models/models/feature_metadata.json"
+            --platform managed

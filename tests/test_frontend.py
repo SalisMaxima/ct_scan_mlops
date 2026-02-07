@@ -56,8 +56,11 @@ def test_send_feedback_correct(monkeypatch):
         api_base_url="http://localhost:8000",
         uploaded_file=DummyUpload(),
         predicted_class="normal",
+        predicted_confidence=0.95,
         is_correct=True,
         correct_class=None,
+        user_note=None,
+        confidence_rating=None,
     )
 
     assert result == {"ok": True}
@@ -79,8 +82,11 @@ def test_send_feedback_incorrect(monkeypatch):
         api_base_url="http://localhost:8000",
         uploaded_file=DummyUpload(),
         predicted_class="normal",
+        predicted_confidence=0.75,
         is_correct=False,
         correct_class="adenocarcinoma",
+        user_note=None,
+        confidence_rating=None,
     )
 
     assert result == {"ok": True}

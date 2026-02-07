@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import base64
 import io
 import json
 import logging
@@ -16,6 +17,7 @@ import numpy as np
 import pandas as pd
 import psutil
 import torch
+import torch.nn.functional as F
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from hydra import compose, initialize_config_dir
 from omegaconf import DictConfig, OmegaConf
@@ -26,11 +28,12 @@ from torchvision import transforms
 
 from ct_scan_mlops.data import CLASSES, IMAGENET_MEAN, IMAGENET_STD
 from ct_scan_mlops.features.extractor import FeatureConfig, FeatureExtractor
+from ct_scan_mlops.feedback_store import create_feedback_store
 from ct_scan_mlops.model import DualPathwayModel, build_model
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-DEFAULT_CONFIG_PATH = Path("configs") / "config.yaml"  # change if your file name differs
+DEFAULT_CONFIG_PATH = Path("configs") / "config.yaml"
 DEFAULT_CKPT_PATH = Path("outputs/checkpoints") / "best_model.ckpt"
 DEFAULT_PT_PATH = Path("outputs/checkpoints") / "model.pt"
 DEFAULT_FEATURE_METADATA_PATH = Path("outputs/checkpoints") / "feature_metadata.json"
@@ -98,6 +101,7 @@ LOAD_MODEL = os.environ.get("LOAD_MODEL", "1") == "1"
 model: torch.nn.Module | None = None
 feature_extractor: FeatureExtractor | None = None
 norm_stats: dict[str, Any] | None = None
+feedback_store = None
 
 tfm = transforms.Compose(
     [
@@ -168,9 +172,145 @@ def _append_row_csv(path: Path, row: dict) -> None:
             df.to_csv(path, mode="a", header=False, index=False)
 
 
+def validate_medical_image(img: Image.Image) -> tuple[bool, str | None]:
+    """Validate image meets medical imaging requirements.
+
+    Returns:
+        Tuple of (is_valid, error_message)
+    """
+    # Check dimensions
+    if img.size[0] < 64 or img.size[1] < 64:
+        return False, "Image too small (minimum 64x64 pixels required)"
+
+    if img.size[0] > 4096 or img.size[1] > 4096:
+        return False, "Image too large (maximum 4096x4096 pixels)"
+
+    # Check if image is likely a CT scan (grayscale intensity check)
+    gray = img.convert("L")
+    arr = np.array(gray)
+
+    # CT scans typically have good contrast
+    if arr.std() < 5:
+        return False, "Image appears to have insufficient contrast for CT analysis"
+
+    # Check for blank/uniform images
+    unique_values = len(np.unique(arr))
+    if unique_values < 10:
+        return False, "Image appears to be blank or uniform"
+
+    return True, None
+
+
+def generate_gradcam_heatmap(
+    model: torch.nn.Module, input_tensor: torch.Tensor, target_class: int | None = None
+) -> Image.Image:
+    """Generate GradCAM heatmap for model explanation.
+
+    Args:
+        model: The neural network model
+        input_tensor: Preprocessed input tensor [1, 3, 224, 224]
+        target_class: Target class index (if None, uses predicted class)
+
+    Returns:
+        PIL Image of the heatmap overlay
+    """
+    model.eval()
+
+    # Get the last convolutional layer
+    # For ResNet18/SimpleCNN, typically the last conv layer before pooling
+    target_layer = None
+    if hasattr(model, "features"):
+        # SimpleCNN or similar architecture
+        for layer in reversed(list(model.features.children())):
+            if isinstance(layer, torch.nn.Conv2d):
+                target_layer = layer
+                break
+    elif hasattr(model, "cnn_pathway") and hasattr(model.cnn_pathway, "features"):
+        # DualPathway model
+        for layer in reversed(list(model.cnn_pathway.features.children())):
+            if isinstance(layer, torch.nn.Conv2d):
+                target_layer = layer
+                break
+
+    if target_layer is None:
+        # Fallback: create a simple attention map based on gradient magnitude
+        input_tensor.requires_grad_(True)
+        output = model(input_tensor)
+        if target_class is None:
+            target_class = output.argmax(dim=1).item()
+
+        model.zero_grad()
+        target_score = output[0, target_class]
+        target_score.backward()
+
+        # Use gradient magnitude as attention
+        grads = input_tensor.grad.data.abs()
+        attention = grads.mean(dim=1).squeeze().cpu().numpy()
+
+        # Normalize
+        attention = (attention - attention.min()) / (attention.max() - attention.min() + 1e-8)
+    else:
+        # Proper GradCAM implementation
+        activations = []
+        gradients = []
+
+        def forward_hook(module, input, output):
+            activations.append(output)
+
+        def backward_hook(module, grad_in, grad_out):
+            gradients.append(grad_out[0])
+
+        forward_handle = target_layer.register_forward_hook(forward_hook)
+        backward_handle = target_layer.register_full_backward_hook(backward_hook)
+
+        try:
+            output = model(input_tensor)
+            if target_class is None:
+                target_class = output.argmax(dim=1).item()
+
+            model.zero_grad()
+            target_score = output[0, target_class]
+            target_score.backward()
+
+            # GradCAM calculation
+            pooled_gradients = gradients[0].mean(dim=[2, 3], keepdim=True)
+            activation = activations[0]
+            weighted_activation = (pooled_gradients * activation).sum(dim=1).squeeze()
+
+            # ReLU and normalize
+            attention = F.relu(weighted_activation).cpu().numpy()
+            attention = (attention - attention.min()) / (attention.max() - attention.min() + 1e-8)
+        finally:
+            forward_handle.remove()
+            backward_handle.remove()
+
+    # Resize attention map to input size
+    from scipy.ndimage import zoom
+
+    attention_resized = zoom(attention, (224 / attention.shape[0], 224 / attention.shape[1]))
+
+    # Create heatmap
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    plt.figure(figsize=(6, 6))
+    plt.imshow(attention_resized, cmap="jet", alpha=0.8)
+    plt.axis("off")
+
+    # Convert to PIL Image
+    buf = io.BytesIO()
+    plt.savefig(buf, format="png", bbox_inches="tight", pad_inches=0)
+    plt.close()
+    buf.seek(0)
+
+    return Image.open(buf)
+
+
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
-    global model, feature_extractor, norm_stats
+    global model, feature_extractor, norm_stats, feedback_store
 
     logger.info("Startup config_path=%s model_path_env=%s", CONFIG_PATH, MODEL_PATH_ENV)
     logger.info("Startup cwd=%s", Path.cwd())
@@ -193,6 +333,14 @@ async def lifespan(_app: FastAPI):
         raise RuntimeError(f"Missing config: {CONFIG_PATH}. Set CONFIG_PATH or add the default file.")
     if not model_path.exists():
         raise RuntimeError(f"Missing model weights: {model_path}. Set MODEL_PATH or include weights in the image.")
+
+    # Initialize feedback store (Firestore or SQLite)
+    try:
+        feedback_store = create_feedback_store()
+        logger.info("Feedback store initialized: %s", type(feedback_store).__name__)
+    except Exception as exc:
+        logger.warning("Failed to initialize feedback store: %s (feedback will be unavailable)", exc)
+        feedback_store = None
 
     # Load feature metadata if available
     metadata_path = FEATURE_METADATA_PATH
@@ -280,38 +428,92 @@ async def lifespan(_app: FastAPI):
 
 
 error_counter = Counter("prediction_error", "Number of prediction errors")
+prediction_counter = Counter("prediction_total", "Total number of predictions")
+prediction_histogram = Gauge("prediction_confidence", "Prediction confidence distribution")
 
-app = FastAPI(title="CT Scan Inference API", version="0.1.0", lifespan=lifespan)
+app = FastAPI(
+    title="CT Scan Classification API",
+    description="""
+    ## Medical Imaging AI Service
+
+    Classify chest CT scans for lung cancer detection using dual-pathway deep learning.
+
+    ### Model Classes
+    - **adenocarcinoma**: Glandular tissue cancer
+    - **large_cell_carcinoma**: Undifferentiated large cell cancer
+    - **squamous_cell_carcinoma**: Squamous epithelium cancer
+    - **normal**: No cancer detected
+
+    ### Workflow
+    1. Upload CT scan via `/predict` endpoint
+    2. Review confidence scores and probability distribution
+    3. Request explanation via `/explain` endpoint (optional)
+    4. Submit feedback for continuous improvement via `/feedback`
+
+    ### Batch Processing
+    Use `/predict/batch` to process multiple images efficiently.
+
+    ⚠️ **Medical Disclaimer**: This is a research tool for educational and experimental purposes.
+    All predictions must be validated by qualified medical professionals.
+    This system should not be used for clinical diagnosis without proper validation.
+    """,
+    version="2.0.0",
+    lifespan=lifespan,
+    docs_url="/docs",
+    redoc_url="/redoc",
+)
 app.mount("/metrics", make_asgi_app())
 
 # HTTP metrics + /metrics endpoint (Prometheus)
 Instrumentator().instrument(app).expose(app, endpoint="/metrics")
 
+# Mount drift detection API (optional — requires evidently)
+try:
+    from ct_scan_mlops.monitoring.drift_api import app as drift_app
+
+    app.mount("/monitoring", drift_app)
+    logger.info("Drift API mounted at /monitoring")
+except ImportError:
+    logger.warning("Drift API not available (evidently not installed)")
+
 
 @app.get("/health")
 def health() -> dict:
-    """Check API health status and model availability."""
+    """Check API health status and model availability.
+
+    Returns comprehensive system information including model configuration,
+    device availability, and feature extraction capabilities.
+    """
     return {
+        "status": "healthy",
         "ok": True,
         "device": str(DEVICE),
         "model_loaded": model is not None,
+        "model_type": "dual_pathway" if isinstance(model, DualPathwayModel) else "single_pathway",
         "features_loaded": feature_extractor is not None,
+        "feature_dim": feature_extractor.feature_dim if feature_extractor else 0,
         "config_path": str(CONFIG_PATH),
         "model_path": str(resolve_model_path()),
+        "classes": CLASS_NAMES,
+        "num_classes": len(CLASS_NAMES),
+        "timestamp": datetime.now(UTC).isoformat(),
     }
 
 
-@app.post("/predict")
-async def predict(file: Annotated[UploadFile, File(...)]) -> dict:
-    """Classify a CT scan image."""
+async def _process_single_image(img_bytes: bytes, filename: str = "upload") -> dict[str, Any]:
+    """Internal helper to process a single image and return prediction results."""
     if model is None:
         raise HTTPException(status_code=503, detail="Model not loaded")
 
-    img_bytes = await file.read()
     try:
         img = Image.open(io.BytesIO(img_bytes)).convert("RGB")
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Invalid image: {e}") from e
+        raise HTTPException(status_code=400, detail=f"Invalid image '{filename}': {e}") from e
+
+    # Validate image
+    is_valid, error_msg = validate_medical_image(img)
+    if not is_valid:
+        raise HTTPException(status_code=422, detail=f"Image validation failed: {error_msg}")
 
     arr = _img_to_np_for_stats(img)
     stats = _compute_stats(arr)
@@ -323,15 +525,13 @@ async def predict(file: Annotated[UploadFile, File(...)]) -> dict:
     if isinstance(model, DualPathwayModel) and feature_extractor is not None and norm_stats is not None:
         try:
             # Extract features from preprocessed tensor (same as training)
-            # Training extracted features from preprocessed tensors [3, 224, 224] with normalized values
-            # Convert preprocessed tensor to numpy for feature extraction
             img_preprocessed = x.squeeze(0).cpu().numpy()  # [3, 224, 224]
             features = feature_extractor.extract(img_preprocessed)
 
             # Normalize
             mean = np.array(norm_stats["mean"], dtype=np.float32)
             std = np.array(norm_stats["std"], dtype=np.float32)
-            # Avoid division by zero if std is 0 (should be handled in training/extraction)
+            # Avoid division by zero if std is 0
             std = np.where(std > 1e-8, std, 1.0)
 
             features = (features - mean) / std
@@ -360,6 +560,7 @@ async def predict(file: Annotated[UploadFile, File(...)]) -> dict:
 
     pred_class = CLASS_NAMES[pred]
 
+    # Log to drift monitoring CSV
     try:
         row = {
             "timestamp": datetime.now(UTC).isoformat(),
@@ -372,20 +573,204 @@ async def predict(file: Annotated[UploadFile, File(...)]) -> dict:
     except Exception:
         pass
 
+    # Update metrics
+    prediction_counter.inc()
+    prediction_histogram.set(pred_conf)
+
     return {
-        "pred_index": pred,
-        "pred_class": CLASS_NAMES[pred],
+        "prediction": {
+            "class": pred_class,
+            "class_index": pred,
+            "confidence": pred_conf,
+        },
+        "probabilities": {CLASS_NAMES[i]: float(probs[i].item()) for i in range(len(CLASS_NAMES))},
+        "metadata": {
+            "model_type": "dual_pathway" if isinstance(model, DualPathwayModel) else "single_pathway",
+            "features_used": features_tensor is not None,
+            "device": str(DEVICE),
+            "timestamp": datetime.now(UTC).isoformat(),
+            "image_stats": stats,
+        },
     }
+
+
+@app.post("/predict")
+async def predict(file: Annotated[UploadFile, File(...)]) -> dict:
+    """Classify a CT scan image with enhanced response including confidence scores.
+
+    Returns detailed prediction results including:
+    - Primary prediction with confidence
+    - Probability distribution across all classes
+    - Model metadata and processing information
+    - Image statistics for drift monitoring
+
+    Args:
+        file: CT scan image file (PNG, JPG, JPEG)
+
+    Returns:
+        Dictionary with prediction, probabilities, and metadata
+
+    Raises:
+        HTTPException: If model not loaded, invalid image, or validation fails
+    """
+    img_bytes = await file.read()
+    return await _process_single_image(img_bytes, file.filename or "upload")
+
+
+@app.post("/predict/batch")
+async def predict_batch(
+    files: Annotated[list[UploadFile], File(...)],
+    max_batch_size: int = 20,
+) -> dict:
+    """Process multiple CT scans in a single batch request.
+
+    Efficiently processes multiple images and returns individual results.
+    Failed images are reported but don't stop batch processing.
+
+    Args:
+        files: List of CT scan image files
+        max_batch_size: Maximum number of images per batch (default: 20)
+
+    Returns:
+        Dictionary with batch summary and individual results
+
+    Raises:
+        HTTPException: If batch size exceeds maximum
+    """
+    if len(files) > max_batch_size:
+        raise HTTPException(status_code=400, detail=f"Batch size {len(files)} exceeds maximum {max_batch_size}")
+
+    results = []
+    for file in files:
+        try:
+            img_bytes = await file.read()
+            result = await _process_single_image(img_bytes, file.filename or "upload")
+            results.append({"filename": file.filename, "success": True, **result})
+        except HTTPException as e:
+            results.append({"filename": file.filename, "success": False, "error": e.detail})
+        except Exception as e:
+            results.append({"filename": file.filename, "success": False, "error": str(e)})
+
+    successful = sum(1 for r in results if r.get("success", False))
+
+    return {
+        "batch_summary": {
+            "total": len(files),
+            "successful": successful,
+            "failed": len(files) - successful,
+            "timestamp": datetime.now(UTC).isoformat(),
+        },
+        "results": results,
+    }
+
+
+@app.post("/explain")
+async def explain_prediction(file: Annotated[UploadFile, File(...)]) -> dict:
+    """Generate explainability heatmap (GradCAM) for a prediction.
+
+    Creates a visual explanation showing which regions of the image
+    the model focused on when making its prediction.
+
+    Args:
+        file: CT scan image file
+
+    Returns:
+        Dictionary with prediction, confidence, and base64-encoded heatmap
+
+    Raises:
+        HTTPException: If model not loaded or explainability generation fails
+    """
+    if model is None:
+        raise HTTPException(status_code=503, detail="Model not loaded")
+
+    img_bytes = await file.read()
+    try:
+        img = Image.open(io.BytesIO(img_bytes)).convert("RGB")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid image: {e}") from e
+
+    # Validate image
+    is_valid, error_msg = validate_medical_image(img)
+    if not is_valid:
+        raise HTTPException(status_code=422, detail=f"Image validation failed: {error_msg}")
+
+    x = tfm(img).unsqueeze(0).to(DEVICE)
+
+    try:
+        # Get prediction first
+        with torch.no_grad():
+            if isinstance(model, DualPathwayModel) and feature_extractor is not None and norm_stats is not None:
+                # Extract features
+                img_preprocessed = x.squeeze(0).cpu().numpy()
+                features = feature_extractor.extract(img_preprocessed)
+                mean = np.array(norm_stats["mean"], dtype=np.float32)
+                std = np.array(norm_stats["std"], dtype=np.float32)
+                std = np.where(std > 1e-8, std, 1.0)
+                features = (features - mean) / std
+                features_tensor = torch.tensor(features, dtype=torch.float32).unsqueeze(0).to(DEVICE)
+                logits = model(x, features=features_tensor)
+            else:
+                logits = model(x)
+
+            probs = torch.softmax(logits, dim=1).squeeze(0)
+            pred_idx = int(torch.argmax(probs).item())
+            pred_conf = float(probs[pred_idx].item())
+
+        # Generate GradCAM heatmap
+        heatmap_img = generate_gradcam_heatmap(model, x, target_class=pred_idx)
+
+        # Encode heatmap as base64
+        buffer = io.BytesIO()
+        heatmap_img.save(buffer, format="PNG")
+        heatmap_b64 = base64.b64encode(buffer.getvalue()).decode()
+
+        return {
+            "prediction": {
+                "class": CLASS_NAMES[pred_idx],
+                "class_index": pred_idx,
+                "confidence": pred_conf,
+            },
+            "explanation": {
+                "heatmap": heatmap_b64,
+                "description": "Highlighted regions show areas the model focused on for this prediction. "
+                "Warmer colors (red/yellow) indicate higher importance.",
+                "method": "GradCAM",
+            },
+            "metadata": {
+                "timestamp": datetime.now(UTC).isoformat(),
+            },
+        }
+    except Exception as e:
+        logger.error("Explainability generation failed: %s", e)
+        raise HTTPException(status_code=500, detail=f"Explainability generation failed: {e}") from e
 
 
 @app.post("/feedback")
 async def feedback(
     file: Annotated[UploadFile, File(...)],
     predicted_class: Annotated[str, Form(...)],
-    is_correct: Annotated[bool, Form(...)],
+    predicted_confidence: Annotated[float, Form(...)] = 0.0,
+    is_correct: Annotated[bool, Form(...)] = True,
     correct_class: Annotated[str | None, Form()] = None,
+    user_note: Annotated[str | None, Form()] = None,
+    confidence_rating: Annotated[str | None, Form()] = None,
 ) -> dict:
-    """Save feedback image into a class-named folder."""
+    """Save user feedback for continuous model improvement.
+
+    Stores both the image and structured metadata in a database for future retraining.
+
+    Args:
+        file: The CT scan image
+        predicted_class: Class predicted by the model
+        predicted_confidence: Model's confidence score
+        is_correct: Whether the prediction was correct
+        correct_class: Actual class if prediction was incorrect
+        user_note: Optional user comments
+        confidence_rating: User's confidence in their assessment
+
+    Returns:
+        Confirmation with save location and database logging status
+    """
     if predicted_class not in CLASS_NAMES:
         raise HTTPException(status_code=400, detail="Invalid predicted_class")
 
@@ -405,6 +790,10 @@ async def feedback(
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Invalid image: {e}") from e
 
+    # Compute image statistics
+    arr = _img_to_np_for_stats(img)
+    stats = _compute_stats(arr)
+
     FEEDBACK_DIR.mkdir(parents=True, exist_ok=True)
     target_dir = FEEDBACK_DIR / target_class
     target_dir.mkdir(parents=True, exist_ok=True)
@@ -415,7 +804,47 @@ async def feedback(
     save_path = target_dir / filename
     img.save(save_path, format="PNG")
 
+    # Log to feedback store
+    feedback_id = None
+    db_logged = False
+    try:
+        if feedback_store is not None:
+            feedback_id = feedback_store.save_feedback(
+                image_path=str(save_path),
+                predicted_class=predicted_class,
+                predicted_confidence=predicted_confidence,
+                is_correct=is_correct,
+                correct_class=correct_class,
+                user_note=user_note,
+                confidence_rating=confidence_rating,
+                image_stats=stats,
+            )
+            db_logged = True
+        else:
+            logger.warning("Feedback store not available; skipping database logging")
+    except Exception as e:
+        logger.error("Failed to log feedback to store: %s", e)
+
     return {
         "saved_to": str(save_path),
         "class": target_class,
+        "logged_to_db": db_logged,
+        "feedback_id": feedback_id,
+        "timestamp": datetime.now(UTC).isoformat(),
     }
+
+
+@app.get("/feedback/stats")
+def feedback_stats() -> dict:
+    """Get statistics about collected feedback.
+
+    Returns summary of feedback data including total count, accuracy metrics,
+    and class distribution.
+    """
+    if feedback_store is None:
+        raise HTTPException(status_code=503, detail="Feedback store not available")
+    try:
+        return feedback_store.get_stats()
+    except Exception as e:
+        logger.error("Failed to retrieve feedback stats: %s", e)
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve feedback stats: {e}") from e

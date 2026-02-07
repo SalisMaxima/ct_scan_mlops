@@ -4,8 +4,8 @@ Chest CT scan multi-classification for lung tumor detection (4 classes: adenocar
 
 ## IMPORTANT
 - **ALWAYS activate environment first: `source .venv/bin/activate`**
-- **After code changes run: `invoke ruff`**
-- **After changing CLAUDE.md run: `invoke sync-ai-config` to sync copilot-instructions.md (do not edit copilot-instructions.md directly; CLAUDE.md is the source of truth)**
+- **After code changes run: `invoke quality.ruff`**
+- **After changing CLAUDE.md run: `invoke core.sync-ai-config` to sync copilot-instructions.md (do not edit copilot-instructions.md directly; CLAUDE.md is the source of truth)**
 - **Always use `uv run` for Python commands** (e.g., `uv run python`, `uv run pytest`)
 - **Always use `uv add` to install packages** (never `pip install`)
 
@@ -14,23 +14,59 @@ Chest CT scan multi-classification for lung tumor detection (4 classes: adenocar
 - uv for package management, invoke for tasks
 - W&B for experiment tracking, DVC for data versioning
 
+## Task Namespaces
+Tasks are organized into namespaces. Use `invoke <namespace>.<task>` or `invoke --list` to see all.
+
+**Key namespaces:**
+- `core` - Environment setup (bootstrap, sync, setup-dev)
+- `data` - Data management (download, preprocess, stats, validate)
+- `train` - Training & sweeps (train, train-dual, sweep)
+- `eval` - Evaluation (analyze, benchmark, profile)
+- `quality` - Code quality (ruff, test, ci, security-check)
+- `deploy` - Deployment (api, frontend, promote-model)
+- `docker` - Docker ops (build, train, clean)
+- `git` - Git ops (status, commit, branch)
+- `dvc` - DVC ops (pull, push, add)
+- `utils` - Utilities (clean-all, env-info, check-gpu)
+
 ## Essential Commands
 ```bash
-invoke ruff          # Lint + format (run after code changes)
-invoke test          # Run tests
-invoke train         # Train model
-invoke dvc-pull      # Get data from remote
+# Setup (run once)
+invoke core.setup-dev                # Complete dev environment setup
+
+# Development workflow
+invoke quality.ruff                  # Lint + format (run after code changes)
+invoke quality.test                  # Run tests
+invoke quality.ci                    # Run full CI pipeline locally
+
+# Data & Training
+invoke data.download                 # Download dataset
+invoke data.preprocess               # Preprocess data
+invoke data.stats                    # Show dataset statistics
+invoke train.train                   # Train model
+invoke dvc.pull                      # Get data from remote
 
 # Sweeps (hyperparameter optimization)
-invoke extract-features --features top_features  # Prepare features for dual pathway sweeps
-invoke prepare-sweep-features                    # Extract all feature configs for sweeps
-invoke sweep                                     # Create W&B sweep
-invoke sweep-agent <SWEEP_ID>                    # Run sweep agent
+invoke data.extract-features --args "features=top_features"
+invoke data.prepare-sweep-features   # Extract all feature configs
+invoke train.sweep                   # Create W&B sweep
+invoke train.sweep-agent --sweep-id <SWEEP_ID>
 
-# Analysis commands (use after training)
-invoke compare-baselines --baseline path/to/baseline.ckpt --improved path/to/improved.ckpt
-invoke analyze-features --checkpoint path/to/model.ckpt
-invoke analyze-errors --checkpoint path/to/model.ckpt
+# Analysis & Benchmarking
+invoke eval.analyze "diagnose --checkpoint path/to/model.ckpt"
+invoke eval.benchmark --checkpoint path/to/model.ckpt
+invoke eval.profile --checkpoint path/to/model.ckpt
+invoke data.validate                 # Validate data integrity
+
+# Deployment
+invoke deploy.api                    # Run API server
+invoke deploy.frontend               # Run Streamlit frontend
+invoke deploy.export-onnx --run-dir outputs/model
+
+# Utilities
+invoke utils.clean-all               # Clean all artifacts
+invoke utils.check-gpu               # Check GPU availability
+invoke utils.env-info                # Show environment info
 ```
 
 ## Key Paths

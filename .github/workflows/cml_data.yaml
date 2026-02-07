@@ -36,28 +36,26 @@ jobs:
           uv sync --all-extras --dev
           uv pip list
 
-      - name: Authenticate to Google Cloud
-
-        uses: google-github-actions/auth@v3
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
-      - name: Pull data with DVC
-        run: uv run dvc pull
-
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v3
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
       - name: Pull data via DVC
-        run: uv run dvc pull
+        run: |
+          uv run dvc pull
+          echo "Data directory contents:"
+          ls -la data/raw/ 2>/dev/null | head -20 || echo "data/raw/ not found"
 
       - name: Generate dataset samples
-        run: uv run python -m ct_scan_mlops.dataset --save-images
+        run: |
+          uv run python -m ct_scan_mlops.analysis.diagnose_data --save-images
+          echo "Generated files:"
+          ls -la outputs/reports/data_diagnostics/ 2>/dev/null || echo "Output directory not created"
 
       - name: Add sample image to summary
         run: |
-          image_path="reports/figures/ct_scan_images.png"
+          image_path="outputs/reports/data_diagnostics/ct_scan_images.png"
 
           {
             echo "## CT Scan Sample Images"
@@ -79,7 +77,7 @@ jobs:
         env:
           REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          image_path="reports/figures/ct_scan_images.png"
+          image_path="outputs/reports/data_diagnostics/ct_scan_images.png"
 
           {
             echo "## CT Scan Sample Images"

@@ -1,0 +1,18 @@
+# Development Environment Configuration
+# Copy to terraform.tfvars and fill in values
+
+project_id     = "dtu-mlops-data-482907"
+project_number = "123456789012"
+region         = "europe-west1"
+
+# Billing
+billing_account = "XXXXXX-XXXXXX-XXXXXX"
+
+# GitHub
+github_repository = "owner/ct_scan_mlops"
+
+# Cloud Run
+container_image = "europe-west1-docker.pkg.dev/dtu-mlops-data-482907/ct-scan-mlops-dev/api:latest"
+
+# Monitoring
+alert_email = "dev-team@example.com"

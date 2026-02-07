@@ -48,11 +48,14 @@ jobs:
         env:
           WANDB_API_KEY: ${{ secrets.WANDB_API_KEY }}
         run: |
-          uv run python -m ct_scan_mlops.test_model \
-            --model-path "${{ steps.model.outputs.path }}"
+          # TODO: Implement W&B model registry testing
+          # The ct_scan_mlops.test_model module was never created.
+          # For now, download the model and run analysis.cli diagnose.
+          echo "Model testing step placeholder for: ${{ steps.model.outputs.path }}"
+          echo "Skipping automated testing — manual validation required before promotion."
 
       - name: Promote to production
-        if: success()
+        if: false  # Disabled: automated testing not yet implemented (see TODO above)
         env:
           WANDB_API_KEY: ${{ secrets.WANDB_API_KEY }}
         run: |

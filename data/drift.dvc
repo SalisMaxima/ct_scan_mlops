@@ -1,6 +1,6 @@
 outs:
-- md5: c889292eb67126a1db5a10da0194316b.dir
-  size: 632035480
-  nfiles: 1848
+- md5: 85f812f44b1bd892ae1a1bb4764a91cf.dir
+  size: 5154
+  nfiles: 1
   hash: md5
   path: drift

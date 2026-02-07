@@ -1,0 +1,174 @@
+name: Terraform CI/CD
+
+on:
+  pull_request:
+    paths:
+      - "infrastructure/terraform/**"
+  push:
+    branches:
+      - master
+    paths:
+      - "infrastructure/terraform/**"
+
+concurrency:
+  group: terraform-state
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+  pull-requests: write
+
+jobs:
+  terraform-check:
+    name: Format & Validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "~> 1.5.0"
+
+      - name: Check formatting
+        run: terraform fmt -check -recursive infrastructure/terraform/
+
+      - name: Validate modules
+        run: |
+          for dir in infrastructure/terraform/modules/*/; do
+            echo "Validating $dir..."
+            cd "$dir"
+            terraform init -backend=false
+            terraform validate
+            cd "$GITHUB_WORKSPACE"
+          done
+
+  terraform-plan:
+    name: Plan (PR)
+    if: github.event_name == 'pull_request'
+    needs: terraform-check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Auth to GCP
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "~> 1.5.0"
+
+      - name: Terraform Init
+        working-directory: infrastructure/terraform/environments/prod
+        run: terraform init
+
+      - name: Terraform Plan
+        id: plan
+        working-directory: infrastructure/terraform/environments/prod
+        run: |
+          set -o pipefail
+          terraform plan -no-color -out=tfplan 2>&1 | tee plan_output.txt
+        continue-on-error: true
+
+      - name: Post plan to PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let planOutput = fs.readFileSync(
+              'infrastructure/terraform/environments/prod/plan_output.txt',
+              'utf8'
+            );
+
+            // Truncate if too long for GitHub comment (max ~65K)
+            if (planOutput.length > 60000) {
+              planOutput = planOutput.substring(0, 60000) + '\n\n... (truncated)';
+            }
+
+            const body = `### Terraform Plan Output
+
+            \`\`\`
+            ${planOutput}
+            \`\`\`
+
+            *Plan status: ${{ steps.plan.outcome }}*
+            `;
+
+            // Find existing comment to update
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(c =>
+              c.body.includes('### Terraform Plan Output')
+            );
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body,
+              });
+            }
+
+      - name: Fail on plan error
+        if: steps.plan.outcome == 'failure'
+        run: exit 1
+
+  terraform-apply:
+    name: Apply (merge to master)
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    needs: terraform-check
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Auth to GCP
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v3
+        with:
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "~> 1.5.0"
+
+      - name: Terraform Init
+        working-directory: infrastructure/terraform/environments/prod
+        run: terraform init
+
+      - name: Terraform Apply
+        working-directory: infrastructure/terraform/environments/prod
+        run: terraform apply -auto-approve
+
+      - name: Verify Cloud Run health
+        run: |
+          SERVICE_URL=$(gcloud run services describe ct-scan-api \
+            --region=europe-west1 \
+            --format='value(status.url)')
+          echo "Checking health at $SERVICE_URL/health..."
+          curl -f --retry 3 --retry-delay 10 "$SERVICE_URL/health"
+          echo ""
+          echo "Health check passed."
