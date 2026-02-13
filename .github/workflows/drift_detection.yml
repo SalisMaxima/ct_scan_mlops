@@ -59,7 +59,7 @@ jobs:
 
       - name: Create issue on significant drift
         if: steps.drift.outputs.dataset_drift == 'true' && steps.drift.outputs.share_drifted > 0.3
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const share = '${{ steps.drift.outputs.share_drifted }}';
