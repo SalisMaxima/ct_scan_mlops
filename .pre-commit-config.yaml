@@ -15,7 +15,7 @@ repos:
       - id: detect-private-key
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.0
+    rev: v0.15.6
     hooks:
       # try to fix what is possible
       - id: ruff
@@ -33,7 +33,7 @@ repos:
         exclude: \.lock$|\.csv$
 
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.4.1
+    rev: v2.4.2
     hooks:
       - id: codespell
         args: [--skip, "*.lock,*.json,*.csv"]
